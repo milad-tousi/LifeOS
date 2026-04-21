@@ -2,6 +2,8 @@
 
 LifeOS is a lightweight local-first personal life management app built for offline use from the start. This MVP foundation focuses on a clean frontend architecture, small bundle size, and simple on-device data storage.
 
+The project is intentionally runnable from the repository root. There is no nested app directory for the MVP.
+
 ## Local-first architecture
 
 LifeOS uses IndexedDB through Dexie as the local source of truth. There is no backend, no cloud sync, and no API dependency in the MVP. The app is designed to remain fast, private, and usable without an internet connection.
@@ -47,6 +49,14 @@ npm install
 Start the development server:
 
 ```bash
+npm run dev
+```
+
+Run both commands from the root directory:
+
+```bash
+cd lifeos
+npm install
 npm run dev
 ```
 
