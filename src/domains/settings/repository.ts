@@ -6,7 +6,10 @@ export const settingsRepository = {
     return db.settings.orderBy("updatedAt").reverse().toArray();
   },
   async upsert(setting: AppSetting): Promise<string> {
-    await db.settings.put(setting);
-    return setting.id;
+    await db.settings.put({
+      ...setting,
+      updatedAt: Date.now(),
+    });
+    return setting.key;
   },
 };

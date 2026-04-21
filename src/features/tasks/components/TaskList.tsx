@@ -22,7 +22,7 @@ export function TaskList({ tasks }: TaskListProps): JSX.Element {
         {tasks.map((task) => (
           <div key={task.id} className="page-list__item">
             <strong>{task.title}</strong>
-            <span className="text-muted">{task.completed ? "Done" : "Open"}</span>
+            <span className="text-muted">{task.status}</span>
           </div>
         ))}
       </div>

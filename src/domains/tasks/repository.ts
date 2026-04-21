@@ -7,12 +7,15 @@ export const tasksRepository = {
     return db.tasks.orderBy("createdAt").reverse().toArray();
   },
   async add(input: CreateTaskInput): Promise<string> {
-    const task = createTaskModel(input.title, input.scheduledAt);
+    const task = createTaskModel(input);
     await db.tasks.add(task);
     return task.id;
   },
   async update(task: Task): Promise<string> {
-    await db.tasks.put(task);
+    await db.tasks.put({
+      ...task,
+      updatedAt: Date.now(),
+    });
     return task.id;
   },
   async remove(id: string): Promise<void> {

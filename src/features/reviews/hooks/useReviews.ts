@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, DailyReview } from "@/db/dexie";
+import { DailyReview, db } from "@/db/dexie";
 
 export interface UseReviewsResult {
   reviews: DailyReview[];

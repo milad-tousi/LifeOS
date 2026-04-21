@@ -6,6 +6,7 @@ export function createExpenseModel(amount: number, category: string): Expense {
     id: createId(),
     amount,
     category,
-    date: Date.now(),
+    expenseDate: new Date().toISOString().slice(0, 10),
+    createdAt: Date.now(),
   };
 }

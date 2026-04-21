@@ -1,12 +1,27 @@
+import { EntityId, ISODateString, TimestampMs } from "@/types/shared.types";
+
+export type TaskStatus = "pending" | "completed" | "cancelled";
+export type TaskPriority = "low" | "medium" | "high";
+
 export interface Task {
-  id: string;
+  id: EntityId;
   title: string;
-  completed: boolean;
-  createdAt: number;
-  scheduledAt?: number;
+  notes?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  category?: string;
+  scheduledDate?: ISODateString;
+  scheduledAt?: TimestampMs;
+  completedAt?: TimestampMs;
+  createdAt: TimestampMs;
+  updatedAt: TimestampMs;
 }
 
 export interface CreateTaskInput {
   title: string;
-  scheduledAt?: number;
+  notes?: string;
+  priority?: TaskPriority;
+  category?: string;
+  scheduledDate?: ISODateString;
+  scheduledAt?: TimestampMs;
 }

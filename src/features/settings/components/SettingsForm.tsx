@@ -8,17 +8,15 @@ interface SettingsFormProps {
 export function SettingsForm({ settings }: SettingsFormProps): JSX.Element {
   return (
     <Card title="Settings" subtitle="Local preferences and future device-specific options">
-      <p className="muted" style={{ marginTop: 0 }}>
-        Store only what the app truly needs. Compact keys and plain values are preferred.
-      </p>
-      <div className="stack">
+      <p className="text-muted">Store only what the app truly needs. Compact values are preferred.</p>
+      <div className="page-list">
         {settings.length === 0 ? (
-          <span className="muted">No persisted settings yet.</span>
+          <span className="text-muted">No persisted settings yet.</span>
         ) : (
           settings.map((setting) => (
-            <div key={setting.id} className="row">
+            <div key={setting.key} className="page-list__item">
               <strong>{setting.key}</strong>
-              <span className="muted">{setting.value}</span>
+              <span className="text-muted">{formatSettingValue(setting.value)}</span>
             </div>
           ))
         )}
@@ -27,3 +25,18 @@ export function SettingsForm({ settings }: SettingsFormProps): JSX.Element {
   );
 }
 
+function formatSettingValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (value == null) {
+    return "";
+  }
+
+  return JSON.stringify(value);
+}

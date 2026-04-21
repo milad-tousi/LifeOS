@@ -1,12 +1,19 @@
 import { createId } from "@/lib/id";
-import { Task } from "@/domains/tasks/types";
+import { CreateTaskInput, Task } from "@/domains/tasks/types";
 
-export function createTaskModel(title: string, scheduledAt?: number): Task {
+export function createTaskModel(input: CreateTaskInput): Task {
+  const timestamp = Date.now();
+
   return {
     id: createId(),
-    title,
-    completed: false,
-    createdAt: Date.now(),
-    scheduledAt,
+    title: input.title,
+    notes: input.notes,
+    status: "pending",
+    priority: input.priority ?? "medium",
+    category: input.category,
+    scheduledDate: input.scheduledDate,
+    scheduledAt: input.scheduledAt,
+    createdAt: timestamp,
+    updatedAt: timestamp,
   };
 }

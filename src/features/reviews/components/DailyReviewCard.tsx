@@ -21,8 +21,8 @@ export function DailyReviewCard({ reviews }: DailyReviewCardProps): JSX.Element 
       <div className="page-list">
         {reviews.map((review) => (
           <div key={review.id} className="page-list__item">
-            <strong>{new Date(review.date).toLocaleDateString()}</strong>
-            <span className="text-muted">{review.text}</span>
+            <strong>{review.date}</strong>
+            <span className="text-muted">{review.summary ?? "No summary"}</span>
           </div>
         ))}
       </div>

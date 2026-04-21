@@ -1,13 +1,11 @@
 export type EntityId = string;
 export type ISODateString = string;
+export type TimestampMs = number;
 
-export interface BaseEntity {
-  id: EntityId;
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+export interface TimestampedRecord {
+  createdAt: TimestampMs;
 }
 
-export interface RepositoryListOptions {
-  limit?: number;
+export interface MutableTimestampedRecord extends TimestampedRecord {
+  updatedAt: TimestampMs;
 }
-

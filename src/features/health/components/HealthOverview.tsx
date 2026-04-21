@@ -21,8 +21,8 @@ export function HealthOverview({ logs }: HealthOverviewProps): JSX.Element {
       <div className="page-list">
         {logs.map((log) => (
           <div key={log.id} className="page-list__item">
-            <strong>{log.metric}</strong>
-            <span className="text-muted">{log.value}</span>
+            <strong>{log.date}</strong>
+            <span className="text-muted">{log.mood ?? "No mood"}</span>
           </div>
         ))}
       </div>

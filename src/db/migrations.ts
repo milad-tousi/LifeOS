@@ -1,16 +1,11 @@
-import { Table } from "dexie";
+import { Dexie } from "dexie";
+import { DB_VERSION_1, schemaV1 } from "@/db/schema";
 
-export interface DailyReviewRecord {
-  id: string;
-  reviewedOn: string;
-  summary: string;
-  createdAt: string;
-  updatedAt: string;
+export function registerDatabaseMigrations(database: Dexie): void {
+  database.version(DB_VERSION_1).stores(schemaV1);
+
+  // Future schema upgrades should be registered here:
+  // database.version(2).stores(schemaV2).upgrade(async (transaction) => {
+  //   // migration logic
+  // });
 }
-
-export function applyMigrations(): {
-  dailyReviews?: Table<DailyReviewRecord, string>;
-} {
-  return {};
-}
-

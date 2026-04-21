@@ -1,15 +1,24 @@
+import { EntityId, ISODateString, TimestampMs } from "@/types/shared.types";
+
 export type HabitFrequency = "daily" | "weekly";
 
 export interface Habit {
-  id: string;
+  id: EntityId;
   name: string;
+  description?: string;
   frequency: HabitFrequency;
-  createdAt: number;
+  targetPerPeriod: number;
+  category?: string;
+  color?: string;
+  isArchived: boolean;
+  createdAt: TimestampMs;
+  updatedAt: TimestampMs;
 }
 
 export interface HabitLog {
-  id: string;
-  habitId: string;
-  date: number;
-  value?: number;
+  id: EntityId;
+  habitId: EntityId;
+  date: ISODateString;
+  value: number;
+  createdAt: TimestampMs;
 }

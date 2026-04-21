@@ -24,7 +24,7 @@ export function ExpenseList({ expenses }: ExpenseListProps): JSX.Element {
           <div key={expense.id} className="page-list__item">
             <div>
               <strong>{expense.category}</strong>
-              <div className="text-muted">{new Date(expense.date).toLocaleDateString()}</div>
+              <div className="text-muted">{expense.expenseDate}</div>
             </div>
             <strong>{formatCurrency(expense.amount)}</strong>
           </div>

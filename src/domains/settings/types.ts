@@ -1,6 +1,7 @@
+import { TimestampMs } from "@/types/shared.types";
+
 export interface AppSetting {
-  id: string;
   key: string;
-  value: string;
-  updatedAt: number;
+  value: unknown;
+  updatedAt: TimestampMs;
 }

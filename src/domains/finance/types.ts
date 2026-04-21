@@ -1,6 +1,10 @@
+import { EntityId, ISODateString, TimestampMs } from "@/types/shared.types";
+
 export interface Expense {
-  id: string;
+  id: EntityId;
   amount: number;
   category: string;
-  date: number;
+  note?: string;
+  expenseDate: ISODateString;
+  createdAt: TimestampMs;
 }

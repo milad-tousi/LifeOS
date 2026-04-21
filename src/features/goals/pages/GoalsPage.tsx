@@ -10,7 +10,7 @@ export function GoalsPage(): JSX.Element {
     <>
       <ScreenHeader
         title="Goals"
-        description="Goal records stay compact with progress and target values."
+        description="Goal records stay compact while supporting status and deadline-driven UI."
       />
       <Card title="Goal list">
         {loading ? (
@@ -27,7 +27,7 @@ export function GoalsPage(): JSX.Element {
                 <div>
                   <strong>{goal.title}</strong>
                   <div className="text-muted">
-                    {goal.progress} / {goal.target}
+                    {goal.currentValue} / {goal.targetValue ?? "?"}
                   </div>
                 </div>
                 <span className="text-muted">{goal.status}</span>

@@ -3,6 +3,7 @@ import { Card } from "@/components/common/Card";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
 import { tasksRepository } from "@/domains/tasks/repository";
+import { formatDate } from "@/lib/date";
 import { log } from "@/utils/logger";
 import { useTasks } from "@/features/tasks/hooks/useTasks";
 
@@ -27,7 +28,7 @@ export function TasksPage(): JSX.Element {
     <>
       <ScreenHeader
         title="Tasks"
-        description="Simple offline task storage with Dexie live updates."
+        description="Compact task records with efficient date and status indexing."
       />
       <Button onClick={() => void handleAddTask()}>Add Task</Button>
       <Card title="Task list">
@@ -44,11 +45,9 @@ export function TasksPage(): JSX.Element {
               <div key={task.id} className="page-list__item">
                 <div>
                   <strong>{task.title}</strong>
-                  <div className="text-muted">
-                    Created {new Date(task.createdAt).toLocaleDateString()}
-                  </div>
+                  <div className="text-muted">Created {formatDate(task.createdAt)}</div>
                 </div>
-                <span>{task.completed ? "Done" : "Open"}</span>
+                <span>{task.status}</span>
               </div>
             ))}
           </div>
