@@ -1,0 +1,22 @@
+:root {
+  color-scheme: light dark;
+  --background: #f7f8fb;
+  --surface: #ffffff;
+  --primary: #2563eb;
+  --accent: #10b981;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="dark"] {
+  --background: #0f172a;
+  --surface: #111827;
+  --primary: #60a5fa;
+  --accent: #34d399;
+  --text: #f3f4f6;
+  --muted: #94a3b8;
+  --border: #1f2937;
+  --shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+}

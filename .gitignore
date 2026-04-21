@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+.env.local
+.env.*.local
+coverage/
+.vite/
+*.log
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+capacitor.config.ts
