@@ -2,18 +2,23 @@
   color-scheme: light dark;
   --background: #f7f8fb;
   --surface: #ffffff;
+  --surface-hover: #f5f8ff;
   --primary: #2563eb;
+  --primary-soft: rgba(37, 99, 235, 0.1);
   --accent: #10b981;
   --text: #111827;
   --muted: #6b7280;
   --border: #e5e7eb;
   --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.06);
 }
 
 :root[data-theme="dark"] {
   --background: #0f172a;
   --surface: #111827;
+  --surface-hover: #182236;
   --primary: #60a5fa;
+  --primary-soft: rgba(96, 165, 250, 0.14);
   --accent: #34d399;
   --text: #f3f4f6;
   --muted: #94a3b8;

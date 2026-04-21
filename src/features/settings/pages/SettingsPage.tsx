@@ -1,28 +1,43 @@
-import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
-import { AppState, useAppStore } from "@/state/app.store";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useOnboarding } from "@/features/onboarding/hooks/useOnboarding";
+import { SettingsAccount } from "@/features/settings/components/SettingsAccount";
+import { SettingsAppearance } from "@/features/settings/components/SettingsAppearance";
+import { SettingsDangerZone } from "@/features/settings/components/SettingsDangerZone";
 
 export function SettingsPage(): JSX.Element {
-  const theme = useAppStore((state: AppState) => state.theme);
-  const toggleTheme = useAppStore((state: AppState) => state.toggleTheme);
+  const navigate = useNavigate();
+  const { isLoading, logout, terminateAccount } = useAuth();
+  const { resetOnboarding } = useOnboarding();
+
+  async function handleLogout(): Promise<void> {
+    await logout();
+    resetOnboarding();
+    navigate("/login", { replace: true });
+  }
+
+  async function handleTerminateAccount(): Promise<void> {
+    await terminateAccount();
+    resetOnboarding();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <>
       <ScreenHeader
         title="Settings"
-        description="Settings start with a lightweight local theme preference."
+        description="Manage appearance, local account access, and device-only actions."
       />
       <Card title="Appearance">
-        <div className="page-list">
-          <div className="page-list__item">
-            <span>Theme</span>
-            <strong>{theme}</strong>
-          </div>
-        </div>
-        <Button variant="secondary" onClick={toggleTheme}>
-          Toggle Theme
-        </Button>
+        <SettingsAppearance />
+      </Card>
+      <Card title="Account">
+        <SettingsAccount isLoading={isLoading} onLogout={handleLogout} />
+      </Card>
+      <Card title="Danger Zone">
+        <SettingsDangerZone isLoading={isLoading} onTerminate={handleTerminateAccount} />
       </Card>
     </>
   );

@@ -1,19 +1,41 @@
-import { Button } from "@/components/common/Button";
-import { AppState, useAppStore } from "@/state/app.store";
+import { Bell, Menu } from "lucide-react";
+import { PageGreeting } from "@/components/layout/PageGreeting";
 
-export function TopBar(): JSX.Element {
-  const theme = useAppStore((state: AppState) => state.theme);
-  const toggleTheme = useAppStore((state: AppState) => state.toggleTheme);
+interface TopBarProps {
+  isDesktop: boolean;
+  isSidebarHidden: boolean;
+  isMobileMenuOpen: boolean;
+  onMenuClick: () => void;
+}
+
+export function TopBar({
+  isDesktop,
+  isMobileMenuOpen,
+  isSidebarHidden,
+  onMenuClick,
+}: TopBarProps): JSX.Element {
+  const showMenuButton = !isDesktop || isSidebarHidden;
 
   return (
     <header className="topbar">
-      <div>
-        <div className="topbar__eyebrow">Local-first personal system</div>
-        <h1 className="topbar__title">LifeOS</h1>
+      <div className="topbar__left">
+        {showMenuButton ? (
+          <button
+            aria-expanded={!isDesktop ? isMobileMenuOpen : undefined}
+            aria-label="Open navigation menu"
+            className="icon-button"
+            onClick={onMenuClick}
+            type="button"
+          >
+            <Menu size={20} />
+          </button>
+        ) : null}
+        <PageGreeting />
       </div>
-      <Button variant="ghost" onClick={toggleTheme}>
-        {theme === "light" ? "Dark" : "Light"}
-      </Button>
+
+      <button aria-label="Notifications" className="icon-button" type="button">
+        <Bell size={18} />
+      </button>
     </header>
   );
 }
