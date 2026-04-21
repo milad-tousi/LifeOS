@@ -3,6 +3,7 @@ export const DB_VERSION_1 = 1;
 export const DB_VERSION_2 = 2;
 export const DB_VERSION_3 = 3;
 export const DB_VERSION_4 = 4;
+export const DB_VERSION_5 = 5;
 
 export const TABLES = {
   authUsers: "authUsers",
@@ -49,4 +50,11 @@ export const schemaV4 = {
   [TABLES.userPreferences]: "id, updatedAt",
   [TABLES.onboardingStates]:
     "id, userId, started, completed, skipped, currentStep, updatedAt",
+} as const;
+
+export const schemaV5 = {
+  ...schemaV4,
+  [TABLES.tasks]:
+    "id, goalId, status, scheduledDate, createdAt, [scheduledDate+status], [goalId+status]",
+  [TABLES.goals]: "id, status, category, deadline, createdAt, [status+deadline]",
 } as const;

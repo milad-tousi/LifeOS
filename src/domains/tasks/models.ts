@@ -11,6 +11,7 @@ export function createTaskModel(input: CreateTaskInput): Task {
     status: "pending",
     priority: input.priority ?? "medium",
     category: input.category,
+    goalId: input.goalId,
     scheduledDate: input.scheduledDate,
     scheduledAt: input.scheduledAt,
     createdAt: timestamp,

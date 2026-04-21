@@ -3,11 +3,13 @@ import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
+import { CreateGoalPage } from "@/features/goals/pages/CreateGoalPage";
+import { GoalDetailPage } from "@/features/goals/pages/GoalDetailPage";
+import { GoalsPage } from "@/features/goals/pages/GoalsPage";
 import { OnboardingPage } from "@/features/onboarding/pages/OnboardingPage";
 import { SignupPage } from "@/features/onboarding/pages/SignupPage";
 import { TasksPage } from "@/features/tasks/pages/TasksPage";
 import { HabitsPage } from "@/features/habits/pages/HabitsPage";
-import { GoalsPage } from "@/features/goals/pages/GoalsPage";
 import { FinancePage } from "@/features/finance/pages/FinancePage";
 import { HealthPage } from "@/features/health/pages/HealthPage";
 import { ReviewsPage } from "@/features/reviews/pages/ReviewsPage";
@@ -39,6 +41,8 @@ export function AppRoutes(): JSX.Element {
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/goals" element={<GoalsPage />} />
+        <Route path="/goals/new" element={<CreateGoalPage />} />
+        <Route path="/goals/:goalId" element={<GoalDetailPage />} />
         <Route path="/finance" element={<FinancePage />} />
         <Route path="/health" element={<HealthPage />} />
         <Route path="/reviews" element={<ReviewsPage />} />

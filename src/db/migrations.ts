@@ -4,10 +4,12 @@ import {
   DB_VERSION_2,
   DB_VERSION_3,
   DB_VERSION_4,
+  DB_VERSION_5,
   schemaV1,
   schemaV2,
   schemaV3,
   schemaV4,
+  schemaV5,
 } from "@/db/schema";
 
 export function registerDatabaseMigrations(database: Dexie): void {
@@ -20,6 +22,9 @@ export function registerDatabaseMigrations(database: Dexie): void {
   });
   database.version(DB_VERSION_4).stores(schemaV4).upgrade(() => {
     // Version 4 switches local auth identity to email and expands onboarding state flags.
+  });
+  database.version(DB_VERSION_5).stores(schemaV5).upgrade(() => {
+    // Version 5 adds goal-linked task indexes and richer goal categorization fields.
   });
 
   // Future schema upgrades should be registered here.

@@ -10,6 +10,7 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   category?: string;
+  goalId?: EntityId;
   scheduledDate?: ISODateString;
   scheduledAt?: TimestampMs;
   completedAt?: TimestampMs;
@@ -22,6 +23,7 @@ export interface CreateTaskInput {
   notes?: string;
   priority?: TaskPriority;
   category?: string;
+  goalId?: EntityId;
   scheduledDate?: ISODateString;
   scheduledAt?: TimestampMs;
 }

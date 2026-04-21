@@ -1,14 +1,18 @@
 import { createId } from "@/lib/id";
-import { Goal } from "@/domains/goals/types";
+import { CreateGoalInput, Goal } from "@/domains/goals/types";
 
-export function createGoalModel(title: string): Goal {
+export function createGoalModel(input: CreateGoalInput): Goal {
   const timestamp = Date.now();
 
   return {
     id: createId(),
-    title,
+    title: input.title,
+    description: input.description,
+    category: input.category,
     status: "active",
-    currentValue: 0,
+    priority: input.priority,
+    pace: input.pace,
+    deadline: input.deadline,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
