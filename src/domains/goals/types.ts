@@ -4,6 +4,8 @@ export type GoalStatus = "active" | "paused" | "completed" | "archived";
 export type GoalCategory = "health" | "finance" | "career" | "learning" | "lifestyle";
 export type GoalPriority = "low" | "medium" | "high";
 export type GoalPace = "gentle" | "balanced" | "ambitious";
+export type GoalTargetType = "none" | "count" | "binary" | "milestone" | "percentage";
+export type GoalProgressType = "tasks" | "subtasks" | "manual" | "target";
 
 export interface Goal {
   id: EntityId;
@@ -13,6 +15,12 @@ export interface Goal {
   status: GoalStatus;
   priority: GoalPriority;
   pace: GoalPace;
+  targetType: GoalTargetType;
+  targetValue?: number | null;
+  currentValue?: number | null;
+  progressType: GoalProgressType;
+  manualProgress?: number | null;
+  notes?: string;
   deadline?: ISODateString;
   createdAt: TimestampMs;
   updatedAt: TimestampMs;
@@ -24,5 +32,11 @@ export interface CreateGoalInput {
   category: GoalCategory;
   priority: GoalPriority;
   pace: GoalPace;
+  targetType?: GoalTargetType;
+  targetValue?: number | null;
+  currentValue?: number | null;
+  progressType?: GoalProgressType;
+  manualProgress?: number | null;
+  notes?: string;
   deadline?: ISODateString;
 }

@@ -1,4 +1,5 @@
 import { db, ensureDatabaseReady } from "@/db/dexie";
+import { normalizeGoal, normalizeGoalInput } from "@/domains/goals/goal.utils";
 import { createGoalModel } from "@/domains/goals/models";
 import { CreateGoalInput, Goal, GoalStatus } from "@/domains/goals/types";
 import { tasksRepository } from "@/domains/tasks/repository";
@@ -6,11 +7,13 @@ import { tasksRepository } from "@/domains/tasks/repository";
 export const goalsRepository = {
   async getAll(): Promise<Goal[]> {
     await ensureDatabaseReady();
-    return db.goals.orderBy("createdAt").reverse().toArray();
+    const goals = await db.goals.orderBy("createdAt").reverse().toArray();
+    return goals.map(normalizeGoal);
   },
   async getById(goalId: string): Promise<Goal | undefined> {
     await ensureDatabaseReady();
-    return db.goals.get(goalId);
+    const goal = await db.goals.get(goalId);
+    return goal ? normalizeGoal(goal) : undefined;
   },
   async add(input: CreateGoalInput): Promise<string> {
     await ensureDatabaseReady();
@@ -18,7 +21,7 @@ export const goalsRepository = {
     await db.goals.add(goal);
     return goal.id;
   },
-  async update(goalId: string, patch: Partial<Omit<Goal, "id" | "createdAt">>): Promise<string> {
+  async update(goalId: string, patch: Partial<Omit<Goal, "id" | "createdAt">>): Promise<Goal> {
     await ensureDatabaseReady();
     const goal = await db.goals.get(goalId);
 
@@ -26,14 +29,30 @@ export const goalsRepository = {
       throw new Error("Goal not found.");
     }
 
-    const updatedGoal: Goal = {
-      ...goal,
-      ...patch,
+    const updatedGoal = normalizeGoal({
+      ...normalizeGoal(goal),
+      ...normalizeGoalInput({
+        title: patch.title ?? goal.title,
+        description: patch.description ?? goal.description,
+        category: patch.category ?? goal.category,
+        priority: patch.priority ?? goal.priority,
+        pace: patch.pace ?? goal.pace,
+        deadline: patch.deadline ?? goal.deadline,
+        progressType: patch.progressType ?? goal.progressType,
+        targetType: patch.targetType ?? goal.targetType,
+        targetValue: patch.targetValue ?? goal.targetValue,
+        currentValue: patch.currentValue ?? goal.currentValue,
+        manualProgress: patch.manualProgress ?? goal.manualProgress,
+        notes: patch.notes ?? goal.notes,
+      }),
+      status: patch.status ?? goal.status,
       updatedAt: Date.now(),
-    };
+      createdAt: goal.createdAt,
+      id: goal.id,
+    });
 
     await db.goals.put(updatedGoal);
-    return updatedGoal.id;
+    return updatedGoal;
   },
   async remove(id: string): Promise<void> {
     await ensureDatabaseReady();
@@ -41,13 +60,13 @@ export const goalsRepository = {
     await Promise.all(linkedTasks.map((task) => tasksRepository.unlinkTaskFromGoal(task.id)));
     await db.goals.delete(id);
   },
-  async archive(goalId: string): Promise<string> {
+  async archive(goalId: string): Promise<Goal> {
     return this.update(goalId, { status: "archived" });
   },
-  async pause(goalId: string): Promise<string> {
+  async pause(goalId: string): Promise<Goal> {
     return this.update(goalId, { status: "paused" });
   },
-  async complete(goalId: string): Promise<string> {
+  async complete(goalId: string): Promise<Goal> {
     const linkedTasks = await tasksRepository.getByGoalId(goalId);
     const hasValidTasks = linkedTasks.some((task) => task.status !== "cancelled");
 
@@ -57,7 +76,7 @@ export const goalsRepository = {
 
     return this.update(goalId, { status: "completed" });
   },
-  async setStatus(goalId: string, status: GoalStatus): Promise<string> {
+  async setStatus(goalId: string, status: GoalStatus): Promise<Goal> {
     return this.update(goalId, { status });
   },
 };

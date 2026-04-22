@@ -39,7 +39,7 @@ export const tasksRepository = {
     const tasks = await db.tasks.where("goalId").equals(goalId).sortBy("createdAt");
     return tasks.map(normalizeTask);
   },
-  async add(input: CreateTaskInput): Promise<string> {
+  async add(input: CreateTaskInput): Promise<Task> {
     await ensureDatabaseReady();
     const task = createTaskModel(input);
     await db.tasks.add(task);
@@ -48,34 +48,39 @@ export const tasksRepository = {
       await syncGoalStatus(task.goalId);
     }
 
-    return task.id;
+    return task;
   },
-  async addTaskToGoal(goalId: string, input: CreateTaskInput): Promise<string> {
+  async addTaskToGoal(goalId: string, input: CreateTaskInput): Promise<Task> {
     return this.add({
       ...input,
       goalId,
     });
   },
-  async update(task: Task): Promise<string> {
+  async update(task: Task): Promise<Task> {
     await ensureDatabaseReady();
+    const existingTask = await db.tasks.get(task.id);
     const normalizedTask = normalizeTask(task);
     await db.tasks.put({
       ...normalizedTask,
       updatedAt: Date.now(),
     });
 
+    if (existingTask?.goalId && existingTask.goalId !== normalizedTask.goalId) {
+      await syncGoalStatus(existingTask.goalId);
+    }
+
     if (normalizedTask.goalId) {
       await syncGoalStatus(normalizedTask.goalId);
     }
 
-    return normalizedTask.id;
+    return normalizedTask;
   },
-  async toggleTaskComplete(taskId: string): Promise<void> {
+  async toggleTaskComplete(taskId: string): Promise<Task | undefined> {
     await ensureDatabaseReady();
     const task = await db.tasks.get(taskId);
 
     if (!task) {
-      return;
+      return undefined;
     }
 
     const normalizedTask = normalizeTask(task);
@@ -92,6 +97,8 @@ export const tasksRepository = {
     if (task.goalId) {
       await syncGoalStatus(task.goalId);
     }
+
+    return updatedTask;
   },
   async unlinkTaskFromGoal(taskId: string): Promise<void> {
     await ensureDatabaseReady();
@@ -113,7 +120,7 @@ export const tasksRepository = {
       await syncGoalStatus(normalizedTask.goalId);
     }
   },
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<Task | undefined> {
     await ensureDatabaseReady();
     const task = await db.tasks.get(id);
     await db.tasks.delete(id);
@@ -121,6 +128,8 @@ export const tasksRepository = {
     if (task?.goalId) {
       await syncGoalStatus(task.goalId);
     }
+
+    return task ? normalizeTask(task) : undefined;
   },
   reorderGoalTasks(): void {
     taskLogger.info("goal task reordering is skipped for MVP because task ordering is not stored");

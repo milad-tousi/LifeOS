@@ -1,4 +1,9 @@
-import { CalendarDays, Flag, Gauge, Tag } from "lucide-react";
+import { CalendarDays, Flag, Gauge, NotebookText, Tag, Target } from "lucide-react";
+import {
+  getGoalNotesPreview,
+  getGoalProgressModeLabel,
+  getGoalTargetSummary,
+} from "@/domains/goals/goal.utils";
 import { Goal } from "@/domains/goals/types";
 
 interface GoalHeaderProps {
@@ -6,6 +11,10 @@ interface GoalHeaderProps {
 }
 
 export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
+  const notesPreview = getGoalNotesPreview(goal);
+  const targetSummary = getGoalTargetSummary(goal);
+  const progressLabel = getGoalProgressModeLabel(goal);
+
   return (
     <header className="goal-detail-header">
       <div className="goal-detail-header__copy">
@@ -34,6 +43,34 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
             <CalendarDays size={16} />
             {goal.deadline}
           </span>
+        ) : null}
+      </div>
+
+      <div className="goal-detail-header__summary">
+        <div className="goal-detail-header__summary-item">
+          <span className="goal-detail-header__summary-label">Progress</span>
+          <span className="goal-detail-header__summary-value">
+            <Gauge size={16} />
+            {progressLabel}
+          </span>
+        </div>
+        {targetSummary ? (
+          <div className="goal-detail-header__summary-item">
+            <span className="goal-detail-header__summary-label">Target</span>
+            <span className="goal-detail-header__summary-value">
+              <Target size={16} />
+              {targetSummary}
+            </span>
+          </div>
+        ) : null}
+        {notesPreview ? (
+          <div className="goal-detail-header__summary-item goal-detail-header__summary-item--notes">
+            <span className="goal-detail-header__summary-label">Notes</span>
+            <span className="goal-detail-header__summary-notes">
+              <NotebookText size={16} />
+              {notesPreview}
+            </span>
+          </div>
         ) : null}
       </div>
     </header>

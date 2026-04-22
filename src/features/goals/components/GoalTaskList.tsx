@@ -1,13 +1,36 @@
-import { CalendarDays, CheckCircle2, Circle, CircleDashed, Clock3, Link2, ListChecks, XCircle } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Circle,
+  CircleDashed,
+  Clock3,
+  Link2,
+  ListChecks,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import { EmptyState } from "@/components/common/EmptyState";
-import { tasksRepository } from "@/domains/tasks/repository";
 import { Task } from "@/domains/tasks/types";
 
 interface GoalTaskListProps {
   tasks: Task[];
+  onDeleteTask: (task: Task) => void;
+  onEditTask: (task: Task) => void;
+  onToggleTask: (task: Task) => void;
+  recentTaskId?: string | null;
+  recentTaskTone?: "created" | "updated" | null;
+  deletingTaskId?: string | null;
 }
 
-export function GoalTaskList({ tasks }: GoalTaskListProps): JSX.Element {
+export function GoalTaskList({
+  deletingTaskId = null,
+  onDeleteTask,
+  onEditTask,
+  onToggleTask,
+  recentTaskId = null,
+  recentTaskTone = null,
+  tasks,
+}: GoalTaskListProps): JSX.Element {
   if (tasks.length === 0) {
     return (
       <EmptyState
@@ -20,53 +43,91 @@ export function GoalTaskList({ tasks }: GoalTaskListProps): JSX.Element {
   return (
     <div className="goal-task-list">
       {tasks.map((task) => (
-        <div className="goal-task-list__item" key={task.id}>
+        <article
+          className={[
+            "goal-task-list__item",
+            deletingTaskId === task.id ? "goal-task-list__item--deleting" : "",
+            recentTaskId === task.id && recentTaskTone === "created"
+              ? "goal-task-list__item--created"
+              : "",
+            recentTaskId === task.id && recentTaskTone === "updated"
+              ? "goal-task-list__item--updated"
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          key={task.id}
+        >
           <button
             aria-label={`Toggle ${task.title}`}
             className="goal-task-list__toggle"
-            onClick={() => void tasksRepository.toggleTaskComplete(task.id)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleTask(task);
+            }}
             type="button"
           >
             {renderTaskStatusIcon(task.status)}
           </button>
 
-          <div className="goal-task-list__content">
-            <strong
-              className={
-                task.status === "done"
-                  ? "goal-task-list__title goal-task-list__title--completed"
-                  : "goal-task-list__title"
-              }
-            >
-              {task.title}
-            </strong>
-            <div className="goal-task-list__meta">
-              {task.dueDate ?? task.scheduledDate ? (
+          <button
+            aria-label={`Edit ${task.title}`}
+            className="goal-task-list__content-button"
+            onClick={() => onEditTask(task)}
+            type="button"
+          >
+            <div className="goal-task-list__content">
+              <strong
+                className={
+                  task.status === "done"
+                    ? "goal-task-list__title goal-task-list__title--completed"
+                    : "goal-task-list__title"
+                }
+              >
+                {task.title}
+              </strong>
+              <div className="goal-task-list__meta">
+                {task.dueDate ?? task.scheduledDate ? (
+                  <span>
+                    <CalendarDays size={14} />
+                    {task.dueDate ?? task.scheduledDate}
+                  </span>
+                ) : null}
                 <span>
-                  <CalendarDays size={14} />
-                  {task.dueDate ?? task.scheduledDate}
+                  <Clock3 size={14} />
+                  {task.priority}
                 </span>
-              ) : null}
-              <span>
-                <Clock3 size={14} />
-                {task.priority}
-              </span>
-              {task.sources.length > 0 ? (
-                <span>
-                  <Link2 size={14} />
-                  {task.sources.length} source{task.sources.length === 1 ? "" : "s"}
-                </span>
-              ) : null}
-              {task.subtaskProgress.total > 0 ? (
-                <span>
-                  <ListChecks size={14} />
-                  {task.subtaskProgress.completed}/{task.subtaskProgress.total} subtasks
-                </span>
+                {task.sources.length > 0 ? (
+                  <span>
+                    <Link2 size={14} />
+                    {task.sources.length} source{task.sources.length === 1 ? "" : "s"}
+                  </span>
+                ) : null}
+                {task.subtaskProgress.total > 0 ? (
+                  <span>
+                    <ListChecks size={14} />
+                    {task.subtaskProgress.completed}/{task.subtaskProgress.total} subtasks
+                  </span>
+                ) : null}
+              </div>
+              {task.description ? (
+                <p className="goal-task-list__description">{task.description}</p>
               ) : null}
             </div>
-            {task.description ? <p className="goal-task-list__description">{task.description}</p> : null}
-          </div>
-        </div>
+          </button>
+
+          <button
+            aria-label={`Delete task ${task.title}`}
+            className="goal-task-list__delete"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDeleteTask(task);
+            }}
+            type="button"
+          >
+            <Trash2 size={16} />
+          </button>
+        </article>
       ))}
     </div>
   );

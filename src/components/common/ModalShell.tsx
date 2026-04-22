@@ -33,6 +33,11 @@ export function ModalShell({
   const titleId = useId();
   const descriptionId = useId();
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const onRequestCloseRef = useRef(onRequestClose);
+
+  useEffect(() => {
+    onRequestCloseRef.current = onRequestClose;
+  }, [onRequestClose]);
 
   const portalTarget = useMemo(() => {
     if (typeof document === "undefined") {
@@ -75,7 +80,7 @@ export function ModalShell({
     function handleKeyDown(event: KeyboardEvent): void {
       if (event.key === "Escape") {
         event.preventDefault();
-        onRequestClose();
+        onRequestCloseRef.current();
         return;
       }
 
@@ -112,7 +117,7 @@ export function ModalShell({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onRequestClose]);
+  }, [isOpen]);
 
   if (!isOpen || !portalTarget) {
     return null;

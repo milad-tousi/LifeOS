@@ -3,12 +3,14 @@ interface GoalProgressProps {
   total: number;
   percent: number;
   large?: boolean;
+  summaryText?: string;
 }
 
 export function GoalProgress({
   completed,
   large = false,
   percent,
+  summaryText,
   total,
 }: GoalProgressProps): JSX.Element {
   return (
@@ -16,7 +18,7 @@ export function GoalProgress({
       <div className="goal-progress__meta">
         <span className="goal-progress__percent">{percent}%</span>
         <span className="goal-progress__text">
-          {total > 0 ? `${completed} of ${total} tasks completed` : "No steps yet"}
+          {summaryText ?? (total > 0 ? `${completed} of ${total} tasks completed` : "No steps yet")}
         </span>
       </div>
       <div className="goal-progress__track">

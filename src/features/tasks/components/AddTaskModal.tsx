@@ -4,18 +4,29 @@ import { Button } from "@/components/common/Button";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { ModalShell } from "@/components/common/ModalShell";
 import { tasksRepository } from "@/domains/tasks/repository";
-import { CreateTaskInput, TaskPriority, TaskSource, TaskStatus, TaskSubtask } from "@/domains/tasks/types";
+import {
+  CreateTaskInput,
+  Task,
+  TaskPriority,
+  TaskSource,
+  TaskStatus,
+  TaskSubtask,
+} from "@/domains/tasks/types";
+import { normalizeTask } from "@/domains/tasks/task.utils";
 import { TaskSourcesEditor } from "@/features/tasks/components/TaskSourcesEditor";
 import { SubtasksEditor } from "@/features/tasks/components/SubtasksEditor";
 
-interface AddTaskModalProps {
+interface TaskModalProps {
   isOpen: boolean;
+  mode?: "create" | "edit";
   goalId?: string;
   goalTitle?: string;
+  initialTask?: Task | null;
+  onSaved?: (task: Task) => void;
   onClose: () => void;
 }
 
-interface AddTaskFormState {
+interface TaskFormState {
   title: string;
   description: string;
   status: TaskStatus;
@@ -26,7 +37,7 @@ interface AddTaskFormState {
   subtasks: TaskSubtask[];
 }
 
-const DEFAULT_FORM_STATE: AddTaskFormState = {
+const DEFAULT_FORM_STATE: TaskFormState = {
   title: "",
   description: "",
   status: "todo",
@@ -37,7 +48,7 @@ const DEFAULT_FORM_STATE: AddTaskFormState = {
   subtasks: [],
 };
 
-function sanitizeFormState(formState: AddTaskFormState): AddTaskFormState {
+function sanitizeFormState(formState: TaskFormState): TaskFormState {
   return {
     ...formState,
     title: formState.title.trim(),
@@ -58,7 +69,7 @@ function sanitizeFormState(formState: AddTaskFormState): AddTaskFormState {
   };
 }
 
-function getInitialTaskFormState(): AddTaskFormState {
+function createEmptyTaskFormState(): TaskFormState {
   return {
     ...DEFAULT_FORM_STATE,
     sources: [],
@@ -66,27 +77,65 @@ function getInitialTaskFormState(): AddTaskFormState {
   };
 }
 
-export function AddTaskModal({
+function getFormStateFromTask(task: Task): TaskFormState {
+  const normalizedTask = normalizeTask(task);
+
+  return {
+    title: normalizedTask.title,
+    description: normalizedTask.description ?? "",
+    status: normalizedTask.status,
+    priority: normalizedTask.priority,
+    dueDate: normalizedTask.dueDate ?? normalizedTask.scheduledDate ?? "",
+    estimatedDurationMinutes: normalizedTask.estimatedDurationMinutes
+      ? String(normalizedTask.estimatedDurationMinutes)
+      : "",
+    sources: normalizedTask.sources.map((source) => ({
+      ...source,
+      note: source.note ?? "",
+    })),
+    subtasks: normalizedTask.subtasks.map((subtask) => ({
+      ...subtask,
+      description: subtask.description ?? "",
+    })),
+  };
+}
+
+export function TaskModal({
   goalId,
   goalTitle,
+  initialTask = null,
   isOpen,
+  mode = "create",
+  onSaved,
   onClose,
-}: AddTaskModalProps): JSX.Element | null {
-  const [formState, setFormState] = useState<AddTaskFormState>(getInitialTaskFormState);
+}: TaskModalProps): JSX.Element | null {
+  const [formState, setFormState] = useState<TaskFormState>(createEmptyTaskFormState);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
+  const initialFormState = useMemo(
+    () =>
+      mode === "edit" && initialTask
+        ? getFormStateFromTask(initialTask)
+        : createEmptyTaskFormState(),
+    [initialTask, mode],
+  );
+
   useEffect(() => {
     if (!isOpen) {
-      setFormState(getInitialTaskFormState());
-      setError("");
-      setIsSubmitting(false);
-      setShowDiscardDialog(false);
+      return;
     }
-  }, [isOpen]);
 
-  const serializedBaseline = JSON.stringify(DEFAULT_FORM_STATE);
+    setFormState(initialFormState);
+    setError("");
+    setIsSubmitting(false);
+    setShowDiscardDialog(false);
+  }, [initialFormState, isOpen]);
+
+  const serializedBaseline = useMemo(() => JSON.stringify(sanitizeFormState(initialFormState)), [
+    initialFormState,
+  ]);
   const isDirty = useMemo(
     () => JSON.stringify(sanitizeFormState(formState)) !== serializedBaseline,
     [formState, serializedBaseline],
@@ -129,10 +178,7 @@ export function AddTaskModal({
     }
 
     const invalidLink = normalizedSources.find(
-      (source) =>
-        source.type === "link" &&
-        source.value &&
-        !isValidUrl(source.value),
+      (source) => source.type === "link" && source.value && !isValidUrl(source.value),
     );
 
     if (invalidLink) {
@@ -148,7 +194,7 @@ export function AddTaskModal({
       description: formState.description.trim() || undefined,
       status: formState.status,
       priority: formState.priority,
-      goalId,
+      goalId: initialTask?.goalId ?? goalId,
       dueDate: formState.dueDate || undefined,
       estimatedDurationMinutes: formState.estimatedDurationMinutes
         ? Number(formState.estimatedDurationMinutes)
@@ -158,15 +204,37 @@ export function AddTaskModal({
     };
 
     try {
-      if (goalId) {
-        await tasksRepository.addTaskToGoal(goalId, input);
+      let savedTask: Task;
+
+      if (mode === "edit" && initialTask) {
+        savedTask = await tasksRepository.update({
+          ...initialTask,
+          title: input.title,
+          description: input.description,
+          notes: input.description,
+          status: input.status ?? initialTask.status,
+          priority: input.priority ?? initialTask.priority,
+          goalId: input.goalId,
+          dueDate: input.dueDate,
+          scheduledDate: input.dueDate,
+          estimatedDurationMinutes: input.estimatedDurationMinutes,
+          sources: input.sources ?? initialTask.sources,
+          subtasks: input.subtasks ?? initialTask.subtasks,
+        });
+      } else if (goalId) {
+        savedTask = await tasksRepository.addTaskToGoal(goalId, input);
       } else {
-        await tasksRepository.add(input);
+        savedTask = await tasksRepository.add(input);
       }
 
+      onSaved?.(savedTask);
       onClose();
     } catch {
-      setError("The task could not be saved locally right now.");
+      setError(
+        mode === "edit"
+          ? "The task could not be updated locally right now."
+          : "The task could not be saved locally right now.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -180,9 +248,11 @@ export function AddTaskModal({
     <>
       <ModalShell
         description={
-          goalTitle
-            ? `Create a new task for ${goalTitle} with richer context, sources, and subtasks.`
-            : "Create a new task with attachments, subtasks, and scheduling details."
+          mode === "edit"
+            ? "Update this task without losing its linked sources, subtasks, or progress context."
+            : goalTitle
+              ? `Create a new task for ${goalTitle} with richer context, sources, and subtasks.`
+              : "Create a new task with attachments, subtasks, and scheduling details."
         }
         footer={
           <div className="modal-action-row">
@@ -190,14 +260,14 @@ export function AddTaskModal({
               Cancel
             </Button>
             <Button disabled={isSubmitting} onClick={() => void handleSubmit()} type="button">
-              {isSubmitting ? "Saving..." : "Save task"}
+              {isSubmitting ? "Saving..." : mode === "edit" ? "Save changes" : "Save task"}
             </Button>
           </div>
         }
         isOpen={isOpen}
         onRequestClose={requestClose}
         size="wide"
-        title={goalTitle ? `Add Task to ${goalTitle}` : "Add Task"}
+        title={mode === "edit" ? "Edit Task" : goalTitle ? `Add Task to ${goalTitle}` : "Add Task"}
       >
         <div className="task-modal-layout">
           <section className="task-editor-section task-editor-section--surface">
@@ -215,8 +285,10 @@ export function AddTaskModal({
                 <span className="auth-form__label">Task title</span>
                 <input
                   className="auth-form__input"
-                  onChange={(event) => setFormState((current) => ({ ...current, title: event.target.value }))}
-                  placeholder="Ship the goal’s next meaningful step"
+                  onChange={(event) =>
+                    setFormState((current) => ({ ...current, title: event.target.value }))
+                  }
+                  placeholder="Ship the goal's next meaningful step"
                   value={formState.title}
                 />
               </label>
@@ -279,7 +351,9 @@ export function AddTaskModal({
                 <span className="auth-form__label">Due date</span>
                 <input
                   className="auth-form__input"
-                  onChange={(event) => setFormState((current) => ({ ...current, dueDate: event.target.value }))}
+                  onChange={(event) =>
+                    setFormState((current) => ({ ...current, dueDate: event.target.value }))
+                  }
                   type="date"
                   value={formState.dueDate}
                 />
@@ -340,6 +414,8 @@ export function AddTaskModal({
     </>
   );
 }
+
+export const AddTaskModal = TaskModal;
 
 function isValidUrl(value: string): boolean {
   try {
