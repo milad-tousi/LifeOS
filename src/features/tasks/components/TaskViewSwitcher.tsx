@@ -24,8 +24,7 @@ const VIEW_ITEMS: Array<{
   {
     value: "calendar",
     label: "Calendar",
-    description: "Coming soon",
-    disabled: true,
+    description: "Monthly planning view.",
   },
 ];
 

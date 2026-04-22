@@ -1,6 +1,5 @@
-import { FormEvent, useState } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import { GripVertical, Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/common/Button";
 import { TaskBoardColumn } from "@/domains/tasks/board.types";
 
 interface BoardColumnHeaderProps {
@@ -25,15 +24,40 @@ export function BoardColumnHeader({
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState(column.title);
 
-  async function handleRename(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftTitle(column.title);
+    }
+  }, [column.title, isEditing]);
 
-    if (!draftTitle.trim()) {
+  async function commitRename(): Promise<void> {
+    const nextTitle = draftTitle.trim();
+
+    if (!nextTitle) {
+      setDraftTitle(column.title);
+      setIsEditing(false);
       return;
     }
 
-    await onRenameColumn(column.id, draftTitle.trim());
+    if (nextTitle !== column.title) {
+      await onRenameColumn(column.id, nextTitle);
+    }
+
     setIsEditing(false);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void commitRename();
+      return;
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setDraftTitle(column.title);
+      setIsEditing(false);
+    }
   }
 
   return (
@@ -50,28 +74,16 @@ export function BoardColumnHeader({
           <GripVertical size={16} />
         </button>
         {isEditing ? (
-          <form className="task-board-column__rename" onSubmit={(event) => void handleRename(event)}>
+          <div className="task-board-column__rename">
             <input
+              autoFocus
               className="auth-form__input"
+              onBlur={() => void commitRename()}
               onChange={(event) => setDraftTitle(event.target.value)}
+              onKeyDown={handleKeyDown}
               value={draftTitle}
             />
-            <div className="task-board-column__rename-actions">
-              <Button disabled={!draftTitle.trim()} type="submit">
-                Save
-              </Button>
-              <Button
-                onClick={() => {
-                  setDraftTitle(column.title);
-                  setIsEditing(false);
-                }}
-                type="button"
-                variant="ghost"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
+          </div>
         ) : (
           <h3 className="task-board-column__title">
             {column.title} <span className="task-board-column__count">({count})</span>

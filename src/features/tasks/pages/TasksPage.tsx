@@ -5,6 +5,7 @@ import { taskBoardColumnsRepository } from "@/domains/tasks/board.repository";
 import { TaskBoardColumn } from "@/domains/tasks/board.types";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
 import { TaskBoardView } from "@/features/tasks/components/TaskBoardView";
+import { TaskCalendarView } from "@/features/tasks/components/TaskCalendarView";
 import { TaskViewSwitcher, TaskView } from "@/features/tasks/components/TaskViewSwitcher";
 import { TasksListView } from "@/features/tasks/components/TasksListView";
 import { TasksPageHeader } from "@/features/tasks/components/TasksPageHeader";
@@ -228,11 +229,13 @@ export function TasksPage(): JSX.Element {
         );
       case "calendar":
         return (
-          <Card title="Coming soon">
-            <p className="text-muted">
-              This task view foundation is in place and will be connected in a later step.
-            </p>
-          </Card>
+          <TaskCalendarView
+            goalTitlesById={goalTitlesById}
+            onDeleteTask={setTaskPendingDelete}
+            onEditTask={setTaskBeingEdited}
+            onToggleTask={handleToggleTask}
+            tasks={taskListState}
+          />
         );
       case "list":
       default:

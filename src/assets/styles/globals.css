@@ -2353,8 +2353,7 @@ a:focus-visible {
   cursor: grabbing;
 }
 
-.task-board-column__actions,
-.task-board-column__rename-actions {
+.task-board-column__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
@@ -2364,8 +2363,7 @@ a:focus-visible {
   display: flex;
   min-width: 0;
   flex: 1;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
 }
 
 .task-board-column__body {
@@ -2566,6 +2564,274 @@ a:focus-visible {
   padding: 0.18rem 0.45rem;
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.task-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.task-calendar__header,
+.task-calendar__panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.task-calendar__header {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.15rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem 1.1rem;
+}
+
+.task-calendar__eyebrow,
+.task-calendar__panel-eyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.task-calendar__month,
+.task-calendar__panel-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.task-calendar__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.task-calendar__nav-button,
+.task-calendar__today-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  padding: 0.7rem 0.95rem;
+  font-weight: 600;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.task-calendar__nav-button {
+  width: 2.75rem;
+  padding: 0;
+}
+
+.task-calendar__nav-button:hover,
+.task-calendar__today-button:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.task-calendar__grid-shell,
+.task-calendar__panel {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-soft);
+}
+
+.task-calendar__weekdays,
+.task-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.task-calendar__weekdays {
+  gap: 0;
+  padding: 0.9rem 1rem 0;
+}
+
+.task-calendar__weekday {
+  color: var(--muted);
+  padding: 0.4rem 0.55rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.task-calendar__grid {
+  gap: 0;
+  padding: 0 1rem 1rem;
+}
+
+.task-calendar__day {
+  display: flex;
+  min-height: 132px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.45rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.7rem;
+  text-align: left;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.task-calendar__day:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.task-calendar__day--outside {
+  background: rgba(248, 250, 252, 0.72);
+  color: var(--muted);
+}
+
+.task-calendar__day--today {
+  border-color: rgba(37, 99, 235, 0.22);
+}
+
+.task-calendar__day--selected {
+  border-color: rgba(37, 99, 235, 0.24);
+  background: rgba(239, 246, 255, 0.9);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.1);
+}
+
+.task-calendar__day--overdue {
+  background: rgba(254, 242, 242, 0.92);
+}
+
+.task-calendar__day--due-today {
+  background: rgba(255, 247, 237, 0.94);
+}
+
+.task-calendar__day--due-soon {
+  background: rgba(239, 246, 255, 0.88);
+}
+
+.task-calendar__day-header,
+.task-calendar__day-indicators,
+.task-calendar__panel-meta-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.task-calendar__day-number {
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.task-calendar__day-count,
+.task-calendar__panel-count,
+.task-calendar__panel-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.28rem 0.58rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.task-calendar__day-count,
+.task-calendar__panel-count {
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--text);
+}
+
+.task-calendar__panel-due {
+  background: rgba(239, 246, 255, 0.92);
+  color: #1d4ed8;
+}
+
+.task-calendar__day-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.task-calendar__day-preview,
+.task-calendar__day-more {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
+.task-calendar__day-preview {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.task-calendar__day-more {
+  color: var(--muted);
+}
+
+.task-calendar__day-indicators {
+  min-height: 1.35rem;
+  justify-content: flex-start;
+}
+
+.task-calendar__day-indicator {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.46rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.task-calendar__day-indicator--danger {
+  background: rgba(254, 226, 226, 0.9);
+  color: #b91c1c;
+}
+
+.task-calendar__day-indicator--warning {
+  background: rgba(255, 237, 213, 0.95);
+  color: #c2410c;
+}
+
+.task-calendar__day-indicator--info {
+  background: rgba(219, 234, 254, 0.95);
+  color: #1d4ed8;
+}
+
+.task-calendar__panel {
+  padding: 1rem 1.1rem;
+}
+
+.task-calendar__panel-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-calendar__panel-item {
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  padding: 0.9rem 0 0.2rem;
+}
+
+.task-calendar__panel-item:first-child {
+  border-top: 0;
+  padding-top: 0.4rem;
+}
+
+.task-calendar__panel-item .goal-task-list__item {
+  padding-bottom: 0.2rem;
+}
+
+.task-calendar__panel-item .goal-task-list__item:first-child {
+  padding-top: 0;
 }
 
 .tasks-quick-add {
@@ -2808,6 +3074,28 @@ a:focus-visible {
 
   .task-board {
     grid-template-columns: repeat(4, minmax(280px, 85vw));
+  }
+
+  .task-calendar__header,
+  .task-calendar__panel {
+    padding: 0.95rem;
+  }
+
+  .task-calendar__weekdays {
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  .task-calendar__grid {
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .task-calendar__day {
+    min-height: 96px;
+    padding: 0.55rem;
+  }
+
+  .task-calendar__day-preview:nth-child(n + 2) {
+    display: none;
   }
 
   .goal-task-list__item {
