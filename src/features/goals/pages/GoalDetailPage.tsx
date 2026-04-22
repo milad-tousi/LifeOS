@@ -4,8 +4,7 @@ import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
-import { getGoalTaskStats } from "@/domains/goals/goal-progress";
-import { getGoalProgressPercentFromMode } from "@/domains/goals/goal.utils";
+import { computeGoalProgress } from "@/domains/goals/goal-progress";
 import { goalsRepository } from "@/domains/goals/repository";
 import { Goal } from "@/domains/goals/types";
 import { tasksRepository } from "@/domains/tasks/repository";
@@ -57,7 +56,10 @@ export function GoalDetailPage(): JSX.Element {
     };
   }, [recentTaskId]);
 
-  const stats = useMemo(() => getGoalTaskStats(taskListState), [taskListState]);
+  const progress = useMemo(
+    () => (goalState ? computeGoalProgress(goalState, taskListState) : null),
+    [goalState, taskListState],
+  );
   const displayGoal = useMemo(() => {
     if (!goalState) {
       return goalState;
@@ -69,45 +71,10 @@ export function GoalDetailPage(): JSX.Element {
 
     return {
       ...goalState,
-      status: stats.total > 0 && stats.completed === stats.total ? "completed" : "active",
+      status:
+        progress && progress.total > 0 && progress.percentage >= 100 ? "completed" : "active",
     };
-  }, [goalState, stats.completed, stats.total]);
-  const progressPercent = useMemo(() => {
-    if (!displayGoal) {
-      return 0;
-    }
-
-    return getGoalProgressPercentFromMode(displayGoal) ?? stats.progressPercent;
-  }, [displayGoal, stats.progressPercent]);
-  const progressSummaryText = useMemo(() => {
-    if (!displayGoal) {
-      return "No steps yet";
-    }
-
-    if (displayGoal.progressType === "manual") {
-      return displayGoal.manualProgress !== null && displayGoal.manualProgress !== undefined
-        ? `Manual progress set to ${displayGoal.manualProgress}%`
-        : "Manual progress has not been set yet";
-    }
-
-    if (displayGoal.progressType === "target") {
-      if (displayGoal.targetType === "binary") {
-        return (displayGoal.currentValue ?? 0) > 0
-          ? "Binary target marked complete"
-          : "Binary target not completed yet";
-      }
-
-      if (
-        displayGoal.targetValue !== null &&
-        displayGoal.targetValue !== undefined &&
-        displayGoal.targetType !== "none"
-      ) {
-        return `${displayGoal.currentValue ?? 0} of ${displayGoal.targetValue} target units reached`;
-      }
-    }
-
-    return stats.total > 0 ? `${stats.completed} of ${stats.total} tasks completed` : "No steps yet";
-  }, [displayGoal, stats.completed, stats.total]);
+  }, [goalState, progress]);
 
   function replaceTaskInState(task: Task): void {
     setTaskListState((currentTasks) => {
@@ -147,11 +114,11 @@ export function GoalDetailPage(): JSX.Element {
       <Card>
         <GoalHeader goal={displayGoal} />
         <GoalProgress
-          completed={stats.completed}
+          completed={progress?.completed ?? 0}
           large
-          percent={progressPercent}
-          summaryText={progressSummaryText}
-          total={stats.total}
+          percent={progress?.percentage ?? 0}
+          summaryText={progress?.label ?? "No steps yet"}
+          total={progress?.total ?? 0}
         />
       </Card>
 

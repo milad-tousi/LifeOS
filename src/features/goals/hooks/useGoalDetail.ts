@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { goalsRepository } from "@/domains/goals/repository";
-import { getGoalTaskStats, GoalTaskStats } from "@/domains/goals/goal-progress";
+import { computeGoalProgress, GoalProgressSnapshot } from "@/domains/goals/goal-progress";
 import { Goal } from "@/domains/goals/types";
 import { tasksRepository } from "@/domains/tasks/repository";
 import { Task } from "@/domains/tasks/types";
@@ -8,7 +8,7 @@ import { Task } from "@/domains/tasks/types";
 interface GoalDetailData {
   goal?: Goal;
   linkedTasks: Task[];
-  stats: GoalTaskStats;
+  progress: GoalProgressSnapshot;
 }
 
 export interface UseGoalDetailResult extends GoalDetailData {
@@ -21,7 +21,25 @@ export function useGoalDetail(goalId?: string): UseGoalDetailResult {
       return {
         goal: undefined,
         linkedTasks: [],
-        stats: getGoalTaskStats([]),
+        progress: computeGoalProgress(
+          {
+            id: "",
+            title: "",
+            category: "lifestyle",
+            status: "active",
+            priority: "medium",
+            pace: "balanced",
+            progressType: "tasks",
+            targetType: "none",
+            targetValue: null,
+            currentValue: null,
+            manualProgress: null,
+            notes: "",
+            createdAt: 0,
+            updatedAt: 0,
+          },
+          [],
+        ),
       };
     }
 
@@ -33,14 +51,49 @@ export function useGoalDetail(goalId?: string): UseGoalDetailResult {
     return {
       goal,
       linkedTasks,
-      stats: getGoalTaskStats(linkedTasks),
+      progress: goal ? computeGoalProgress(goal, linkedTasks) : computeGoalProgress({
+        id: "",
+        title: "",
+        category: "lifestyle",
+        status: "active",
+        priority: "medium",
+        pace: "balanced",
+        progressType: "tasks",
+        targetType: "none",
+        targetValue: null,
+        currentValue: null,
+        manualProgress: null,
+        notes: "",
+        createdAt: 0,
+        updatedAt: 0,
+      }, linkedTasks),
     };
   }, [goalId]);
 
   return {
     goal: goalDetail?.goal,
     linkedTasks: goalDetail?.linkedTasks ?? [],
-    stats: goalDetail?.stats ?? getGoalTaskStats([]),
+    progress:
+      goalDetail?.progress ??
+      computeGoalProgress(
+        {
+          id: "",
+          title: "",
+          category: "lifestyle",
+          status: "active",
+          priority: "medium",
+          pace: "balanced",
+          progressType: "tasks",
+          targetType: "none",
+          targetValue: null,
+          currentValue: null,
+          manualProgress: null,
+          notes: "",
+          createdAt: 0,
+          updatedAt: 0,
+        },
+        [],
+      ),
     loading: goalDetail === undefined,
   };
 }

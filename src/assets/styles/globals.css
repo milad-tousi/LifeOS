@@ -1656,6 +1656,13 @@ a:focus-visible {
   letter-spacing: 0.04em;
 }
 
+.goal-detail-header__summary-helper {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
 .goal-detail-header__summary-value,
 .goal-detail-header__summary-notes {
   display: inline-flex;

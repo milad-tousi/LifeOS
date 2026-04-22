@@ -1,7 +1,7 @@
 import { db, ensureDatabaseReady } from "@/db/dexie";
 import { createTaskModel } from "@/domains/tasks/models";
 import { CreateTaskInput, Task } from "@/domains/tasks/types";
-import { getGoalTaskStats } from "@/domains/goals/goal-progress";
+import { computeGoalProgress } from "@/domains/goals/goal-progress";
 import { normalizeTask } from "@/domains/tasks/task.utils";
 import { createLogger } from "@/utils/logger";
 
@@ -15,9 +15,9 @@ async function syncGoalStatus(goalId: string): Promise<void> {
   }
 
   const tasks = await db.tasks.where("goalId").equals(goalId).toArray();
-  const stats = getGoalTaskStats(tasks.map(normalizeTask));
+  const progress = computeGoalProgress(goal, tasks.map(normalizeTask));
   const nextStatus =
-    stats.total > 0 && stats.completed === stats.total ? "completed" : "active";
+    progress.total > 0 && progress.percentage >= 100 ? "completed" : "active";
 
   if (goal.status !== nextStatus) {
     await db.goals.put({

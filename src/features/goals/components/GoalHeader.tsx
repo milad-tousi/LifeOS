@@ -1,7 +1,8 @@
 import { CalendarDays, Flag, Gauge, NotebookText, Tag, Target } from "lucide-react";
 import {
   getGoalNotesPreview,
-  getGoalProgressModeLabel,
+  getGoalProgressModeHelperText,
+  getGoalProgressModeName,
   getGoalTargetSummary,
 } from "@/domains/goals/goal.utils";
 import { Goal } from "@/domains/goals/types";
@@ -13,7 +14,8 @@ interface GoalHeaderProps {
 export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
   const notesPreview = getGoalNotesPreview(goal);
   const targetSummary = getGoalTargetSummary(goal);
-  const progressLabel = getGoalProgressModeLabel(goal);
+  const progressModeName = getGoalProgressModeName(goal);
+  const progressHelperText = getGoalProgressModeHelperText(goal);
 
   return (
     <header className="goal-detail-header">
@@ -48,11 +50,12 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
 
       <div className="goal-detail-header__summary">
         <div className="goal-detail-header__summary-item">
-          <span className="goal-detail-header__summary-label">Progress</span>
+          <span className="goal-detail-header__summary-label">Progress mode</span>
           <span className="goal-detail-header__summary-value">
             <Gauge size={16} />
-            {progressLabel}
+            {progressModeName}
           </span>
+          <p className="goal-detail-header__summary-helper">{progressHelperText}</p>
         </div>
         {targetSummary ? (
           <div className="goal-detail-header__summary-item">

@@ -10,7 +10,7 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JSX.Element {
-  const { goal, nextPendingTask, stats } = data;
+  const { goal, nextPendingTask, progress } = data;
 
   return (
     <button
@@ -34,9 +34,10 @@ export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JS
       </div>
 
       <GoalProgress
-        completed={stats.completed}
-        percent={stats.progressPercent}
-        total={stats.total}
+        completed={progress.completed}
+        percent={progress.percentage}
+        summaryText={progress.label}
+        total={progress.total}
       />
 
       <div className="goal-card__footer">

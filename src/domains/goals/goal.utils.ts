@@ -124,31 +124,31 @@ export function getGoalProgressPercentFromMode(goal: Goal): number | null {
   return null;
 }
 
-export function getGoalProgressModeLabel(goal: Goal): string {
+export function getGoalProgressModeName(goal: Goal): string {
   switch (goal.progressType) {
     case "manual":
-      return goal.manualProgress !== null && goal.manualProgress !== undefined
-        ? `Manual (${goal.manualProgress}%)`
-        : "Manual";
+      return "Manual";
     case "target":
-      if (goal.targetType === "none") {
-        return "Target";
-      }
-
-      if (goal.targetType === "binary") {
-        return `Target (${(goal.currentValue ?? 0) > 0 ? "Complete" : "Not started"})`;
-      }
-
-      if (goal.currentValue !== null && goal.currentValue !== undefined && goal.targetValue) {
-        return `Target (${goal.currentValue} / ${goal.targetValue})`;
-      }
-
       return "Target";
     case "subtasks":
       return "Subtasks";
     case "tasks":
     default:
       return "Tasks";
+  }
+}
+
+export function getGoalProgressModeHelperText(goal: Goal): string {
+  switch (goal.progressType) {
+    case "subtasks":
+      return "Progress is based on completed subtasks across all tasks.";
+    case "manual":
+      return "Progress is set manually.";
+    case "target":
+      return "Progress is based on current value versus target value.";
+    case "tasks":
+    default:
+      return "Progress is based on completed tasks. Subtasks alone do not change goal progress.";
   }
 }
 
