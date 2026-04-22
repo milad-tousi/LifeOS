@@ -9,8 +9,21 @@ import { CreateGoalStepBasic } from "@/features/goals/components/CreateGoalStepB
 import { CreateGoalStepCategory } from "@/features/goals/components/CreateGoalStepCategory";
 import { CreateGoalStepMeta } from "@/features/goals/components/CreateGoalStepMeta";
 import { CreateGoalStepTasks } from "@/features/goals/components/CreateGoalStepTasks";
+import { createId } from "@/lib/id";
 
 const steps = ["basic", "category", "meta", "tasks"] as const;
+
+interface DraftGoalTask {
+  id: string;
+  title: string;
+}
+
+function createDraftGoalTask(title = ""): DraftGoalTask {
+  return {
+    id: createId(),
+    title,
+  };
+}
 
 export function CreateGoalFlow(): JSX.Element {
   const navigate = useNavigate();
@@ -21,17 +34,21 @@ export function CreateGoalFlow(): JSX.Element {
   const [pace, setPace] = useState<GoalPace>("balanced");
   const [priority, setPriority] = useState<GoalPriority>("medium");
   const [deadline, setDeadline] = useState<string | undefined>();
-  const [draftTasks, setDraftTasks] = useState<string[]>(["", "", ""]);
+  const [draftTasks, setDraftTasks] = useState<DraftGoalTask[]>(() => [
+    createDraftGoalTask(),
+    createDraftGoalTask(),
+    createDraftGoalTask(),
+  ]);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentKey = steps[currentStep];
   const progressText = useMemo(() => `${currentStep + 1} / ${steps.length}`, [currentStep]);
 
-  function updateDraftTask(index: number, value: string): void {
+  function updateDraftTask(taskId: string, value: string): void {
     setDraftTasks((currentTasks) =>
-      currentTasks.map((currentTask, currentIndex) =>
-        currentIndex === index ? value : currentTask,
+      currentTasks.map((currentTask) =>
+        currentTask.id === taskId ? { ...currentTask, title: value } : currentTask,
       ),
     );
   }
@@ -55,7 +72,7 @@ export function CreateGoalFlow(): JSX.Element {
           deadline,
         });
 
-        const validTasks = draftTasks.map((task) => task.trim()).filter(Boolean);
+        const validTasks = draftTasks.map((task) => task.title.trim()).filter(Boolean);
         await Promise.all(
           validTasks.map((taskTitle) =>
             tasksRepository.addTaskToGoal(goalId, {
@@ -128,12 +145,14 @@ export function CreateGoalFlow(): JSX.Element {
         return (
           <CreateGoalStepTasks
             draftTasks={draftTasks}
-            onAddDraftTask={() => setDraftTasks((currentTasks) => [...currentTasks, ""])}
+            onAddDraftTask={() =>
+              setDraftTasks((currentTasks) => [...currentTasks, createDraftGoalTask()])
+            }
             onChangeDraftTask={updateDraftTask}
-            onRemoveDraftTask={(index) =>
+            onRemoveDraftTask={(taskId) =>
               setDraftTasks((currentTasks) =>
                 currentTasks.length > 1
-                  ? currentTasks.filter((_, currentIndex) => currentIndex !== index)
+                  ? currentTasks.filter((task) => task.id !== taskId)
                   : currentTasks,
               )
             }

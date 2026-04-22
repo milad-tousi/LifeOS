@@ -1,4 +1,5 @@
 import {
+  AlertCircle,
   CalendarDays,
   CheckCircle2,
   Circle,
@@ -19,6 +20,8 @@ import { Task } from "@/domains/tasks/types";
 import { summarizeTaskSources } from "@/domains/tasks/task.utils";
 
 interface GoalTaskListProps {
+  onMarkHighPriority: (task: Task) => void;
+  onMarkInProgress: (task: Task) => void;
   tasks: Task[];
   onDeleteTask: (task: Task) => void;
   onEditTask: (task: Task) => void;
@@ -30,6 +33,8 @@ interface GoalTaskListProps {
 
 export function GoalTaskList({
   deletingTaskId = null,
+  onMarkHighPriority,
+  onMarkInProgress,
   onDeleteTask,
   onEditTask,
   onToggleTask,
@@ -66,14 +71,18 @@ export function GoalTaskList({
         >
           <button
             aria-label={`Toggle ${task.title}`}
-            className="goal-task-list__toggle"
+            className={`goal-task-list__toggle${
+              task.status === "done" ? " goal-task-list__toggle--done" : ""
+            }`}
             onClick={(event) => {
               event.stopPropagation();
               onToggleTask(task);
             }}
             type="button"
           >
-            {renderTaskStatusIcon(task.status)}
+            <span className="goal-task-list__toggle-icon">
+              {renderTaskStatusIcon(task.status)}
+            </span>
           </button>
 
           <button
@@ -91,7 +100,7 @@ export function GoalTaskList({
                       : "goal-task-list__title"
                   }
                 >
-                  {task.title}
+                  <span className="goal-task-list__title-text">{task.title}</span>
                 </strong>
                 <div className="goal-task-list__badges">
                   <span
@@ -183,6 +192,37 @@ export function GoalTaskList({
               ) : null}
             </div>
           </button>
+
+          <div className="goal-task-list__quick-actions" aria-label={`Quick actions for ${task.title}`}>
+            {task.status !== "in_progress" ? (
+              <button
+                aria-label={`Mark ${task.title} in progress`}
+                className="goal-task-list__quick-action"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onMarkInProgress(task);
+                }}
+                type="button"
+              >
+                <CircleDashed size={15} />
+                <span>In progress</span>
+              </button>
+            ) : null}
+            {task.priority !== "high" ? (
+              <button
+                aria-label={`Mark ${task.title} high priority`}
+                className="goal-task-list__quick-action"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onMarkHighPriority(task);
+                }}
+                type="button"
+              >
+                <AlertCircle size={15} />
+                <span>High priority</span>
+              </button>
+            ) : null}
+          </div>
 
           <button
             aria-label={`Delete task ${task.title}`}

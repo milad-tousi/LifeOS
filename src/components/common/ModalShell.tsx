@@ -1,6 +1,8 @@
-import { ReactNode, useEffect, useId, useMemo, useRef } from "react";
+import { ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+
+const MODAL_EXIT_DURATION_MS = 180;
 
 const FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -34,6 +36,8 @@ export function ModalShell({
   const descriptionId = useId();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const onRequestCloseRef = useRef(onRequestClose);
+  const [isRendered, setIsRendered] = useState(isOpen);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     onRequestCloseRef.current = onRequestClose;
@@ -48,7 +52,29 @@ export function ModalShell({
   }, []);
 
   useEffect(() => {
-    if (!isOpen || typeof document === "undefined") {
+    if (isOpen) {
+      setIsRendered(true);
+      setIsExiting(false);
+      return;
+    }
+
+    if (!isRendered) {
+      return;
+    }
+
+    setIsExiting(true);
+    const timeoutId = window.setTimeout(() => {
+      setIsRendered(false);
+      setIsExiting(false);
+    }, MODAL_EXIT_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isOpen, isRendered]);
+
+  useEffect(() => {
+    if (!isRendered || typeof document === "undefined") {
       return;
     }
 
@@ -58,10 +84,10 @@ export function ModalShell({
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isOpen]);
+  }, [isRendered]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!isRendered || isExiting) {
       return;
     }
 
@@ -117,15 +143,15 @@ export function ModalShell({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isExiting, isRendered]);
 
-  if (!isOpen || !portalTarget) {
+  if (!isRendered || !portalTarget) {
     return null;
   }
 
   return createPortal(
     <div
-      className="modal-shell-backdrop"
+      className={`modal-shell-backdrop${isExiting ? " modal-shell-backdrop--closing" : ""}`}
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           onRequestClose();
@@ -136,7 +162,7 @@ export function ModalShell({
         aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
         aria-modal="true"
-        className={`modal-shell modal-shell--${size}`}
+        className={`modal-shell modal-shell--${size}${isExiting ? " modal-shell--closing" : ""}`}
         ref={containerRef}
         role="dialog"
         tabIndex={-1}

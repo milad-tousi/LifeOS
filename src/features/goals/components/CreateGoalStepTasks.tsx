@@ -1,11 +1,16 @@
 import { X } from "lucide-react";
 import { Button } from "@/components/common/Button";
 
+interface DraftGoalTask {
+  id: string;
+  title: string;
+}
+
 interface CreateGoalStepTasksProps {
-  draftTasks: string[];
+  draftTasks: DraftGoalTask[];
   onAddDraftTask: () => void;
-  onChangeDraftTask: (index: number, value: string) => void;
-  onRemoveDraftTask: (index: number) => void;
+  onChangeDraftTask: (taskId: string, value: string) => void;
+  onRemoveDraftTask: (taskId: string) => void;
 }
 
 export function CreateGoalStepTasks({
@@ -22,18 +27,18 @@ export function CreateGoalStepTasks({
       </p>
 
       <div className="goal-draft-task-list">
-        {draftTasks.map((taskTitle, index) => (
-          <div className="goal-draft-task-list__item" key={`${index}-${taskTitle}`}>
+        {draftTasks.map((task, index) => (
+          <div className="goal-draft-task-list__item" key={task.id}>
             <input
               className="auth-form__input"
-              onChange={(event) => onChangeDraftTask(index, event.target.value)}
+              onChange={(event) => onChangeDraftTask(task.id, event.target.value)}
               placeholder={`Task ${index + 1}`}
-              value={taskTitle}
+              value={task.title}
             />
             <button
               aria-label={`Remove task ${index + 1}`}
               className="icon-button"
-              onClick={() => onRemoveDraftTask(index)}
+              onClick={() => onRemoveDraftTask(task.id)}
               type="button"
             >
               <X size={16} />

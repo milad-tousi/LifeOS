@@ -107,6 +107,22 @@ export function GoalDetailPage(): JSX.Element {
     });
   }
 
+  function commitTaskUpdate(task: Task, patch: Partial<Task>): void {
+    const updatedTask: Task = {
+      ...task,
+      ...patch,
+      updatedAt: Date.now(),
+    };
+
+    replaceTaskInState(updatedTask);
+    setRecentTaskId(task.id);
+    setRecentTaskTone("updated");
+
+    void tasksRepository.update(updatedTask).catch(() => {
+      replaceTaskInState(task);
+    });
+  }
+
   if (loading) {
     return <p className="text-muted">Loading goal...</p>;
   }
@@ -150,6 +166,17 @@ export function GoalDetailPage(): JSX.Element {
         ) : (
           <GoalTaskList
             deletingTaskId={deletingTaskId}
+            onMarkHighPriority={(task) => {
+              commitTaskUpdate(task, {
+                priority: "high",
+              });
+            }}
+            onMarkInProgress={(task) => {
+              commitTaskUpdate(task, {
+                status: "in_progress",
+                completedAt: undefined,
+              });
+            }}
             onDeleteTask={setTaskPendingDelete}
             onEditTask={setTaskBeingEdited}
             onToggleTask={(task) => {
