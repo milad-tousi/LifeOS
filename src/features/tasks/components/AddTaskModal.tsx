@@ -23,6 +23,7 @@ interface TaskModalProps {
   mode?: "create" | "edit";
   goalId?: string;
   goalTitle?: string;
+  initialValues?: Partial<CreateTaskInput>;
   initialTask?: Task | null;
   onSaved?: (task: Task) => void;
   onClose: () => void;
@@ -78,11 +79,23 @@ function sanitizeFormState(formState: TaskFormState): TaskFormState {
   };
 }
 
-function createEmptyTaskFormState(defaultGoalId?: string): TaskFormState {
+function createEmptyTaskFormState(
+  defaultGoalId?: string,
+  initialValues?: Partial<CreateTaskInput>,
+): TaskFormState {
   return {
     ...DEFAULT_FORM_STATE,
-    goalConnection: defaultGoalId ? "linked" : "standalone",
-    selectedGoalId: defaultGoalId ?? "",
+    title: initialValues?.title ?? "",
+    description: initialValues?.description ?? "",
+    tags: normalizeTaskTags(initialValues?.tags ?? []),
+    goalConnection: initialValues?.goalId || defaultGoalId ? "linked" : "standalone",
+    selectedGoalId: initialValues?.goalId ?? defaultGoalId ?? "",
+    status: initialValues?.status ?? "todo",
+    priority: initialValues?.priority ?? "medium",
+    dueDate: initialValues?.dueDate ?? initialValues?.scheduledDate ?? "",
+    estimatedDurationMinutes: initialValues?.estimatedDurationMinutes
+      ? String(initialValues.estimatedDurationMinutes)
+      : "",
     sources: [],
     subtasks: [],
   };
@@ -117,6 +130,7 @@ function getFormStateFromTask(task: Task): TaskFormState {
 export function TaskModal({
   goalId,
   goalTitle,
+  initialValues,
   initialTask = null,
   isOpen,
   mode = "create",
@@ -134,8 +148,8 @@ export function TaskModal({
     () =>
       mode === "edit" && initialTask
         ? getFormStateFromTask(initialTask)
-        : createEmptyTaskFormState(goalId),
-    [goalId, initialTask, mode],
+        : createEmptyTaskFormState(goalId, initialValues),
+    [goalId, initialTask, initialValues, mode],
   );
   const hasGoals = (goals?.length ?? 0) > 0;
 

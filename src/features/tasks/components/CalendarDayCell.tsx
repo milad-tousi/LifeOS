@@ -1,13 +1,13 @@
-import { CalendarDay, CalendarDayState } from "@/features/tasks/utils/tasks-calendar-view.utils";
-import { Task } from "@/domains/tasks/types";
+import { CalendarDay, CalendarDayState, CalendarItem } from "@/features/tasks/utils/tasks-calendar-view.utils";
 
 interface CalendarDayCellProps {
   day: CalendarDay;
   dayState: CalendarDayState;
   isSelected: boolean;
   isToday: boolean;
+  items: CalendarItem[];
+  onContextMenu: (date: Date, position: { x: number; y: number }) => void;
   onSelect: (date: Date) => void;
-  tasks: Task[];
 }
 
 export function CalendarDayCell({
@@ -15,11 +15,12 @@ export function CalendarDayCell({
   dayState,
   isSelected,
   isToday,
+  items,
+  onContextMenu,
   onSelect,
-  tasks,
 }: CalendarDayCellProps): JSX.Element {
-  const previewTasks = tasks.slice(0, 2);
-  const extraCount = tasks.length - previewTasks.length;
+  const previewItems = items.slice(0, 2);
+  const extraCount = items.length - previewItems.length;
 
   return (
     <button
@@ -29,7 +30,8 @@ export function CalendarDayCell({
         day.isCurrentMonth ? "" : "task-calendar__day--outside",
         isToday ? "task-calendar__day--today" : "",
         isSelected ? "task-calendar__day--selected" : "",
-        dayState.hasTasks ? "task-calendar__day--has-tasks" : "",
+        dayState.hasItems ? "task-calendar__day--has-tasks" : "",
+        dayState.isHoliday ? "task-calendar__day--holiday" : "",
         dayState.isOverdue ? "task-calendar__day--overdue" : "",
         dayState.isDueToday ? "task-calendar__day--due-today" : "",
         dayState.isDueSoon ? "task-calendar__day--due-soon" : "",
@@ -37,37 +39,60 @@ export function CalendarDayCell({
         .filter(Boolean)
         .join(" ")}
       onClick={() => onSelect(day.date)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        onContextMenu(day.date, { x: event.clientX, y: event.clientY });
+      }}
       type="button"
     >
       <div className="task-calendar__day-header">
         <span className="task-calendar__day-number">{day.date.getDate()}</span>
-        {dayState.hasTasks ? (
-          <span className="task-calendar__day-count">
-            {dayState.openTaskCount > 0 ? dayState.openTaskCount : dayState.completedTaskCount}
-          </span>
+        {dayState.hasItems ? (
+          <span className="task-calendar__day-count">{items.length}</span>
         ) : null}
       </div>
 
       <div className="task-calendar__day-body">
-        {previewTasks.map((task) => (
-          <span className="task-calendar__day-preview" key={task.id}>
-            {task.title}
+        {previewItems.map((item) => (
+          <span
+            className={`task-calendar__day-preview task-calendar__day-preview--${item.itemType}`}
+            key={item.id}
+          >
+            {getPreviewLabel(item)}
           </span>
         ))}
-        {extraCount > 0 ? (
-          <span className="task-calendar__day-more">+{extraCount} more</span>
-        ) : null}
+        {extraCount > 0 ? <span className="task-calendar__day-more">+{extraCount} more</span> : null}
       </div>
 
       <div className="task-calendar__day-indicators">
-        {dayState.isOverdue ? <span className="task-calendar__day-indicator task-calendar__day-indicator--danger">Overdue</span> : null}
-        {!dayState.isOverdue && dayState.isDueToday ? (
-          <span className="task-calendar__day-indicator task-calendar__day-indicator--warning">Due today</span>
+        {dayState.taskCount > 0 ? (
+          <span className="task-calendar__day-indicator task-calendar__day-indicator--task">
+            {dayState.taskCount} task{dayState.taskCount === 1 ? "" : "s"}
+          </span>
         ) : null}
-        {!dayState.isOverdue && !dayState.isDueToday && dayState.isDueSoon ? (
-          <span className="task-calendar__day-indicator task-calendar__day-indicator--info">Due soon</span>
+        {dayState.eventCount > 0 ? (
+          <span className="task-calendar__day-indicator task-calendar__day-indicator--info">
+            {dayState.eventCount} event{dayState.eventCount === 1 ? "" : "s"}
+          </span>
+        ) : null}
+        {dayState.holidayCount > 0 ? (
+          <span className="task-calendar__day-indicator task-calendar__day-indicator--holiday">
+            Holiday
+          </span>
         ) : null}
       </div>
     </button>
   );
+}
+
+function getPreviewLabel(item: CalendarItem): string {
+  switch (item.itemType) {
+    case "holiday":
+      return item.holiday.title;
+    case "event":
+      return item.occurrence.event.title;
+    case "task":
+    default:
+      return item.task.title;
+  }
 }

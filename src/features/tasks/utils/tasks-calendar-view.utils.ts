@@ -1,3 +1,14 @@
+import {
+  CalendarEventOccurrence,
+  CalendarHoliday,
+} from "@/domains/calendar/types";
+import {
+  eventOccursOnDate,
+  expandRecurringEventsForRange,
+  formatEventTimeRange,
+  getEventDisplayLabel,
+  getRecurrenceLabel,
+} from "@/domains/calendar/calendar.utils";
 import { Task } from "@/domains/tasks/types";
 
 export interface CalendarDay {
@@ -6,13 +17,20 @@ export interface CalendarDay {
   isCurrentMonth: boolean;
 }
 
+export type CalendarItem =
+  | { id: string; itemType: "task"; date: string; task: Task }
+  | { id: string; itemType: "event"; date: string; occurrence: CalendarEventOccurrence }
+  | { id: string; itemType: "holiday"; date: string; holiday: CalendarHoliday };
+
 export interface CalendarDayState {
-  completedTaskCount: number;
-  hasTasks: boolean;
+  eventCount: number;
+  hasItems: boolean;
+  holidayCount: number;
   isDueSoon: boolean;
   isDueToday: boolean;
+  isHoliday: boolean;
   isOverdue: boolean;
-  openTaskCount: number;
+  taskCount: number;
 }
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
@@ -37,53 +55,115 @@ export function getMonthGrid(monthDate: Date): CalendarDay[] {
   });
 }
 
-export function groupTasksByDate(tasks: Task[]): Record<string, Task[]> {
-  return tasks.reduce<Record<string, Task[]>>((accumulator, task) => {
-    const key = getTaskCalendarDateKey(task);
+export function groupCalendarItemsByDate(
+  tasks: Task[],
+  eventOccurrences: CalendarEventOccurrence[],
+  holidays: CalendarHoliday[],
+): Record<string, CalendarItem[]> {
+  const items: CalendarItem[] = [
+    ...tasks
+      .map((task) => {
+        const date = getTaskCalendarDateKey(task);
+        return date
+          ? { id: `task-${task.id}`, itemType: "task" as const, date, task }
+          : null;
+      })
+      .filter((item): item is Extract<CalendarItem, { itemType: "task" }> => Boolean(item)),
+    ...eventOccurrences.map((occurrence) => ({
+      id: occurrence.id,
+      itemType: "event" as const,
+      date: occurrence.date,
+      occurrence,
+    })),
+    ...holidays.map((holiday) => ({
+      id: `holiday-${holiday.id}`,
+      itemType: "holiday" as const,
+      date: holiday.date,
+      holiday,
+    })),
+  ];
 
-    if (!key) {
-      return accumulator;
+  return items.reduce<Record<string, CalendarItem[]>>((accumulator, item) => {
+    if (!accumulator[item.date]) {
+      accumulator[item.date] = [];
     }
 
-    if (!accumulator[key]) {
-      accumulator[key] = [];
-    }
-
-    accumulator[key].push(task);
+    accumulator[item.date].push(item);
+    accumulator[item.date] = sortCalendarItems(accumulator[item.date]);
     return accumulator;
   }, {});
 }
 
-export function getTasksForCalendarDate(
-  tasksByDate: Record<string, Task[]>,
+export function getItemsForDate(
+  itemsByDate: Record<string, CalendarItem[]>,
   date: Date,
-): Task[] {
-  return tasksByDate[toCalendarDateKey(date)] ?? [];
+): CalendarItem[] {
+  return itemsByDate[toCalendarDateKey(date)] ?? [];
 }
 
-export function sortCalendarTasks(tasks: Task[]): Task[] {
-  return [...tasks].sort((left, right) => {
-    const leftStatusWeight = left.status === "done" ? 1 : 0;
-    const rightStatusWeight = right.status === "done" ? 1 : 0;
+export function getTasksForCalendarDate(items: CalendarItem[]): Task[] {
+  return items
+    .filter((item): item is Extract<CalendarItem, { itemType: "task" }> => item.itemType === "task")
+    .map((item) => item.task);
+}
 
-    if (leftStatusWeight !== rightStatusWeight) {
-      return leftStatusWeight - rightStatusWeight;
+export function getEventsForCalendarDate(items: CalendarItem[]): CalendarEventOccurrence[] {
+  return items
+    .filter((item): item is Extract<CalendarItem, { itemType: "event" }> => item.itemType === "event")
+    .map((item) => item.occurrence);
+}
+
+export function getHolidaysForCalendarDate(items: CalendarItem[]): CalendarHoliday[] {
+  return items
+    .filter((item): item is Extract<CalendarItem, { itemType: "holiday" }> => item.itemType === "holiday")
+    .map((item) => item.holiday);
+}
+
+export function getCalendarEventOccurrencesForMonth(
+  visibleMonth: Date,
+  events: import("@/domains/calendar/types").CalendarEvent[],
+): CalendarEventOccurrence[] {
+  const monthGrid = getMonthGrid(visibleMonth);
+  return expandRecurringEventsForRange(events, monthGrid[0].date, monthGrid[monthGrid.length - 1].date);
+}
+
+export function sortCalendarItems(items: CalendarItem[]): CalendarItem[] {
+  return [...items].sort((left, right) => {
+    const leftWeight = getItemWeight(left);
+    const rightWeight = getItemWeight(right);
+
+    if (leftWeight !== rightWeight) {
+      return leftWeight - rightWeight;
     }
 
-    const leftPriorityWeight = getPriorityWeight(left.priority);
-    const rightPriorityWeight = getPriorityWeight(right.priority);
+    if (left.itemType === "task" && right.itemType === "task") {
+      const leftDone = left.task.status === "done" ? 1 : 0;
+      const rightDone = right.task.status === "done" ? 1 : 0;
 
-    if (leftPriorityWeight !== rightPriorityWeight) {
-      return rightPriorityWeight - leftPriorityWeight;
+      if (leftDone !== rightDone) {
+        return leftDone - rightDone;
+      }
     }
 
-    return right.createdAt - left.createdAt;
+    if (left.itemType === "event" && right.itemType === "event") {
+      const leftTime = left.occurrence.event.isAllDay
+        ? "00:00"
+        : left.occurrence.event.startTime ?? "23:59";
+      const rightTime = right.occurrence.event.isAllDay
+        ? "00:00"
+        : right.occurrence.event.startTime ?? "23:59";
+      return leftTime.localeCompare(rightTime);
+    }
+
+    return left.id.localeCompare(right.id);
   });
 }
 
-export function getDayTaskState(date: Date, tasks: Task[], now = new Date()): CalendarDayState {
+export function getDayTaskState(date: Date, items: CalendarItem[], now = new Date()): CalendarDayState {
+  const tasks = getTasksForCalendarDate(items);
+  const events = getEventsForCalendarDate(items);
+  const holidays = getHolidaysForCalendarDate(items);
   const openTasks = tasks.filter((task) => task.status !== "done");
-  const completedTaskCount = tasks.length - openTasks.length;
   const isToday = isSameDay(date, now);
   const startOfToday = getStartOfDay(now);
   const startOfDate = getStartOfDay(date);
@@ -92,12 +172,14 @@ export function getDayTaskState(date: Date, tasks: Task[], now = new Date()): Ca
   );
 
   return {
-    completedTaskCount,
-    hasTasks: tasks.length > 0,
+    eventCount: events.length,
+    hasItems: items.length > 0,
+    holidayCount: holidays.length,
     isDueSoon: openTasks.length > 0 && daysUntil > 0 && daysUntil <= 7,
     isDueToday: openTasks.length > 0 && isToday,
+    isHoliday: holidays.length > 0,
     isOverdue: openTasks.length > 0 && startOfDate.getTime() < startOfToday.getTime(),
-    openTaskCount: openTasks.length,
+    taskCount: tasks.length,
   };
 }
 
@@ -154,6 +236,30 @@ export function formatTaskDateTime(task: Task): string | null {
   }).format(hasScheduledTime ? scheduledTime : taskDate);
 }
 
+export function formatCalendarOccurrenceLabel(
+  occurrence: CalendarEventOccurrence,
+): string {
+  return getEventDisplayLabel(occurrence);
+}
+
+export function formatCalendarOccurrenceTime(
+  occurrence: CalendarEventOccurrence,
+): string | null {
+  return formatEventTimeRange(occurrence.event);
+}
+
+export function formatCalendarOccurrenceRecurrence(
+  occurrence: CalendarEventOccurrence,
+): string | null {
+  return getRecurrenceLabel(occurrence.event.recurrence);
+}
+
+export function doesEventOccurrenceSpanMultipleDays(
+  occurrence: CalendarEventOccurrence,
+): boolean {
+  return occurrence.occurrenceStartDate !== occurrence.occurrenceEndDate;
+}
+
 export function getTaskCalendarDate(task: Task): Date | null {
   const rawDueDate = task.dueDate ?? task.scheduledDate;
 
@@ -163,6 +269,18 @@ export function getTaskCalendarDate(task: Task): Date | null {
 
   const safeDate = new Date(`${rawDueDate}T12:00:00`);
   return Number.isNaN(safeDate.getTime()) ? null : safeDate;
+}
+
+export function taskAppearsOnDate(task: Task, date: Date): boolean {
+  const taskDate = getTaskCalendarDate(task);
+  return taskDate ? isSameDay(taskDate, date) : false;
+}
+
+export function eventOccurrenceAppearsOnDate(
+  occurrence: CalendarEventOccurrence,
+  date: Date,
+): boolean {
+  return occurrence.date === toCalendarDateKey(date) && eventOccursOnDate(occurrence.event, date);
 }
 
 function getTaskCalendarDateKey(task: Task): string | null {
@@ -182,14 +300,14 @@ function getStartOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-function getPriorityWeight(priority: Task["priority"]): number {
-  switch (priority) {
-    case "high":
-      return 3;
-    case "medium":
-      return 2;
-    case "low":
-    default:
+function getItemWeight(item: CalendarItem): number {
+  switch (item.itemType) {
+    case "holiday":
+      return 0;
+    case "event":
       return 1;
+    case "task":
+    default:
+      return 2;
   }
 }

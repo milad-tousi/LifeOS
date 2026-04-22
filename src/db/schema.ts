@@ -5,6 +5,8 @@ export const DB_VERSION_3 = 3;
 export const DB_VERSION_4 = 4;
 export const DB_VERSION_5 = 5;
 export const DB_VERSION_6 = 6;
+export const DB_VERSION_7 = 7;
+export const DB_VERSION_8 = 8;
 
 export const TABLES = {
   authUsers: "authUsers",
@@ -13,6 +15,7 @@ export const TABLES = {
   userProfiles: "userProfiles",
   tasks: "tasks",
   taskBoardColumns: "taskBoardColumns",
+  calendarEvents: "calendarEvents",
   habits: "habits",
   habitLogs: "habitLogs",
   goals: "goals",
@@ -66,4 +69,14 @@ export const schemaV6 = {
   [TABLES.tasks]:
     "id, goalId, boardColumnId, status, scheduledDate, createdAt, [scheduledDate+status], [goalId+status], [goalId+boardColumnId]",
   [TABLES.taskBoardColumns]: "id, kind, statusKey, order, createdAt",
+} as const;
+
+export const schemaV7 = {
+  ...schemaV6,
+  [TABLES.calendarEvents]: "id, date, createdAt, [date+time]",
+} as const;
+
+export const schemaV8 = {
+  ...schemaV6,
+  [TABLES.calendarEvents]: "id, startDate, createdAt, [startDate+startTime]",
 } as const;

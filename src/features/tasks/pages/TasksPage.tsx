@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/common/Card";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { CalendarEvent } from "@/domains/calendar/types";
 import { taskBoardColumnsRepository } from "@/domains/tasks/board.repository";
 import { TaskBoardColumn } from "@/domains/tasks/board.types";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
@@ -17,9 +18,10 @@ import { Task } from "@/domains/tasks/types";
 import { sortTasksByOrder } from "@/domains/tasks/task.utils";
 
 export function TasksPage(): JSX.Element {
-  const { boardColumns, goals, loading, tasks } = useTasksPageData();
+  const { boardColumns, events, goals, loading, tasks } = useTasksPageData();
   const [activeTaskView, setActiveTaskView] = useState<TaskView>("list");
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [taskDraftDueDate, setTaskDraftDueDate] = useState<string | undefined>(undefined);
   const [quickAddValue, setQuickAddValue] = useState("");
   const [isQuickAdding, setIsQuickAdding] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState<Task | null>(null);
@@ -27,6 +29,7 @@ export function TasksPage(): JSX.Element {
   const [isDeletingTask, setIsDeletingTask] = useState(false);
   const [taskListState, setTaskListState] = useState<Task[]>([]);
   const [boardColumnsState, setBoardColumnsState] = useState<TaskBoardColumn[]>([]);
+  const [eventListState, setEventListState] = useState<CalendarEvent[]>([]);
 
   useEffect(() => {
     setTaskListState(sortTasksByOrder(tasks));
@@ -35,6 +38,10 @@ export function TasksPage(): JSX.Element {
   useEffect(() => {
     setBoardColumnsState(boardColumns);
   }, [boardColumns]);
+
+  useEffect(() => {
+    setEventListState(events);
+  }, [events]);
 
   const goalTitlesById = useMemo(
     () =>
@@ -45,6 +52,10 @@ export function TasksPage(): JSX.Element {
     [goals],
   );
   const groupedTasks = useMemo(() => groupTasksForListView(taskListState), [taskListState]);
+  const addTaskInitialValues = useMemo(
+    () => (taskDraftDueDate ? { dueDate: taskDraftDueDate } : undefined),
+    [taskDraftDueDate],
+  );
 
   function replaceTaskInState(task: Task): void {
     setTaskListState((currentTasks) => {
@@ -230,9 +241,29 @@ export function TasksPage(): JSX.Element {
       case "calendar":
         return (
           <TaskCalendarView
+            events={eventListState}
             goalTitlesById={goalTitlesById}
+            onAddTaskFromDate={(date) => {
+              setTaskDraftDueDate(date);
+              setIsAddTaskModalOpen(true);
+            }}
             onDeleteTask={setTaskPendingDelete}
             onEditTask={setTaskBeingEdited}
+            onEventDeleted={(eventId) =>
+              setEventListState((currentEvents) =>
+                currentEvents.filter((event) => event.id !== eventId),
+              )
+            }
+            onEventSaved={(event) =>
+              setEventListState((currentEvents) => {
+                const hasEvent = currentEvents.some((currentEvent) => currentEvent.id === event.id);
+                return hasEvent
+                  ? currentEvents.map((currentEvent) =>
+                      currentEvent.id === event.id ? event : currentEvent,
+                    )
+                  : [...currentEvents, event];
+              })
+            }
             onToggleTask={handleToggleTask}
             tasks={taskListState}
           />
@@ -254,27 +285,44 @@ export function TasksPage(): JSX.Element {
 
   return (
     <>
-      <TasksPageHeader onAddTask={() => setIsAddTaskModalOpen(true)} />
+      <TasksPageHeader
+        onAddTask={() => {
+          setTaskDraftDueDate(undefined);
+          setIsAddTaskModalOpen(true);
+        }}
+      />
 
       <Card>
         <div className="tasks-page-shell">
           <TaskViewSwitcher activeView={activeTaskView} onChange={setActiveTaskView} />
-          <TasksQuickAdd
-            isSubmitting={isQuickAdding}
-            onChange={setQuickAddValue}
-            onOpenAddTaskModal={() => setIsAddTaskModalOpen(true)}
-            onSubmit={() => void handleQuickAdd()}
-            value={quickAddValue}
-          />
+          {activeTaskView !== "calendar" ? (
+            <TasksQuickAdd
+              isSubmitting={isQuickAdding}
+              onChange={setQuickAddValue}
+              onOpenAddTaskModal={() => {
+                setTaskDraftDueDate(undefined);
+                setIsAddTaskModalOpen(true);
+              }}
+              onSubmit={() => void handleQuickAdd()}
+              value={quickAddValue}
+            />
+          ) : null}
         </div>
       </Card>
 
       {loading ? <p className="text-muted">Loading tasks...</p> : renderActiveView()}
 
       <TaskModal
+        initialValues={addTaskInitialValues}
         isOpen={isAddTaskModalOpen}
-        onClose={() => setIsAddTaskModalOpen(false)}
-        onSaved={(task) => replaceTaskInState(task)}
+        onClose={() => {
+          setIsAddTaskModalOpen(false);
+          setTaskDraftDueDate(undefined);
+        }}
+        onSaved={(task) => {
+          replaceTaskInState(task);
+          setTaskDraftDueDate(undefined);
+        }}
       />
       <TaskModal
         initialTask={taskBeingEdited}

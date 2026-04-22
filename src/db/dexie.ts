@@ -1,5 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { AuthUser } from "@/domains/auth/types";
+import { CalendarEvent } from "@/domains/calendar/types";
 import { Expense } from "@/domains/finance/types";
 import { Goal } from "@/domains/goals/types";
 import { Habit, HabitLog } from "@/domains/habits/types";
@@ -36,6 +37,7 @@ export class LifeOSDatabase extends Dexie {
   userProfiles!: Table<UserProfile, EntityId>;
   tasks!: Table<Task, EntityId>;
   taskBoardColumns!: Table<TaskBoardColumn, EntityId>;
+  calendarEvents!: Table<CalendarEvent, EntityId>;
   habits!: Table<Habit, EntityId>;
   habitLogs!: Table<HabitLog, EntityId>;
   goals!: Table<Goal, EntityId>;
