@@ -10,8 +10,8 @@ export interface GoalTaskStats {
 
 export function getGoalTaskStats(tasks: Task[]): GoalTaskStats {
   const cancelled = tasks.filter((task) => task.status === "cancelled").length;
-  const completed = tasks.filter((task) => task.status === "completed").length;
-  const pending = tasks.filter((task) => task.status === "pending").length;
+  const completed = tasks.filter((task) => task.status === "done").length;
+  const pending = tasks.filter((task) => task.status !== "done" && task.status !== "cancelled").length;
   const total = tasks.length - cancelled;
 
   return {

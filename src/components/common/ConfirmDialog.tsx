@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import { Button } from "@/components/common/Button";
+import { ModalShell } from "@/components/common/ModalShell";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -30,28 +32,30 @@ export function ConfirmDialog({
   }
 
   return (
-    <div aria-modal="true" className="confirm-dialog-backdrop" role="dialog">
-      <div className="confirm-dialog">
-        <div className="confirm-dialog__body">
-          <h2 className="confirm-dialog__title">{title}</h2>
-          <p className="confirm-dialog__description">{description}</p>
-          {children}
-        </div>
-
+    <ModalShell
+      footer={
         <div className="confirm-dialog__actions">
-          <button className="button button--secondary" onClick={onCancel} type="button">
+          <Button onClick={onCancel} type="button" variant="secondary">
             {cancelLabel}
-          </button>
-          <button
-            className={`button ${tone === "danger" ? "button--danger" : "button--primary"}`}
+          </Button>
+          <Button
             disabled={isConfirming}
             onClick={onConfirm}
             type="button"
+            variant={tone === "danger" ? "danger" : "primary"}
           >
             {isConfirming ? "Working..." : confirmLabel}
-          </button>
+          </Button>
         </div>
+      }
+      isOpen={isOpen}
+      onRequestClose={onCancel}
+      title={title}
+    >
+      <div className="confirm-dialog__body">
+        <p className="confirm-dialog__description">{description}</p>
+        {children}
       </div>
-    </div>
+    </ModalShell>
   );
 }

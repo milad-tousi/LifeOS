@@ -1,48 +1,22 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { EmptyState } from "@/components/common/EmptyState";
 import { goalsRepository } from "@/domains/goals/repository";
-import { tasksRepository } from "@/domains/tasks/repository";
+import { EditGoalModal } from "@/features/goals/components/EditGoalModal";
 import { GoalHeader } from "@/features/goals/components/GoalHeader";
 import { GoalProgress } from "@/features/goals/components/GoalProgress";
 import { GoalTaskList } from "@/features/goals/components/GoalTaskList";
 import { useGoalDetail } from "@/features/goals/hooks/useGoalDetail";
+import { AddTaskModal } from "@/features/tasks/components/AddTaskModal";
 
 export function GoalDetailPage(): JSX.Element {
   const navigate = useNavigate();
   const { goalId } = useParams<{ goalId: string }>();
   const { goal, linkedTasks, loading, stats } = useGoalDetail(goalId);
-
-  async function handleAddTask(): Promise<void> {
-    if (!goalId) {
-      return;
-    }
-
-    const taskTitle = window.prompt("Task title");
-
-    if (!taskTitle || !taskTitle.trim()) {
-      return;
-    }
-
-    await tasksRepository.addTaskToGoal(goalId, {
-      title: taskTitle.trim(),
-    });
-  }
-
-  async function handleEditGoal(): Promise<void> {
-    if (!goal) {
-      return;
-    }
-
-    const nextTitle = window.prompt("Goal title", goal.title);
-
-    if (!nextTitle || !nextTitle.trim()) {
-      return;
-    }
-
-    await goalsRepository.update(goal.id, { title: nextTitle.trim() });
-  }
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isEditGoalModalOpen, setIsEditGoalModalOpen] = useState(false);
 
   if (loading) {
     return <p className="text-muted">Loading goal...</p>;
@@ -80,7 +54,7 @@ export function GoalDetailPage(): JSX.Element {
           <EmptyState
             actionLabel="Add your first task"
             description="No steps yet. Add tasks to start making progress."
-            onAction={() => void handleAddTask()}
+            onAction={() => setIsAddTaskModalOpen(true)}
             title="No steps yet"
           />
         ) : (
@@ -90,10 +64,10 @@ export function GoalDetailPage(): JSX.Element {
 
       <Card title="Quick actions">
         <div className="goal-detail-page__actions">
-          <Button onClick={() => void handleAddTask()} type="button">
+          <Button onClick={() => setIsAddTaskModalOpen(true)} type="button">
             Add task
           </Button>
-          <Button onClick={() => void handleEditGoal()} type="button" variant="secondary">
+          <Button onClick={() => setIsEditGoalModalOpen(true)} type="button" variant="secondary">
             Edit goal
           </Button>
           <Button
@@ -112,6 +86,18 @@ export function GoalDetailPage(): JSX.Element {
           </Button>
         </div>
       </Card>
+
+      <AddTaskModal
+        goalId={goal.id}
+        goalTitle={goal.title}
+        isOpen={isAddTaskModalOpen}
+        onClose={() => setIsAddTaskModalOpen(false)}
+      />
+      <EditGoalModal
+        goal={goal}
+        isOpen={isEditGoalModalOpen}
+        onClose={() => setIsEditGoalModalOpen(false)}
+      />
     </div>
   );
 }

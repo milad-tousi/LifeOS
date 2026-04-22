@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Circle, Clock3, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Circle, CircleDashed, Clock3, Link2, ListChecks, XCircle } from "lucide-react";
 import { EmptyState } from "@/components/common/EmptyState";
 import { tasksRepository } from "@/domains/tasks/repository";
 import { Task } from "@/domains/tasks/types";
@@ -33,7 +33,7 @@ export function GoalTaskList({ tasks }: GoalTaskListProps): JSX.Element {
           <div className="goal-task-list__content">
             <strong
               className={
-                task.status === "completed"
+                task.status === "done"
                   ? "goal-task-list__title goal-task-list__title--completed"
                   : "goal-task-list__title"
               }
@@ -41,17 +41,30 @@ export function GoalTaskList({ tasks }: GoalTaskListProps): JSX.Element {
               {task.title}
             </strong>
             <div className="goal-task-list__meta">
-              {task.scheduledDate ? (
+              {task.dueDate ?? task.scheduledDate ? (
                 <span>
                   <CalendarDays size={14} />
-                  {task.scheduledDate}
+                  {task.dueDate ?? task.scheduledDate}
                 </span>
               ) : null}
               <span>
                 <Clock3 size={14} />
                 {task.priority}
               </span>
+              {task.sources.length > 0 ? (
+                <span>
+                  <Link2 size={14} />
+                  {task.sources.length} source{task.sources.length === 1 ? "" : "s"}
+                </span>
+              ) : null}
+              {task.subtaskProgress.total > 0 ? (
+                <span>
+                  <ListChecks size={14} />
+                  {task.subtaskProgress.completed}/{task.subtaskProgress.total} subtasks
+                </span>
+              ) : null}
             </div>
+            {task.description ? <p className="goal-task-list__description">{task.description}</p> : null}
           </div>
         </div>
       ))}
@@ -61,11 +74,13 @@ export function GoalTaskList({ tasks }: GoalTaskListProps): JSX.Element {
 
 function renderTaskStatusIcon(status: Task["status"]): JSX.Element {
   switch (status) {
-    case "completed":
+    case "done":
       return <CheckCircle2 size={20} />;
     case "cancelled":
       return <XCircle size={20} />;
-    case "pending":
+    case "in_progress":
+      return <CircleDashed size={20} />;
+    case "todo":
       return <Circle size={20} />;
   }
 }

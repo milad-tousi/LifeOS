@@ -2,6 +2,7 @@ import { db, ensureDatabaseReady } from "@/db/dexie";
 import { createTaskModel } from "@/domains/tasks/models";
 import { CreateTaskInput, Task } from "@/domains/tasks/types";
 import { getGoalTaskStats } from "@/domains/goals/goal-progress";
+import { normalizeTask } from "@/domains/tasks/task.utils";
 import { createLogger } from "@/utils/logger";
 
 const taskLogger = createLogger("tasks");
@@ -14,7 +15,7 @@ async function syncGoalStatus(goalId: string): Promise<void> {
   }
 
   const tasks = await db.tasks.where("goalId").equals(goalId).toArray();
-  const stats = getGoalTaskStats(tasks);
+  const stats = getGoalTaskStats(tasks.map(normalizeTask));
   const nextStatus =
     stats.total > 0 && stats.completed === stats.total ? "completed" : "active";
 
@@ -30,11 +31,13 @@ async function syncGoalStatus(goalId: string): Promise<void> {
 export const tasksRepository = {
   async getAll(): Promise<Task[]> {
     await ensureDatabaseReady();
-    return db.tasks.orderBy("createdAt").reverse().toArray();
+    const tasks = await db.tasks.orderBy("createdAt").reverse().toArray();
+    return tasks.map(normalizeTask);
   },
   async getByGoalId(goalId: string): Promise<Task[]> {
     await ensureDatabaseReady();
-    return db.tasks.where("goalId").equals(goalId).sortBy("createdAt");
+    const tasks = await db.tasks.where("goalId").equals(goalId).sortBy("createdAt");
+    return tasks.map(normalizeTask);
   },
   async add(input: CreateTaskInput): Promise<string> {
     await ensureDatabaseReady();
@@ -55,16 +58,17 @@ export const tasksRepository = {
   },
   async update(task: Task): Promise<string> {
     await ensureDatabaseReady();
+    const normalizedTask = normalizeTask(task);
     await db.tasks.put({
-      ...task,
+      ...normalizedTask,
       updatedAt: Date.now(),
     });
 
-    if (task.goalId) {
-      await syncGoalStatus(task.goalId);
+    if (normalizedTask.goalId) {
+      await syncGoalStatus(normalizedTask.goalId);
     }
 
-    return task.id;
+    return normalizedTask.id;
   },
   async toggleTaskComplete(taskId: string): Promise<void> {
     await ensureDatabaseReady();
@@ -74,11 +78,12 @@ export const tasksRepository = {
       return;
     }
 
-    const nextStatus = task.status === "completed" ? "pending" : "completed";
+    const normalizedTask = normalizeTask(task);
+    const nextStatus = normalizedTask.status === "done" ? "todo" : "done";
     const updatedTask: Task = {
-      ...task,
+      ...normalizedTask,
       status: nextStatus,
-      completedAt: nextStatus === "completed" ? Date.now() : undefined,
+      completedAt: nextStatus === "done" ? Date.now() : undefined,
       updatedAt: Date.now(),
     };
 
@@ -96,14 +101,16 @@ export const tasksRepository = {
       return;
     }
 
+    const normalizedTask = normalizeTask(task);
+
     await db.tasks.put({
-      ...task,
+      ...normalizedTask,
       goalId: undefined,
       updatedAt: Date.now(),
     });
 
-    if (task.goalId) {
-      await syncGoalStatus(task.goalId);
+    if (normalizedTask.goalId) {
+      await syncGoalStatus(normalizedTask.goalId);
     }
   },
   async remove(id: string): Promise<void> {

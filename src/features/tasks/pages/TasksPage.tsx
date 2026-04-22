@@ -1,28 +1,15 @@
+import { useState } from "react";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
-import { tasksRepository } from "@/domains/tasks/repository";
 import { formatDate } from "@/lib/date";
-import { log } from "@/utils/logger";
 import { useTasks } from "@/features/tasks/hooks/useTasks";
+import { AddTaskModal } from "@/features/tasks/components/AddTaskModal";
 
 export function TasksPage(): JSX.Element {
   const { tasks, loading } = useTasks();
-
-  async function handleAddTask(): Promise<void> {
-    const title = window.prompt("Task title");
-
-    if (!title || !title.trim()) {
-      return;
-    }
-
-    try {
-      await tasksRepository.add({ title: title.trim() });
-    } catch (error) {
-      log.error("Failed to add task", error);
-    }
-  }
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
 
   return (
     <>
@@ -30,14 +17,14 @@ export function TasksPage(): JSX.Element {
         title="Tasks"
         description="Compact task records with efficient date and status indexing."
       />
-      <Button onClick={() => void handleAddTask()}>Add Task</Button>
+      <Button onClick={() => setIsAddTaskModalOpen(true)}>Add Task</Button>
       <Card title="Task list">
         {loading ? (
           <p className="text-muted">Loading tasks...</p>
         ) : tasks.length === 0 ? (
           <EmptyState
             title="No tasks yet"
-            description="Use the temporary Add Task action to create your first local task."
+            description="Open the task modal to create your first local task with richer detail."
           />
         ) : (
           <div className="page-list">
@@ -53,6 +40,10 @@ export function TasksPage(): JSX.Element {
           </div>
         )}
       </Card>
+      <AddTaskModal
+        isOpen={isAddTaskModalOpen}
+        onClose={() => setIsAddTaskModalOpen(false)}
+      />
     </>
   );
 }

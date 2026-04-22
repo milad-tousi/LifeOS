@@ -27,7 +27,9 @@ export function useGoals(): UseGoalsResult {
     return goalRecords.map((goal) => {
       const linkedTasks = tasks.filter((task) => task.goalId === goal.id);
       const stats = getGoalTaskStats(linkedTasks);
-      const nextPendingTask = linkedTasks.find((task) => task.status === "pending");
+      const nextPendingTask = linkedTasks.find(
+        (task) => task.status === "todo" || task.status === "in_progress",
+      );
 
       return {
         goal,
