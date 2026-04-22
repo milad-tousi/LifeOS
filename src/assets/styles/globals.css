@@ -703,6 +703,15 @@ button {
   padding: 0.95rem;
 }
 
+.subtask-card {
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.subtask-card--dragging {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+}
+
 .task-source-card {
   display: flex;
   min-width: 0;
@@ -743,6 +752,28 @@ button {
   background: transparent;
   color: var(--muted);
   padding: 0.45rem;
+}
+
+.subtask-card__handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.85rem;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.45rem;
+  cursor: grab;
+  touch-action: none;
+}
+
+.subtask-card__handle:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.subtask-card__handle:active {
+  cursor: grabbing;
 }
 
 .task-source-card__upload {
@@ -1873,6 +1904,7 @@ a:focus-visible {
 }
 
 .goal-task-list__toggle,
+.goal-task-list__drag-handle,
 .goal-task-list__delete,
 .goal-task-list__quick-action {
   display: inline-flex;
@@ -1887,6 +1919,21 @@ a:focus-visible {
   background: transparent;
   padding: 0;
   transition: background-color 140ms ease, color 140ms ease, transform 140ms ease, opacity 180ms ease;
+}
+
+.goal-task-list__drag-handle {
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+}
+
+.goal-task-list__drag-handle:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.goal-task-list__drag-handle:active {
+  cursor: grabbing;
 }
 
 .goal-task-list__toggle {
@@ -1912,6 +1959,7 @@ a:focus-visible {
 }
 
 .goal-task-list__toggle:hover,
+.goal-task-list__drag-handle:hover,
 .goal-task-list__delete:hover,
 .goal-task-list__content-button:hover {
   background: var(--surface-hover);
@@ -1921,6 +1969,7 @@ a:focus-visible {
   color: #dc2626;
 }
 
+.goal-task-list__drag-handle:active,
 .goal-task-list__toggle:active,
 .goal-task-list__delete:active,
 .goal-task-list__content-button:active {
@@ -2179,6 +2228,15 @@ a:focus-visible {
 .goal-task-list__item--updated .goal-task-list__content-button,
 .goal-task-list__item--updated .goal-task-list__toggle {
   animation: goal-task-highlight 1200ms ease-out;
+}
+
+.goal-task-list__item--dragging {
+  z-index: 2;
+  border-top-color: transparent;
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+  opacity: 0.96;
 }
 
 @media (prefers-reduced-motion: reduce) {

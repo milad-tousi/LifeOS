@@ -14,6 +14,7 @@ export function createTaskModel(input: CreateTaskInput): Task {
     description: normalizedInput.description,
     notes: normalizedInput.description,
     tags: normalizedInput.tags ?? [],
+    sortOrder: normalizedInput.sortOrder ?? timestamp,
     status,
     priority: normalizedInput.priority ?? "medium",
     category: normalizedInput.category,

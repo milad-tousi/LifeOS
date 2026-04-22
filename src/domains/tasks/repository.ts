@@ -2,7 +2,7 @@ import { db, ensureDatabaseReady } from "@/db/dexie";
 import { createTaskModel } from "@/domains/tasks/models";
 import { CreateTaskInput, Task } from "@/domains/tasks/types";
 import { computeGoalProgress } from "@/domains/goals/goal-progress";
-import { normalizeTask } from "@/domains/tasks/task.utils";
+import { normalizeTask, sortTasksByOrder } from "@/domains/tasks/task.utils";
 import { createLogger } from "@/utils/logger";
 
 const taskLogger = createLogger("tasks");
@@ -36,12 +36,25 @@ export const tasksRepository = {
   },
   async getByGoalId(goalId: string): Promise<Task[]> {
     await ensureDatabaseReady();
-    const tasks = await db.tasks.where("goalId").equals(goalId).sortBy("createdAt");
-    return tasks.map(normalizeTask);
+    const tasks = await db.tasks.where("goalId").equals(goalId).toArray();
+    return sortTasksByOrder(tasks.map(normalizeTask));
   },
   async add(input: CreateTaskInput): Promise<Task> {
     await ensureDatabaseReady();
-    const task = createTaskModel(input);
+    let nextInput = input;
+
+    if (input.goalId && input.sortOrder === undefined) {
+      const existingGoalTasks = await db.tasks.where("goalId").equals(input.goalId).toArray();
+      const orderedGoalTasks = sortTasksByOrder(existingGoalTasks.map(normalizeTask));
+      const lastTask = orderedGoalTasks[orderedGoalTasks.length - 1];
+
+      nextInput = {
+        ...input,
+        sortOrder: lastTask ? lastTask.sortOrder + 1 : Date.now(),
+      };
+    }
+
+    const task = createTaskModel(nextInput);
     await db.tasks.add(task);
 
     if (task.goalId) {
@@ -131,7 +144,32 @@ export const tasksRepository = {
 
     return task ? normalizeTask(task) : undefined;
   },
-  reorderGoalTasks(): void {
-    taskLogger.info("goal task reordering is skipped for MVP because task ordering is not stored");
+  async reorderGoalTasks(goalId: string, orderedTaskIds: string[]): Promise<Task[]> {
+    await ensureDatabaseReady();
+    const existingTasks = (await db.tasks.where("goalId").equals(goalId).toArray()).map(normalizeTask);
+    const taskById = new Map(existingTasks.map((task) => [task.id, task]));
+    const orderedTasks = orderedTaskIds
+      .map((taskId) => taskById.get(taskId))
+      .filter((task): task is Task => Boolean(task));
+    const trailingTasks = sortTasksByOrder(existingTasks).filter(
+      (task) => !orderedTaskIds.includes(task.id),
+    );
+    const timestamp = Date.now();
+    const nextTasks = [...orderedTasks, ...trailingTasks].map((task, index) => ({
+      ...task,
+      sortOrder: index,
+      updatedAt: timestamp,
+    }));
+
+    await db.transaction("rw", db.tasks, async () => {
+      await Promise.all(nextTasks.map((task) => db.tasks.put(task)));
+    });
+
+    taskLogger.info("goal task order updated", {
+      goalId,
+      taskCount: nextTasks.length,
+    });
+
+    return nextTasks;
   },
 };

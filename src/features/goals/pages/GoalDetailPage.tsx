@@ -9,6 +9,7 @@ import { goalsRepository } from "@/domains/goals/repository";
 import { Goal } from "@/domains/goals/types";
 import { tasksRepository } from "@/domains/tasks/repository";
 import { Task } from "@/domains/tasks/types";
+import { sortTasksByOrder } from "@/domains/tasks/task.utils";
 import { EditGoalModal } from "@/features/goals/components/EditGoalModal";
 import { GoalHeader } from "@/features/goals/components/GoalHeader";
 import { GoalProgress } from "@/features/goals/components/GoalProgress";
@@ -39,7 +40,7 @@ export function GoalDetailPage(): JSX.Element {
   }, [goal]);
 
   useEffect(() => {
-    setTaskListState(linkedTasks);
+    setTaskListState(sortTasksByOrder(linkedTasks));
   }, [linkedTasks]);
 
   useEffect(() => {
@@ -82,13 +83,31 @@ export function GoalDetailPage(): JSX.Element {
       const hasExistingTask = currentTasks.some((currentTask) => currentTask.id === task.id);
 
       if (!hasExistingTask) {
-        return [...currentTasks, task].sort((leftTask, rightTask) => leftTask.createdAt - rightTask.createdAt);
+        return sortTasksByOrder([...currentTasks, task]);
       }
 
-      return currentTasks.map((currentTask) =>
-        currentTask.id === task.id ? task : currentTask,
+      return sortTasksByOrder(
+        currentTasks.map((currentTask) => (currentTask.id === task.id ? task : currentTask)),
       );
     });
+  }
+
+  function handleReorderTasks(reorderedTasks: Task[]): void {
+    const previousTasks = taskListState;
+    setTaskListState(reorderedTasks);
+
+    if (!displayGoal) {
+      return;
+    }
+
+    void tasksRepository
+      .reorderGoalTasks(
+        displayGoal.id,
+        reorderedTasks.map((task) => task.id),
+      )
+      .catch(() => {
+        setTaskListState(previousTasks);
+      });
   }
 
   function commitTaskToggle(task: Task): void {
@@ -179,6 +198,7 @@ export function GoalDetailPage(): JSX.Element {
             }}
             onDeleteTask={setTaskPendingDelete}
             onEditTask={setTaskBeingEdited}
+            onReorderTasks={handleReorderTasks}
             onToggleTask={(task) => {
               const hasIncompleteSubtasks =
                 task.subtaskProgress.total > task.subtaskProgress.completed;

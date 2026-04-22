@@ -113,6 +113,7 @@ export function normalizeTaskInput(input: CreateTaskInput): CreateTaskInput {
     description,
     notes: description,
     tags: normalizeTaskTags(input.tags),
+    sortOrder: input.sortOrder,
     status,
     dueDate,
     scheduledDate: dueDate,
@@ -135,6 +136,7 @@ export function normalizeTask(task: Task): Task {
     description,
     notes: description,
     tags: normalizeTaskTags(task.tags),
+    sortOrder: Number.isFinite(task.sortOrder) ? task.sortOrder : task.createdAt,
     dueDate,
     scheduledDate: dueDate,
     status: normalizedStatus,
@@ -144,6 +146,20 @@ export function normalizeTask(task: Task): Task {
     completedAt:
       normalizedStatus === "done" ? task.completedAt ?? task.updatedAt : undefined,
   };
+}
+
+export function sortTasksByOrder(tasks: Task[]): Task[] {
+  return [...tasks].sort((left, right) => {
+    if (left.sortOrder !== right.sortOrder) {
+      return left.sortOrder - right.sortOrder;
+    }
+
+    if (left.createdAt !== right.createdAt) {
+      return left.createdAt - right.createdAt;
+    }
+
+    return left.id.localeCompare(right.id);
+  });
 }
 
 export function summarizeTaskSources(sources: TaskSource[]): TaskSourceSummaryItem[] {
