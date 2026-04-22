@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Clock3, Flag, ListTodo } from "lucide-react";
+import { Clock3, Flag, ListTodo, Tags, X } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { ModalShell } from "@/components/common/ModalShell";
@@ -12,7 +12,7 @@ import {
   TaskStatus,
   TaskSubtask,
 } from "@/domains/tasks/types";
-import { normalizeTask } from "@/domains/tasks/task.utils";
+import { normalizeTask, normalizeTaskTags } from "@/domains/tasks/task.utils";
 import { TaskSourcesEditor } from "@/features/tasks/components/TaskSourcesEditor";
 import { SubtasksEditor } from "@/features/tasks/components/SubtasksEditor";
 
@@ -29,6 +29,7 @@ interface TaskModalProps {
 interface TaskFormState {
   title: string;
   description: string;
+  tags: string[];
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string;
@@ -40,6 +41,7 @@ interface TaskFormState {
 const DEFAULT_FORM_STATE: TaskFormState = {
   title: "",
   description: "",
+  tags: [],
   status: "todo",
   priority: "medium",
   dueDate: "",
@@ -53,6 +55,7 @@ function sanitizeFormState(formState: TaskFormState): TaskFormState {
     ...formState,
     title: formState.title.trim(),
     description: formState.description.trim(),
+    tags: normalizeTaskTags(formState.tags),
     dueDate: formState.dueDate,
     estimatedDurationMinutes: formState.estimatedDurationMinutes.trim(),
     sources: formState.sources.map((source) => ({
@@ -83,6 +86,7 @@ function getFormStateFromTask(task: Task): TaskFormState {
   return {
     title: normalizedTask.title,
     description: normalizedTask.description ?? "",
+    tags: normalizedTask.tags,
     status: normalizedTask.status,
     priority: normalizedTask.priority,
     dueDate: normalizedTask.dueDate ?? normalizedTask.scheduledDate ?? "",
@@ -110,6 +114,7 @@ export function TaskModal({
   onClose,
 }: TaskModalProps): JSX.Element | null {
   const [formState, setFormState] = useState<TaskFormState>(createEmptyTaskFormState);
+  const [tagDraft, setTagDraft] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
@@ -131,15 +136,39 @@ export function TaskModal({
     setError("");
     setIsSubmitting(false);
     setShowDiscardDialog(false);
+    setTagDraft("");
   }, [initialFormState, isOpen]);
 
   const serializedBaseline = useMemo(() => JSON.stringify(sanitizeFormState(initialFormState)), [
     initialFormState,
   ]);
+  const hasPendingTagDraft = tagDraft.trim().length > 0;
   const isDirty = useMemo(
-    () => JSON.stringify(sanitizeFormState(formState)) !== serializedBaseline,
-    [formState, serializedBaseline],
+    () => JSON.stringify(sanitizeFormState(formState)) !== serializedBaseline || hasPendingTagDraft,
+    [formState, hasPendingTagDraft, serializedBaseline],
   );
+
+  function commitTag(rawTag: string): void {
+    const nextTag = rawTag.trim();
+
+    if (!nextTag) {
+      setTagDraft("");
+      return;
+    }
+
+    setFormState((current) => ({
+      ...current,
+      tags: normalizeTaskTags([...current.tags, nextTag]),
+    }));
+    setTagDraft("");
+  }
+
+  function removeTag(tagToRemove: string): void {
+    setFormState((current) => ({
+      ...current,
+      tags: current.tags.filter((tag) => tag !== tagToRemove),
+    }));
+  }
 
   function requestClose(): void {
     if (isSubmitting) {
@@ -155,6 +184,9 @@ export function TaskModal({
   }
 
   async function handleSubmit(): Promise<void> {
+    const normalizedTags = normalizeTaskTags(
+      hasPendingTagDraft ? [...formState.tags, tagDraft] : formState.tags,
+    );
     const normalizedSources = formState.sources
       .map((source) => ({
         ...source,
@@ -192,6 +224,7 @@ export function TaskModal({
     const input: CreateTaskInput = {
       title: formState.title.trim(),
       description: formState.description.trim() || undefined,
+      tags: normalizedTags,
       status: formState.status,
       priority: formState.priority,
       goalId: initialTask?.goalId ?? goalId,
@@ -212,6 +245,7 @@ export function TaskModal({
           title: input.title,
           description: input.description,
           notes: input.description,
+          tags: input.tags ?? initialTask.tags,
           status: input.status ?? initialTask.status,
           priority: input.priority ?? initialTask.priority,
           goalId: input.goalId,
@@ -304,6 +338,55 @@ export function TaskModal({
                   value={formState.description}
                 />
               </label>
+
+              <div className="auth-form__field task-form-grid__wide">
+                <span className="auth-form__label">Tags</span>
+                <div className="task-tag-editor">
+                  <div className="task-select-wrap task-tag-editor__input-wrap">
+                    <Tags size={16} />
+                    <input
+                      className="auth-form__input"
+                      onChange={(event) => setTagDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === ",") {
+                          event.preventDefault();
+                          commitTag(tagDraft);
+                        }
+                      }}
+                      placeholder="Add a tag like design, urgent, or research"
+                      value={tagDraft}
+                    />
+                  </div>
+                  <Button
+                    onClick={() => commitTag(tagDraft)}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Add tag
+                  </Button>
+                </div>
+                {formState.tags.length > 0 ? (
+                  <div className="task-tag-list" role="list" aria-label="Task tags">
+                    {formState.tags.map((tag) => (
+                      <span className="task-tag" key={tag} role="listitem">
+                        <span>{tag}</span>
+                        <button
+                          aria-label={`Remove tag ${tag}`}
+                          className="task-tag__remove"
+                          onClick={() => removeTag(tag)}
+                          type="button"
+                        >
+                          <X size={14} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="task-tag-editor__hint">
+                    Tags help cluster work quickly without adding visual noise.
+                  </p>
+                )}
+              </div>
 
               <label className="auth-form__field">
                 <span className="auth-form__label">Status</span>

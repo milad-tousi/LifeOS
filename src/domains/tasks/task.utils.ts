@@ -9,6 +9,12 @@ import {
   TaskSubtaskProgress,
 } from "@/domains/tasks/types";
 
+export interface TaskSourceSummaryItem {
+  type: TaskSourceType;
+  count: number;
+  label: string;
+}
+
 export function normalizeTaskStatus(status?: string): TaskStatus {
   switch (status) {
     case "done":
@@ -31,6 +37,32 @@ export function getTaskSubtaskProgress(subtasks: TaskSubtask[]): TaskSubtaskProg
     completed,
     total: subtasks.length,
   };
+}
+
+export function normalizeTaskTags(tags?: string[]): string[] {
+  if (!tags?.length) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+
+  return tags.reduce<string[]>((normalized, tag) => {
+    const nextTag = tag.trim();
+
+    if (!nextTag) {
+      return normalized;
+    }
+
+    const tagKey = nextTag.toLowerCase();
+
+    if (seen.has(tagKey)) {
+      return normalized;
+    }
+
+    seen.add(tagKey);
+    normalized.push(nextTag);
+    return normalized;
+  }, []);
 }
 
 function normalizeTaskSourceType(type?: string): TaskSourceType {
@@ -80,6 +112,7 @@ export function normalizeTaskInput(input: CreateTaskInput): CreateTaskInput {
     title: input.title.trim(),
     description,
     notes: description,
+    tags: normalizeTaskTags(input.tags),
     status,
     dueDate,
     scheduledDate: dueDate,
@@ -101,6 +134,7 @@ export function normalizeTask(task: Task): Task {
     title: task.title.trim(),
     description,
     notes: description,
+    tags: normalizeTaskTags(task.tags),
     dueDate,
     scheduledDate: dueDate,
     status: normalizedStatus,
@@ -110,4 +144,40 @@ export function normalizeTask(task: Task): Task {
     completedAt:
       normalizedStatus === "done" ? task.completedAt ?? task.updatedAt : undefined,
   };
+}
+
+export function summarizeTaskSources(sources: TaskSource[]): TaskSourceSummaryItem[] {
+  if (!sources.length) {
+    return [];
+  }
+
+  const labels: Record<TaskSourceType, string> = {
+    image: "image",
+    video: "video",
+    link: "link",
+    file: "file",
+    note: "note",
+  };
+  const order: TaskSourceType[] = ["link", "image", "video", "file", "note"];
+  const counts = sources.reduce<Record<TaskSourceType, number>>(
+    (summary, source) => ({
+      ...summary,
+      [source.type]: summary[source.type] + 1,
+    }),
+    {
+      image: 0,
+      video: 0,
+      link: 0,
+      file: 0,
+      note: 0,
+    },
+  );
+
+  return order
+    .filter((type) => counts[type] > 0)
+    .map((type) => ({
+      type,
+      count: counts[type],
+      label: `${counts[type]} ${labels[type]}${counts[type] === 1 ? "" : "s"}`,
+    }));
 }

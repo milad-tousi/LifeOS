@@ -26,6 +26,7 @@ export function GoalDetailPage(): JSX.Element {
   const [isEditGoalModalOpen, setIsEditGoalModalOpen] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState<Task | null>(null);
   const [taskPendingDelete, setTaskPendingDelete] = useState<Task | null>(null);
+  const [taskPendingCompletion, setTaskPendingCompletion] = useState<Task | null>(null);
   const [isDeletingTask, setIsDeletingTask] = useState(false);
   const [goalState, setGoalState] = useState<Goal | null>(null);
   const [taskListState, setTaskListState] = useState<Task[]>([]);
@@ -90,6 +91,22 @@ export function GoalDetailPage(): JSX.Element {
     });
   }
 
+  function commitTaskToggle(task: Task): void {
+    const nextStatus = task.status === "done" ? "todo" : "done";
+    const updatedTask: Task = {
+      ...task,
+      status: nextStatus,
+      completedAt: nextStatus === "done" ? Date.now() : undefined,
+      updatedAt: Date.now(),
+    };
+
+    replaceTaskInState(updatedTask);
+
+    void tasksRepository.toggleTaskComplete(task.id).catch(() => {
+      replaceTaskInState(task);
+    });
+  }
+
   if (loading) {
     return <p className="text-muted">Loading goal...</p>;
   }
@@ -136,19 +153,15 @@ export function GoalDetailPage(): JSX.Element {
             onDeleteTask={setTaskPendingDelete}
             onEditTask={setTaskBeingEdited}
             onToggleTask={(task) => {
-              const nextStatus = task.status === "done" ? "todo" : "done";
-              const updatedTask: Task = {
-                ...task,
-                status: nextStatus,
-                completedAt: nextStatus === "done" ? Date.now() : undefined,
-                updatedAt: Date.now(),
-              };
+              const hasIncompleteSubtasks =
+                task.subtaskProgress.total > task.subtaskProgress.completed;
 
-              replaceTaskInState(updatedTask);
+              if (task.status !== "done" && hasIncompleteSubtasks) {
+                setTaskPendingCompletion(task);
+                return;
+              }
 
-              void tasksRepository.toggleTaskComplete(task.id).catch(() => {
-                replaceTaskInState(task);
-              });
+              commitTaskToggle(task);
             }}
             recentTaskId={recentTaskId}
             recentTaskTone={recentTaskTone}
@@ -254,6 +267,23 @@ export function GoalDetailPage(): JSX.Element {
         }}
         title="Delete this task?"
         tone="danger"
+      />
+      <ConfirmDialog
+        cancelLabel="Cancel"
+        confirmLabel="Mark as done"
+        description="This task still has incomplete subtasks. Mark it as done anyway?"
+        isOpen={Boolean(taskPendingCompletion)}
+        onCancel={() => setTaskPendingCompletion(null)}
+        onConfirm={() => {
+          if (!taskPendingCompletion) {
+            return;
+          }
+
+          const task = taskPendingCompletion;
+          setTaskPendingCompletion(null);
+          commitTaskToggle(task);
+        }}
+        title="Incomplete subtasks"
       />
     </div>
   );

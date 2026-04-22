@@ -13,6 +13,7 @@ export function createTaskModel(input: CreateTaskInput): Task {
     title: normalizedInput.title,
     description: normalizedInput.description,
     notes: normalizedInput.description,
+    tags: normalizedInput.tags ?? [],
     status,
     priority: normalizedInput.priority ?? "medium",
     category: normalizedInput.category,

@@ -1,4 +1,5 @@
-import { CalendarDays, Flag, Gauge, NotebookText, Tag, Target } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, Clock3, Flag, Gauge, NotebookText, Tag, Target } from "lucide-react";
+import { computeGoalDeadlineState } from "@/domains/goals/goal-deadline";
 import {
   getGoalNotesPreview,
   getGoalProgressModeHelperText,
@@ -12,6 +13,7 @@ interface GoalHeaderProps {
 }
 
 export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
+  const deadlineState = computeGoalDeadlineState(goal);
   const notesPreview = getGoalNotesPreview(goal);
   const targetSummary = getGoalTargetSummary(goal);
   const progressModeName = getGoalProgressModeName(goal);
@@ -66,6 +68,30 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
             </span>
           </div>
         ) : null}
+        <div
+          className={[
+            "goal-detail-header__summary-item",
+            `goal-detail-header__summary-item--${deadlineState.tone}`,
+          ].join(" ")}
+        >
+          <span className="goal-detail-header__summary-label">Deadline</span>
+          <span className="goal-detail-header__summary-value">
+            <CalendarDays size={16} />
+            {deadlineState.formattedDeadline ?? "No deadline"}
+          </span>
+          <div className="goal-detail-header__deadline-row">
+            <span
+              className={[
+                "goal-detail-header__deadline-chip",
+                `goal-detail-header__deadline-chip--${deadlineState.tone}`,
+              ].join(" ")}
+            >
+              {renderDeadlineIcon(deadlineState.tone)}
+              {deadlineState.statusLabel}
+            </span>
+          </div>
+          <p className="goal-detail-header__summary-helper">{deadlineState.helperText}</p>
+        </div>
         {notesPreview ? (
           <div className="goal-detail-header__summary-item goal-detail-header__summary-item--notes">
             <span className="goal-detail-header__summary-label">Notes</span>
@@ -78,4 +104,21 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
       </div>
     </header>
   );
+}
+
+function renderDeadlineIcon(
+  tone: ReturnType<typeof computeGoalDeadlineState>["tone"],
+): JSX.Element {
+  switch (tone) {
+    case "danger":
+    case "warning":
+      return <AlertTriangle size={14} />;
+    case "success":
+      return <CheckCircle2 size={14} />;
+    case "info":
+      return <Clock3 size={14} />;
+    case "neutral":
+    default:
+      return <CalendarDays size={14} />;
+  }
 }

@@ -33,6 +33,7 @@ export interface Task {
   title: string;
   description?: string;
   notes?: string;
+  tags: string[];
   status: TaskStatus;
   priority: TaskPriority;
   category?: string;
@@ -53,6 +54,7 @@ export interface CreateTaskInput {
   title: string;
   description?: string;
   notes?: string;
+  tags?: string[];
   status?: TaskStatus;
   priority?: TaskPriority;
   category?: string;
