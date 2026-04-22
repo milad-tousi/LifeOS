@@ -80,7 +80,13 @@ export function GoalDetailPage(): JSX.Element {
 
   function replaceTaskInState(task: Task): void {
     setTaskListState((currentTasks) => {
+      const currentGoalId = goalState?.id;
       const hasExistingTask = currentTasks.some((currentTask) => currentTask.id === task.id);
+      const belongsToCurrentGoal = task.goalId === currentGoalId;
+
+      if (!belongsToCurrentGoal) {
+        return currentTasks.filter((currentTask) => currentTask.id !== task.id);
+      }
 
       if (!hasExistingTask) {
         return sortTasksByOrder([...currentTasks, task]);

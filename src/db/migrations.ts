@@ -5,11 +5,13 @@ import {
   DB_VERSION_3,
   DB_VERSION_4,
   DB_VERSION_5,
+  DB_VERSION_6,
   schemaV1,
   schemaV2,
   schemaV3,
   schemaV4,
   schemaV5,
+  schemaV6,
 } from "@/db/schema";
 
 export function registerDatabaseMigrations(database: Dexie): void {
@@ -25,6 +27,9 @@ export function registerDatabaseMigrations(database: Dexie): void {
   });
   database.version(DB_VERSION_5).stores(schemaV5).upgrade(() => {
     // Version 5 adds goal-linked task indexes and richer goal categorization fields.
+  });
+  database.version(DB_VERSION_6).stores(schemaV6).upgrade(() => {
+    // Version 6 introduces board columns and persisted task board placement.
   });
 
   // Future schema upgrades should be registered here.

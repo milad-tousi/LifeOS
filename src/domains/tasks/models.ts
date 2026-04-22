@@ -15,6 +15,13 @@ export function createTaskModel(input: CreateTaskInput): Task {
     notes: normalizedInput.description,
     tags: normalizedInput.tags ?? [],
     sortOrder: normalizedInput.sortOrder ?? timestamp,
+    boardColumnId:
+      normalizedInput.boardColumnId ??
+      (status === "done"
+        ? "board-default-done"
+        : status === "in_progress"
+          ? "board-default-in-progress"
+          : "board-default-todo"),
     status,
     priority: normalizedInput.priority ?? "medium",
     category: normalizedInput.category,

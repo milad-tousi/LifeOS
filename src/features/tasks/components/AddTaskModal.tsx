@@ -1,8 +1,10 @@
+import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect, useMemo, useState } from "react";
-import { Clock3, Flag, ListTodo, Tags, X } from "lucide-react";
+import { Clock3, Flag, ListTodo, Tags, Target, X } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { ModalShell } from "@/components/common/ModalShell";
+import { goalsRepository } from "@/domains/goals/repository";
 import { tasksRepository } from "@/domains/tasks/repository";
 import {
   CreateTaskInput,
@@ -30,6 +32,8 @@ interface TaskFormState {
   title: string;
   description: string;
   tags: string[];
+  goalConnection: "standalone" | "linked";
+  selectedGoalId: string;
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string;
@@ -42,6 +46,8 @@ const DEFAULT_FORM_STATE: TaskFormState = {
   title: "",
   description: "",
   tags: [],
+  goalConnection: "standalone",
+  selectedGoalId: "",
   status: "todo",
   priority: "medium",
   dueDate: "",
@@ -72,9 +78,11 @@ function sanitizeFormState(formState: TaskFormState): TaskFormState {
   };
 }
 
-function createEmptyTaskFormState(): TaskFormState {
+function createEmptyTaskFormState(defaultGoalId?: string): TaskFormState {
   return {
     ...DEFAULT_FORM_STATE,
+    goalConnection: defaultGoalId ? "linked" : "standalone",
+    selectedGoalId: defaultGoalId ?? "",
     sources: [],
     subtasks: [],
   };
@@ -87,6 +95,8 @@ function getFormStateFromTask(task: Task): TaskFormState {
     title: normalizedTask.title,
     description: normalizedTask.description ?? "",
     tags: normalizedTask.tags,
+    goalConnection: normalizedTask.goalId ? "linked" : "standalone",
+    selectedGoalId: normalizedTask.goalId ?? "",
     status: normalizedTask.status,
     priority: normalizedTask.priority,
     dueDate: normalizedTask.dueDate ?? normalizedTask.scheduledDate ?? "",
@@ -118,14 +128,16 @@ export function TaskModal({
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const goals = useLiveQuery(() => goalsRepository.getAll(), [], []);
 
   const initialFormState = useMemo(
     () =>
       mode === "edit" && initialTask
         ? getFormStateFromTask(initialTask)
-        : createEmptyTaskFormState(),
-    [initialTask, mode],
+        : createEmptyTaskFormState(goalId),
+    [goalId, initialTask, mode],
   );
+  const hasGoals = (goals?.length ?? 0) > 0;
 
   useEffect(() => {
     if (!isOpen) {
@@ -209,6 +221,11 @@ export function TaskModal({
       return;
     }
 
+    if (formState.goalConnection === "linked" && !formState.selectedGoalId) {
+      setError("Choose a goal before saving a linked task.");
+      return;
+    }
+
     const invalidLink = normalizedSources.find(
       (source) => source.type === "link" && source.value && !isValidUrl(source.value),
     );
@@ -227,7 +244,10 @@ export function TaskModal({
       tags: normalizedTags,
       status: formState.status,
       priority: formState.priority,
-      goalId: initialTask?.goalId ?? goalId,
+      goalId:
+        formState.goalConnection === "linked"
+          ? formState.selectedGoalId
+          : undefined,
       dueDate: formState.dueDate || undefined,
       estimatedDurationMinutes: formState.estimatedDurationMinutes
         ? Number(formState.estimatedDurationMinutes)
@@ -387,6 +407,91 @@ export function TaskModal({
                   </p>
                 )}
               </div>
+
+              <section className="task-form-grid__wide task-goal-link">
+                <div className="task-editor-section__header">
+                  <div>
+                    <h4 className="task-editor-section__title">Goal connection</h4>
+                    <p className="task-editor-section__description">
+                      Keep this task standalone or link it to a goal.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="task-goal-link__options" role="radiogroup" aria-label="Task goal connection">
+                  <button
+                    aria-pressed={formState.goalConnection === "standalone"}
+                    className={`task-goal-link__option${
+                      formState.goalConnection === "standalone"
+                        ? " task-goal-link__option--active"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setFormState((current) => ({
+                        ...current,
+                        goalConnection: "standalone",
+                        selectedGoalId: "",
+                      }))
+                    }
+                    type="button"
+                  >
+                    Standalone
+                  </button>
+                  <button
+                    aria-pressed={formState.goalConnection === "linked"}
+                    className={`task-goal-link__option${
+                      formState.goalConnection === "linked"
+                        ? " task-goal-link__option--active"
+                        : ""
+                    }`}
+                    disabled={!hasGoals}
+                    onClick={() =>
+                      setFormState((current) => ({
+                        ...current,
+                        goalConnection: "linked",
+                        selectedGoalId:
+                          current.selectedGoalId || goalId || goals?.[0]?.id || "",
+                      }))
+                    }
+                    type="button"
+                  >
+                    Linked to goal
+                  </button>
+                </div>
+
+                {formState.goalConnection === "linked" ? (
+                  <label className="auth-form__field">
+                    <span className="auth-form__label">Goal</span>
+                    <div className="task-select-wrap">
+                      <Target size={16} />
+                      <select
+                        className="auth-form__input"
+                        disabled={!hasGoals}
+                        onChange={(event) =>
+                          setFormState((current) => ({
+                            ...current,
+                            selectedGoalId: event.target.value,
+                          }))
+                        }
+                        value={formState.selectedGoalId}
+                      >
+                        <option value="">Select a goal</option>
+                        {(goals ?? []).map((goal) => (
+                          <option key={goal.id} value={goal.id}>
+                            {goal.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </label>
+                ) : null}
+
+                {!hasGoals ? (
+                  <p className="task-goal-link__hint">
+                    No goals available yet. Create a goal first.
+                  </p>
+                ) : null}
+              </section>
 
               <label className="auth-form__field">
                 <span className="auth-form__label">Status</span>

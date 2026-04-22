@@ -1,4 +1,5 @@
 import { db, ensureDatabaseReady } from "@/db/dexie";
+import { getDefaultBoardColumnIdForStatus } from "@/domains/tasks/board.utils";
 import { createTaskModel } from "@/domains/tasks/models";
 import { CreateTaskInput, Task } from "@/domains/tasks/types";
 import { computeGoalProgress } from "@/domains/goals/goal-progress";
@@ -54,6 +55,13 @@ export const tasksRepository = {
       };
     }
 
+    if (!nextInput.boardColumnId) {
+      nextInput = {
+        ...nextInput,
+        boardColumnId: getDefaultBoardColumnIdForStatus(nextInput.status ?? "todo"),
+      };
+    }
+
     const task = createTaskModel(nextInput);
     await db.tasks.add(task);
 
@@ -101,6 +109,7 @@ export const tasksRepository = {
     const updatedTask: Task = {
       ...normalizedTask,
       status: nextStatus,
+      boardColumnId: getDefaultBoardColumnIdForStatus(nextStatus),
       completedAt: nextStatus === "done" ? Date.now() : undefined,
       updatedAt: Date.now(),
     };

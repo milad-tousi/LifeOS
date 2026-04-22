@@ -35,6 +35,7 @@ export interface Task {
   notes?: string;
   tags: string[];
   sortOrder: number;
+  boardColumnId?: EntityId | null;
   status: TaskStatus;
   priority: TaskPriority;
   category?: string;
@@ -57,6 +58,7 @@ export interface CreateTaskInput {
   notes?: string;
   tags?: string[];
   sortOrder?: number;
+  boardColumnId?: EntityId | null;
   status?: TaskStatus;
   priority?: TaskPriority;
   category?: string;

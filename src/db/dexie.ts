@@ -6,6 +6,7 @@ import { Habit, HabitLog } from "@/domains/habits/types";
 import { HealthLog } from "@/domains/health/types";
 import { OnboardingState, UserPreferences, UserProfile } from "@/domains/onboarding/types";
 import { AppSetting } from "@/domains/settings/types";
+import { TaskBoardColumn } from "@/domains/tasks/board.types";
 import { Task } from "@/domains/tasks/types";
 import { registerDatabaseMigrations } from "@/db/migrations";
 import { DB_NAME } from "@/db/schema";
@@ -34,6 +35,7 @@ export class LifeOSDatabase extends Dexie {
   userPreferences!: Table<UserPreferences, EntityId>;
   userProfiles!: Table<UserProfile, EntityId>;
   tasks!: Table<Task, EntityId>;
+  taskBoardColumns!: Table<TaskBoardColumn, EntityId>;
   habits!: Table<Habit, EntityId>;
   habitLogs!: Table<HabitLog, EntityId>;
   goals!: Table<Goal, EntityId>;

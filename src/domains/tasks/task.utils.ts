@@ -1,4 +1,5 @@
 import { createId } from "@/lib/id";
+import { getDefaultBoardColumnIdForStatus } from "@/domains/tasks/board.utils";
 import {
   CreateTaskInput,
   Task,
@@ -114,6 +115,7 @@ export function normalizeTaskInput(input: CreateTaskInput): CreateTaskInput {
     notes: description,
     tags: normalizeTaskTags(input.tags),
     sortOrder: input.sortOrder,
+    boardColumnId: input.boardColumnId ?? undefined,
     status,
     dueDate,
     scheduledDate: dueDate,
@@ -137,6 +139,8 @@ export function normalizeTask(task: Task): Task {
     notes: description,
     tags: normalizeTaskTags(task.tags),
     sortOrder: Number.isFinite(task.sortOrder) ? task.sortOrder : task.createdAt,
+    boardColumnId:
+      task.boardColumnId ?? getDefaultBoardColumnIdForStatus(normalizedStatus),
     dueDate,
     scheduledDate: dueDate,
     status: normalizedStatus,
