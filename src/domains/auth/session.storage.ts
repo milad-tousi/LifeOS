@@ -4,18 +4,46 @@ import { createLogger } from "@/utils/logger";
 
 const sessionLogger = createLogger("session");
 
-function getStorage(): Storage | null {
-  try {
-    if (typeof window === "undefined" || !("localStorage" in window)) {
-      sessionLogger.warn("localStorage is unavailable");
-      return null;
-    }
+function probeStorage(storage: Storage): Storage {
+  storage.setItem("__lifeos_storage_probe__", "1");
+  storage.removeItem("__lifeos_storage_probe__");
+  return storage;
+}
 
-    return window.localStorage;
-  } catch (error) {
-    sessionLogger.error("unable to access localStorage", error);
+function readStorage(storageType: "localStorage" | "sessionStorage"): Storage | null {
+  if (typeof window === "undefined") {
     return null;
   }
+
+  try {
+    return probeStorage(window[storageType]);
+  } catch (error) {
+    sessionLogger.warn(`${storageType} is unavailable`, error);
+    return null;
+  }
+}
+
+function getStorage(): Storage | null {
+  if (typeof window === "undefined") {
+    sessionLogger.warn("window is unavailable");
+    return null;
+  }
+
+  const localStorage = readStorage("localStorage");
+
+  if (localStorage) {
+    return localStorage;
+  }
+
+  const sessionStorage = readStorage("sessionStorage");
+
+  if (sessionStorage) {
+    sessionLogger.warn("localStorage is unavailable, falling back to sessionStorage");
+    return sessionStorage;
+  }
+
+  sessionLogger.error("unable to access browser storage");
+  return null;
 }
 
 function isAuthSession(value: unknown): value is AuthSession {
