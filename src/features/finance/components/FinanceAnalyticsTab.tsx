@@ -1,41 +1,77 @@
 import { Card } from "@/components/common/Card";
+import { getCategoryById } from "@/features/finance/finance.utils";
+import {
+  FinanceAnalyticsSummary,
+  FinanceCategory,
+  FinanceCurrency,
+} from "@/features/finance/types/finance.types";
+import { formatMoney } from "@/features/finance/utils/finance.format";
 
-export function FinanceAnalyticsTab(): JSX.Element {
+interface FinanceAnalyticsTabProps {
+  analytics: FinanceAnalyticsSummary;
+  categories: FinanceCategory[];
+  currency: FinanceCurrency;
+}
+
+export function FinanceAnalyticsTab({
+  analytics,
+  categories,
+  currency,
+}: FinanceAnalyticsTabProps): JSX.Element {
+  const topExpenseCategory = analytics.topExpenseCategoryId
+    ? getCategoryById(categories, analytics.topExpenseCategoryId)
+    : undefined;
+
+  const items = [
+    {
+      label: "Total income",
+      value: formatMoney(analytics.totalIncome, currency),
+    },
+    {
+      label: "Total expenses",
+      value: formatMoney(analytics.totalExpenses, currency),
+    },
+    {
+      label: "Net savings",
+      value: formatMoney(analytics.netSavings, currency),
+    },
+    {
+      label: "Top expense category",
+      value: topExpenseCategory
+        ? `${topExpenseCategory.name} (${formatMoney(analytics.topExpenseCategoryTotal, currency)})`
+        : "No expense data yet",
+    },
+    {
+      label: "Transactions",
+      value: String(analytics.transactionCount),
+    },
+  ] as const;
+
   return (
     <div className="finance-tab-panel">
       <Card
-        subtitle="Analytics will become more meaningful as transaction history grows. This space is ready for trends, category insights, and forecasting later."
+        subtitle="A simple snapshot of real finance activity until deeper charts and trends arrive."
         title="Analytics"
       >
         <div className="finance-analytics-placeholder">
           <div className="finance-analytics-placeholder__hero">
             <div>
               <h3 className="finance-analytics-placeholder__title">
-                Analytics will become available as more transaction history is added.
+                Your finance activity is now summarized from real transactions.
               </h3>
               <p className="finance-analytics-placeholder__description">
-                Expect trend breakdowns, category movement, and spending rhythm insights here in a later phase.
+                This placeholder keeps the analytics tab useful today while leaving room for charts, trends, and forecasting later.
               </p>
             </div>
           </div>
 
-          <div className="finance-analytics-placeholder__grid">
-            <div className="finance-analytics-placeholder__card">
-              <span className="finance-analytics-placeholder__label">Monthly trend</span>
-              <div className="finance-analytics-placeholder__bar" />
-            </div>
-            <div className="finance-analytics-placeholder__card">
-              <span className="finance-analytics-placeholder__label">Category mix</span>
-              <div className="finance-analytics-placeholder__ring" />
-            </div>
-            <div className="finance-analytics-placeholder__card finance-analytics-placeholder__card--wide">
-              <span className="finance-analytics-placeholder__label">Forecasting preview</span>
-              <div className="finance-analytics-placeholder__metric-row">
-                <div className="finance-analytics-placeholder__metric" />
-                <div className="finance-analytics-placeholder__metric" />
-                <div className="finance-analytics-placeholder__metric" />
-              </div>
-            </div>
+          <div className="finance-analytics-stats">
+            {items.map((item) => (
+              <article className="finance-analytics-stats__card" key={item.label}>
+                <span className="finance-analytics-stats__label">{item.label}</span>
+                <strong className="finance-analytics-stats__value">{item.value}</strong>
+              </article>
+            ))}
           </div>
         </div>
       </Card>

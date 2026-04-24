@@ -3,13 +3,33 @@ import { ScreenHeader } from "@/components/common/ScreenHeader";
 import { FinanceAnalyticsTab } from "@/features/finance/components/FinanceAnalyticsTab";
 import { FinanceOverviewTab } from "@/features/finance/components/FinanceOverviewTab";
 import { FinanceSettingsEntry } from "@/features/finance/components/FinanceSettingsEntry";
+import { FinanceSettingsModal } from "@/features/finance/components/FinanceSettingsModal";
 import { FinanceTabs, FinanceTab } from "@/features/finance/components/FinanceTabs";
 import { FinanceTransactionsTab } from "@/features/finance/components/FinanceTransactionsTab";
 import { useFinanceState } from "@/features/finance/hooks/useFinanceState";
 
 export function FinancePage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<FinanceTab>("overview");
-  const { addTransaction, summary, transactions } = useFinanceState();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const {
+    addCategory,
+    addMerchantRule,
+    addTransaction,
+    analytics,
+    categories,
+    deleteTransaction,
+    deleteCategory,
+    deleteMerchantRule,
+    isCategoryInUse,
+    merchantRules,
+    settings,
+    summary,
+    transactions,
+    updateCategory,
+    updateMerchantRule,
+    updateSettings,
+    updateTransaction,
+  } = useFinanceState();
 
   return (
     <div className="finance-page">
@@ -18,23 +38,55 @@ export function FinancePage(): JSX.Element {
           title="Finance"
           description="Track personal income and expenses in one place with a clearer manual workflow that is ready for smarter capture later."
         />
-        <FinanceSettingsEntry />
+        <FinanceSettingsEntry onClick={() => setIsSettingsOpen(true)} />
       </div>
 
       <FinanceTabs activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === "overview" ? (
-        <FinanceOverviewTab summary={summary} transactions={transactions} />
-      ) : null}
-
-      {activeTab === "transactions" ? (
-        <FinanceTransactionsTab
-          onAddTransaction={addTransaction}
+        <FinanceOverviewTab
+          categories={categories}
+          currency={settings.currency}
+          summary={summary}
           transactions={transactions}
         />
       ) : null}
 
-      {activeTab === "analytics" ? <FinanceAnalyticsTab /> : null}
+      {activeTab === "transactions" ? (
+        <FinanceTransactionsTab
+          categories={categories}
+          currency={settings.currency}
+          merchantRules={merchantRules}
+          onAddTransaction={addTransaction}
+          onDeleteTransaction={deleteTransaction}
+          onUpdateTransaction={updateTransaction}
+          transactions={transactions}
+        />
+      ) : null}
+
+      {activeTab === "analytics" ? (
+        <FinanceAnalyticsTab
+          analytics={analytics}
+          categories={categories}
+          currency={settings.currency}
+        />
+      ) : null}
+
+      <FinanceSettingsModal
+        categories={categories}
+        isCategoryInUse={isCategoryInUse}
+        isOpen={isSettingsOpen}
+        merchantRules={merchantRules}
+        onAddCategory={addCategory}
+        onAddMerchantRule={addMerchantRule}
+        onClose={() => setIsSettingsOpen(false)}
+        onDeleteCategory={deleteCategory}
+        onDeleteMerchantRule={deleteMerchantRule}
+        onUpdateCategory={updateCategory}
+        onUpdateMerchantRule={updateMerchantRule}
+        onUpdateSettings={updateSettings}
+        settings={settings}
+      />
     </div>
   );
 }

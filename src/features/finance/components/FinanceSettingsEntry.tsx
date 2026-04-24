@@ -1,11 +1,16 @@
 import { Settings2 } from "lucide-react";
-import { Link } from "react-router-dom";
 
-export function FinanceSettingsEntry(): JSX.Element {
+interface FinanceSettingsEntryProps {
+  onClick: () => void;
+}
+
+export function FinanceSettingsEntry({
+  onClick,
+}: FinanceSettingsEntryProps): JSX.Element {
   return (
-    <Link className="finance-settings-entry" to="/settings">
+    <button className="finance-settings-entry" onClick={onClick} type="button">
       <Settings2 size={16} />
       <span>Finance Settings</span>
-    </Link>
+    </button>
   );
 }

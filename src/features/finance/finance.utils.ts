@@ -1,71 +1,11 @@
-import { createId } from "@/lib/id";
-import { FinanceSummary, FinanceTransaction, TransactionType } from "@/features/finance/types";
-
-export const EXPENSE_CATEGORIES = [
-  "Grocery",
-  "Transport",
-  "Food",
-  "Health",
-  "Shopping",
-  "Bills",
-  "Entertainment",
-  "Other",
-] as const;
-
-export const INCOME_CATEGORIES = ["Salary", "Freelance", "Gift", "Other"] as const;
-
-export function getCategoriesForType(type: TransactionType): readonly string[] {
-  return type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-}
-
-export function createSeedTransactions(): FinanceTransaction[] {
-  return [
-    {
-      id: createId(),
-      type: "income",
-      amount: 4200,
-      category: "Salary",
-      merchant: "Primary Salary",
-      date: "2026-04-01",
-      note: "Monthly salary payout",
-    },
-    {
-      id: createId(),
-      type: "expense",
-      amount: 84.5,
-      category: "Grocery",
-      merchant: "Fresh Market",
-      date: "2026-04-19",
-      note: "Weekly groceries",
-    },
-    {
-      id: createId(),
-      type: "expense",
-      amount: 42,
-      category: "Transport",
-      merchant: "NS Travel",
-      date: "2026-04-20",
-      note: "Train pass top-up",
-    },
-    {
-      id: createId(),
-      type: "income",
-      amount: 650,
-      category: "Freelance",
-      merchant: "Design Retainer",
-      date: "2026-04-16",
-      note: "Landing page refresh project",
-    },
-    {
-      id: createId(),
-      type: "expense",
-      amount: 129.99,
-      category: "Bills",
-      merchant: "Utilities Bundle",
-      date: "2026-04-12",
-    },
-  ];
-}
+import {
+  FinanceAnalyticsSummary,
+  FinanceCategory,
+  FinanceMerchantRule,
+  FinanceSummary,
+  FinanceTransaction,
+  TransactionType,
+} from "@/features/finance/types/finance.types";
 
 export function calculateFinanceSummary(
   transactions: FinanceTransaction[],
@@ -103,10 +43,93 @@ export function calculateFinanceSummary(
   };
 }
 
+export function calculateFinanceAnalytics(
+  transactions: FinanceTransaction[],
+): FinanceAnalyticsSummary {
+  let totalIncome = 0;
+  let totalExpenses = 0;
+  const expenseCategoryTotals = new Map<string, number>();
+
+  for (const transaction of transactions) {
+    if (transaction.type === "income") {
+      totalIncome += transaction.amount;
+      continue;
+    }
+
+    totalExpenses += transaction.amount;
+    expenseCategoryTotals.set(
+      transaction.categoryId,
+      (expenseCategoryTotals.get(transaction.categoryId) ?? 0) + transaction.amount,
+    );
+  }
+
+  let topExpenseCategoryId: string | undefined;
+  let topExpenseCategoryTotal = 0;
+
+  for (const [categoryId, total] of expenseCategoryTotals.entries()) {
+    if (total > topExpenseCategoryTotal) {
+      topExpenseCategoryId = categoryId;
+      topExpenseCategoryTotal = total;
+    }
+  }
+
+  return {
+    totalIncome,
+    totalExpenses,
+    netSavings: totalIncome - totalExpenses,
+    topExpenseCategoryId,
+    topExpenseCategoryTotal,
+    transactionCount: transactions.length,
+  };
+}
+
 export function sortTransactionsByDate(
   transactions: FinanceTransaction[],
 ): FinanceTransaction[] {
-  return [...transactions].sort((left, right) => right.date.localeCompare(left.date));
+  return [...transactions].sort((left, right) => {
+    const dateComparison = right.date.localeCompare(left.date);
+
+    if (dateComparison !== 0) {
+      return dateComparison;
+    }
+
+    return right.createdAt.localeCompare(left.createdAt);
+  });
+}
+
+export function getCategoriesForType(
+  categories: FinanceCategory[],
+  type: TransactionType,
+): FinanceCategory[] {
+  return categories.filter(
+    (category) => category.type === type || category.type === "both",
+  );
+}
+
+export function findMerchantRuleMatch(
+  merchantRules: FinanceMerchantRule[],
+  merchantName: string,
+): FinanceMerchantRule | null {
+  const normalizedMerchantName = merchantName.trim().toLowerCase();
+
+  if (!normalizedMerchantName) {
+    return null;
+  }
+
+  const sortedRules = [...merchantRules].sort((left, right) => right.name.length - left.name.length);
+
+  return (
+    sortedRules.find((merchantRule) =>
+      normalizedMerchantName.includes(merchantRule.name.trim().toLowerCase()),
+    ) ?? null
+  );
+}
+
+export function getCategoryById(
+  categories: FinanceCategory[],
+  categoryId: string,
+): FinanceCategory | undefined {
+  return categories.find((category) => category.id === categoryId);
 }
 
 function isSameMonth(dateValue: string, month: number, year: number): boolean {

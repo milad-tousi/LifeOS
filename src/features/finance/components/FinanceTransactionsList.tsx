@@ -1,9 +1,17 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { FinanceEmptyState } from "@/features/finance/components/FinanceEmptyState";
-import { FinanceTransaction } from "@/features/finance/types";
-import { formatCurrency } from "@/lib/number";
+import { getFinanceIcon } from "@/features/finance/finance.icons";
+import { getCategoryById } from "@/features/finance/finance.utils";
+import {
+  FinanceCategory,
+  FinanceCurrency,
+  FinanceTransaction,
+} from "@/features/finance/types/finance.types";
+import { formatMoney } from "@/features/finance/utils/finance.format";
 
 interface FinanceTransactionsListProps {
+  categories: FinanceCategory[];
+  currency: FinanceCurrency;
   emptyDescription?: string;
   emptyTitle?: string;
   isEmbedded?: boolean;
@@ -12,6 +20,8 @@ interface FinanceTransactionsListProps {
 }
 
 export function FinanceTransactionsList({
+  categories,
+  currency,
   emptyDescription = "Add your first income or expense to start building your finance history.",
   emptyTitle = "No transactions yet",
   isEmbedded = false,
@@ -26,38 +36,52 @@ export function FinanceTransactionsList({
 
   return (
     <div className={`finance-transactions${isEmbedded ? " finance-transactions--embedded" : ""}`}>
-      {visibleTransactions.map((transaction) => (
-        <article className="finance-transaction-card" key={transaction.id}>
-          <div className="finance-transaction-card__topline">
-            <div className="finance-transaction-card__identity">
-              <span
-                className={`finance-transaction-card__type finance-transaction-card__type--${transaction.type}`}
+      {visibleTransactions.map((transaction) => {
+        const category = getCategoryById(categories, transaction.categoryId);
+        const CategoryIcon = getFinanceIcon(category?.icon ?? "other");
+
+        return (
+          <article className="finance-transaction-card" key={transaction.id}>
+            <div className="finance-transaction-card__topline">
+              <div className="finance-transaction-card__identity">
+                <span
+                  className={`finance-transaction-card__type finance-transaction-card__type--${transaction.type}`}
+                >
+                  {transaction.type === "income" ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                  {transaction.type === "income" ? "Income" : "Expense"}
+                </span>
+                <strong className="finance-transaction-card__merchant">
+                  {transaction.merchant}
+                </strong>
+              </div>
+              <strong
+                className={`finance-transaction-card__amount finance-transaction-card__amount--${transaction.type}`}
               >
-                {transaction.type === "income" ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                {transaction.type === "income" ? "Income" : "Expense"}
-              </span>
-              <strong className="finance-transaction-card__merchant">
-                {transaction.merchant}
+                {transaction.type === "income" ? "+" : "-"}
+                {formatMoney(transaction.amount, currency)}
               </strong>
             </div>
-            <strong
-              className={`finance-transaction-card__amount finance-transaction-card__amount--${transaction.type}`}
-            >
-              {transaction.type === "income" ? "+" : "-"}
-              {formatCurrency(transaction.amount)}
-            </strong>
-          </div>
 
-          <div className="finance-transaction-card__meta">
-            <span className="finance-transaction-card__chip">{transaction.category}</span>
-            <span className="finance-transaction-card__chip">{formatDate(transaction.date)}</span>
-          </div>
+            <div className="finance-transaction-card__meta">
+              <span
+                className="finance-transaction-card__chip finance-transaction-card__chip--category"
+                style={{
+                  backgroundColor: `${category?.color ?? "#64748b"}20`,
+                  color: category?.color ?? "#334155",
+                }}
+              >
+                <CategoryIcon size={13} />
+                {category?.name ?? "Unknown category"}
+              </span>
+              <span className="finance-transaction-card__chip">{formatDate(transaction.date)}</span>
+            </div>
 
-          {transaction.note ? (
-            <p className="finance-transaction-card__note">{transaction.note}</p>
-          ) : null}
-        </article>
-      ))}
+            {transaction.note ? (
+              <p className="finance-transaction-card__note">{transaction.note}</p>
+            ) : null}
+          </article>
+        );
+      })}
     </div>
   );
 }
