@@ -1,24 +1,37 @@
-import { EntityId, ISODateString, TimestampMs } from "@/types/shared.types";
+export type HabitType = "binary" | "count" | "duration";
+export type HabitFrequency = "daily" | "weekly" | "custom";
 
-export type HabitFrequency = "daily" | "weekly";
+export interface HabitReminder {
+  enabled: boolean;
+  time?: string;
+}
 
 export interface Habit {
-  id: EntityId;
-  name: string;
+  id: string;
+  title: string;
   description?: string;
+  type: HabitType;
+  target: number;
+  unit?: string;
   frequency: HabitFrequency;
-  targetPerPeriod: number;
+  daysOfWeek?: number[];
   category?: string;
-  color?: string;
-  isArchived: boolean;
-  createdAt: TimestampMs;
-  updatedAt: TimestampMs;
+  startDate: string;
+  endDate?: string;
+  reminder?: HabitReminder;
+  goalId?: string;
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface HabitLog {
-  id: EntityId;
-  habitId: EntityId;
-  date: ISODateString;
+  id: string;
+  habitId: string;
+  date: string;
   value: number;
-  createdAt: TimestampMs;
+  completed: boolean;
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -21,7 +21,7 @@ export function HabitList({ habits }: HabitListProps): JSX.Element {
       <div className="page-list">
         {habits.map((habit) => (
           <div key={habit.id} className="page-list__item">
-            <strong>{habit.name}</strong>
+            <strong>{habit.title}</strong>
             <span className="text-muted">{habit.frequency}</span>
           </div>
         ))}

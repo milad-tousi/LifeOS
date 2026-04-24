@@ -7,7 +7,7 @@ export const habitsRepository = {
     return db.habits.orderBy("createdAt").reverse().toArray();
   },
   async add(name: string): Promise<string> {
-    const habit = createHabitModel(name);
+    const habit = createHabitModel({ title: name });
     await db.habits.add(habit);
     return habit.id;
   },

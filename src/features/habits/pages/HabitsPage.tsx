@@ -1,36 +1,68 @@
-import { Card } from "@/components/common/Card";
-import { EmptyState } from "@/components/common/EmptyState";
+import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/common/Button";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
+import { CreateHabitModal } from "@/features/habits/components/CreateHabitModal";
+import { HabitOverview } from "@/features/habits/components/HabitOverview";
+import { HabitStats } from "@/features/habits/components/HabitStats";
+import { TodayHabits } from "@/features/habits/components/TodayHabits";
 import { useHabits } from "@/features/habits/hooks/useHabits";
+import { getTodayDateKey } from "@/features/habits/utils/habit.utils";
 
 export function HabitsPage(): JSX.Element {
-  const { habits, loading } = useHabits();
+  const {
+    addHabit,
+    archiveHabitById,
+    habits,
+    logs,
+    todayProgress,
+    updateTodayLog,
+  } = useHabits();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const activeHabits = useMemo(
+    () => habits.filter((habit) => !habit.archived),
+    [habits],
+  );
+  const todayLogs = useMemo(() => {
+    const today = getTodayDateKey();
+
+    return logs.filter((log) => log.date === today);
+  }, [logs]);
 
   return (
-    <>
-      <ScreenHeader
-        title="Habits"
-        description="Compact recurring routines designed for efficient local storage."
+    <div className="habits-page">
+      <div className="habits-page__header">
+        <ScreenHeader
+          title="Habits"
+          description="Build consistent routines with simple daily tracking."
+        />
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus size={17} />
+          New Habit
+        </Button>
+      </div>
+
+      <HabitStats progress={todayProgress} />
+
+      <div className="habits-page__content">
+        <TodayHabits
+          habits={activeHabits}
+          logs={logs}
+          onCreateHabit={() => setIsCreateModalOpen(true)}
+          onUpdateLog={updateTodayLog}
+        />
+        <HabitOverview
+          habits={activeHabits}
+          logs={todayLogs}
+          onArchiveHabit={archiveHabitById}
+        />
+      </div>
+
+      <CreateHabitModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreateHabit={addHabit}
       />
-      <Card title="Habit list">
-        {loading ? (
-          <p className="text-muted">Loading habits...</p>
-        ) : habits.length === 0 ? (
-          <EmptyState
-            title="No habits yet"
-            description="Habit records will remain lightweight and work entirely offline."
-          />
-        ) : (
-          <div className="page-list">
-            {habits.map((habit) => (
-              <div key={habit.id} className="page-list__item">
-                <strong>{habit.name}</strong>
-                <span className="text-muted">{habit.frequency}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </>
+    </div>
   );
 }
