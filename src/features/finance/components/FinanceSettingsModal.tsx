@@ -3,28 +3,35 @@ import { PencilLine, Trash2 } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { ModalShell } from "@/components/common/ModalShell";
+import { RecurringTransactionsSection } from "@/features/finance/components/RecurringTransactionsSection";
 import { getFinanceIcon } from "@/features/finance/finance.icons";
 import {
   FinanceCategory,
   FinanceCurrency,
   FinanceMerchantRule,
   FinanceSettings,
+  RecurringTransaction,
 } from "@/features/finance/types/finance.types";
 import { createId } from "@/lib/id";
 
 interface FinanceSettingsModalProps {
   categories: FinanceCategory[];
+  currency: FinanceCurrency;
   isCategoryInUse: (categoryId: string) => boolean;
   isOpen: boolean;
   merchantRules: FinanceMerchantRule[];
   onAddCategory: (category: FinanceCategory) => void;
   onAddMerchantRule: (merchantRule: FinanceMerchantRule) => void;
+  onAddRecurringTransaction: (recurringTransaction: RecurringTransaction) => void;
   onClose: () => void;
   onDeleteCategory: (categoryId: string) => boolean;
   onDeleteMerchantRule: (merchantRuleId: string) => void;
+  onDeleteRecurringTransaction: (recurringTransactionId: string) => void;
   onUpdateCategory: (category: FinanceCategory) => void;
   onUpdateMerchantRule: (merchantRule: FinanceMerchantRule) => void;
+  onUpdateRecurringTransaction: (recurringTransaction: RecurringTransaction) => void;
   onUpdateSettings: (settings: FinanceSettings) => void;
+  recurringTransactions: RecurringTransaction[];
   settings: FinanceSettings;
 }
 
@@ -81,17 +88,22 @@ const DEFAULT_MERCHANT_FORM: MerchantRuleFormState = {
 
 export function FinanceSettingsModal({
   categories,
+  currency,
   isCategoryInUse,
   isOpen,
   merchantRules,
   onAddCategory,
   onAddMerchantRule,
+  onAddRecurringTransaction,
   onClose,
   onDeleteCategory,
   onDeleteMerchantRule,
+  onDeleteRecurringTransaction,
   onUpdateCategory,
   onUpdateMerchantRule,
+  onUpdateRecurringTransaction,
   onUpdateSettings,
+  recurringTransactions,
   settings,
 }: FinanceSettingsModalProps): JSX.Element | null {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -101,8 +113,8 @@ export function FinanceSettingsModal({
   const [merchantRuleForm, setMerchantRuleForm] = useState<MerchantRuleFormState>(() => ({
     ...DEFAULT_MERCHANT_FORM,
     categoryId:
-      categories.find((category) => category.type === "expense" || category.type === "both")?.id ??
-      "",
+      categories.find((category) => category.type === "expense" || category.type === "both")
+        ?.id ?? "",
   }));
   const [merchantRuleError, setMerchantRuleError] = useState("");
   const [deleteCategoryMessage, setDeleteCategoryMessage] = useState("");
@@ -203,7 +215,6 @@ export function FinanceSettingsModal({
     event.preventDefault();
 
     const normalizedName = merchantRuleForm.name.trim();
-
     if (!normalizedName) {
       setMerchantRuleError("Merchant name is required.");
       return;
@@ -268,7 +279,7 @@ export function FinanceSettingsModal({
 
     if (!didDelete) {
       setDeleteCategoryMessage(
-        "This category is already used by transactions or merchant rules, so it cannot be deleted.",
+        "This category is already used by transactions, merchant rules, or recurring rules, so it cannot be deleted.",
       );
       return;
     }
@@ -282,7 +293,7 @@ export function FinanceSettingsModal({
 
   return (
     <ModalShell
-      description="Manage categories, currency, and merchant rules without leaving the Finance page."
+      description="Manage categories, currency, merchant rules, and recurring rules without leaving the Finance page."
       isOpen={isOpen}
       onRequestClose={onClose}
       size="wide"
@@ -290,7 +301,7 @@ export function FinanceSettingsModal({
     >
       <div className="finance-settings-modal">
         <Card
-          subtitle="Changing currency updates the overview, transactions, and analytics immediately."
+          subtitle="Changing currency updates the overview, transactions, analytics, and recurring summaries immediately."
           title="Currency Settings"
         >
           <div className="finance-settings-section">
@@ -467,7 +478,7 @@ export function FinanceSettingsModal({
                           : "No monthly budget"}
                       </span>
                       {isCategoryInUse(category.id) ? (
-                        <span className="finance-category-card__usage">Used in transactions</span>
+                        <span className="finance-category-card__usage">Used in finance</span>
                       ) : (
                         <span>Safe to remove</span>
                       )}
@@ -480,7 +491,7 @@ export function FinanceSettingsModal({
         </Card>
 
         <Card
-          subtitle="Merchant rules can prefill the transaction form and still allow manual changes afterward."
+          subtitle="Merchant rules can prefill the transaction form and recurring rules while still allowing manual changes afterward."
           title="Merchant Rules"
         >
           <div className="finance-settings-section">
@@ -594,6 +605,16 @@ export function FinanceSettingsModal({
             </div>
           </div>
         </Card>
+
+        <RecurringTransactionsSection
+          categories={categories}
+          currency={currency}
+          merchantRules={merchantRules}
+          onAddRecurringTransaction={onAddRecurringTransaction}
+          onDeleteRecurringTransaction={onDeleteRecurringTransaction}
+          onUpdateRecurringTransaction={onUpdateRecurringTransaction}
+          recurringTransactions={recurringTransactions}
+        />
       </div>
     </ModalShell>
   );

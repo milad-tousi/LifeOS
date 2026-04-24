@@ -10,6 +10,7 @@ export interface FinanceTransaction {
   merchant: string;
   note?: string;
   date: string;
+  recurringId?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -32,6 +33,22 @@ export interface MerchantRule {
 
 export type FinanceMerchantRule = MerchantRule;
 
+export interface RecurringTransaction {
+  id: string;
+  type: TransactionType;
+  amount: number;
+  categoryId: string;
+  merchant: string;
+  note?: string;
+  repeat: "daily" | "weekly" | "monthly" | "yearly";
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  lastGeneratedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface FinanceSettings {
   currency: FinanceCurrency;
 }
@@ -49,4 +66,9 @@ export interface FinanceAnalyticsSummary {
   topExpenseCategoryId?: string;
   topExpenseCategoryTotal: number;
   transactionCount: number;
+  budgetedCategories: number;
+  overBudgetCategories: number;
+  recurringMonthlyIncome: number;
+  recurringMonthlyExpenses: number;
+  recurringMonthlyNet: number;
 }

@@ -5,16 +5,19 @@ import {
   FinanceCategory,
   FinanceCurrency,
 } from "@/features/finance/types/finance.types";
+import { MonthlyBudgetUsage } from "@/features/finance/utils/finance.budgets";
 import { formatMoney } from "@/features/finance/utils/finance.format";
 
 interface FinanceAnalyticsTabProps {
   analytics: FinanceAnalyticsSummary;
+  budgetUsage: MonthlyBudgetUsage[];
   categories: FinanceCategory[];
   currency: FinanceCurrency;
 }
 
 export function FinanceAnalyticsTab({
   analytics,
+  budgetUsage,
   categories,
   currency,
 }: FinanceAnalyticsTabProps): JSX.Element {
@@ -45,6 +48,25 @@ export function FinanceAnalyticsTab({
       label: "Transactions",
       value: String(analytics.transactionCount),
     },
+    {
+      label: "Budget usage",
+      value:
+        budgetUsage.length > 0
+          ? `${analytics.overBudgetCategories} of ${analytics.budgetedCategories} need attention`
+          : "No budgets configured",
+    },
+    {
+      label: "Recurring monthly income",
+      value: formatMoney(analytics.recurringMonthlyIncome, currency),
+    },
+    {
+      label: "Recurring monthly expenses",
+      value: formatMoney(analytics.recurringMonthlyExpenses, currency),
+    },
+    {
+      label: "Estimated recurring net",
+      value: formatMoney(analytics.recurringMonthlyNet, currency),
+    },
   ] as const;
 
   return (
@@ -60,7 +82,7 @@ export function FinanceAnalyticsTab({
                 Your finance activity is now summarized from real transactions.
               </h3>
               <p className="finance-analytics-placeholder__description">
-                This placeholder keeps the analytics tab useful today while leaving room for charts, trends, and forecasting later.
+                This placeholder keeps the analytics tab useful today while leaving room for charts, trends, and forecasting later. Recurring values are simple monthly estimates.
               </p>
             </div>
           </div>

@@ -4,8 +4,10 @@ import {
   FinanceMerchantRule,
   FinanceSummary,
   FinanceTransaction,
+  RecurringTransaction,
   TransactionType,
 } from "@/features/finance/types/finance.types";
+import { MonthlyBudgetUsage } from "@/features/finance/utils/finance.budgets";
 
 export function calculateFinanceSummary(
   transactions: FinanceTransaction[],
@@ -45,6 +47,8 @@ export function calculateFinanceSummary(
 
 export function calculateFinanceAnalytics(
   transactions: FinanceTransaction[],
+  budgetUsage: MonthlyBudgetUsage[] = [],
+  recurringTransactions: RecurringTransaction[] = [],
 ): FinanceAnalyticsSummary {
   let totalIncome = 0;
   let totalExpenses = 0;
@@ -80,6 +84,13 @@ export function calculateFinanceAnalytics(
     topExpenseCategoryId,
     topExpenseCategoryTotal,
     transactionCount: transactions.length,
+    budgetedCategories: budgetUsage.length,
+    overBudgetCategories: budgetUsage.filter((usage) => usage.percentageUsed >= 90).length,
+    recurringMonthlyIncome: getRecurringMonthlyEstimate(recurringTransactions, "income"),
+    recurringMonthlyExpenses: getRecurringMonthlyEstimate(recurringTransactions, "expense"),
+    recurringMonthlyNet:
+      getRecurringMonthlyEstimate(recurringTransactions, "income") -
+      getRecurringMonthlyEstimate(recurringTransactions, "expense"),
   };
 }
 
@@ -140,4 +151,26 @@ function isSameMonth(dateValue: string, month: number, year: number): boolean {
   }
 
   return safeDate.getMonth() === month && safeDate.getFullYear() === year;
+}
+
+function getRecurringMonthlyEstimate(
+  recurringTransactions: RecurringTransaction[],
+  type: TransactionType,
+): number {
+  return recurringTransactions
+    .filter((transaction) => transaction.isActive && transaction.type === type)
+    .reduce((total, transaction) => {
+      switch (transaction.repeat) {
+        case "daily":
+          return total + transaction.amount * 30;
+        case "weekly":
+          return total + transaction.amount * 4;
+        case "monthly":
+          return total + transaction.amount;
+        case "yearly":
+          return total + transaction.amount / 12;
+        default:
+          return total;
+      }
+    }, 0);
 }

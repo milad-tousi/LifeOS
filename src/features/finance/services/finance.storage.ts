@@ -4,6 +4,7 @@ import {
   FinanceSettings,
   FinanceTransaction,
   MerchantRule,
+  RecurringTransaction,
   TransactionType,
 } from "@/features/finance/types/finance.types";
 
@@ -36,6 +37,7 @@ const DEFAULT_MERCHANT_RULES: MerchantRule[] = [
   { id: "rule-salary", name: "Salary", categoryId: "salary", defaultType: "income" },
   { id: "rule-freelance", name: "Freelance", categoryId: "freelance", defaultType: "income" },
 ];
+const DEFAULT_RECURRING_TRANSACTIONS: RecurringTransaction[] = [];
 
 function createTransaction(
   input: Omit<FinanceTransaction, "createdAt"> & { createdAt?: string },
@@ -319,6 +321,12 @@ function ensureFinanceSeedData(): void {
   const settings = migrateSettings(
     loadFromStorage<unknown>(STORAGE_KEYS.financeSettings, DEFAULT_FINANCE_SETTINGS),
   );
+  const recurringTransactions = migrateRecurringTransactions(
+    loadFromStorage<unknown>(
+      STORAGE_KEYS.financeRecurringTransactions,
+      DEFAULT_RECURRING_TRANSACTIONS,
+    ),
+  );
   const transactions = migrateTransactions(
     loadFromStorage<unknown>(STORAGE_KEYS.financeTransactions, createDefaultTransactions()),
     categories,
@@ -327,6 +335,7 @@ function ensureFinanceSeedData(): void {
   saveToStorage(STORAGE_KEYS.financeCategories, categories);
   saveToStorage(STORAGE_KEYS.financeMerchantRules, merchantRules);
   saveToStorage(STORAGE_KEYS.financeSettings, settings);
+  saveToStorage(STORAGE_KEYS.financeRecurringTransactions, recurringTransactions);
   saveToStorage(STORAGE_KEYS.financeTransactions, transactions);
 }
 
@@ -378,6 +387,86 @@ export function saveMerchantRules(rules: MerchantRule[]): void {
   saveToStorage(STORAGE_KEYS.financeMerchantRules, rules);
 }
 
+function migrateRecurringTransactions(value: unknown): RecurringTransaction[] {
+  if (!Array.isArray(value)) {
+    return DEFAULT_RECURRING_TRANSACTIONS;
+  }
+
+  const recurringTransactions = value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const candidate = item as Partial<RecurringTransaction>;
+
+      if (
+        typeof candidate.id !== "string" ||
+        (candidate.type !== "income" && candidate.type !== "expense") ||
+        !Number.isFinite(Number(candidate.amount)) ||
+        Number(candidate.amount) <= 0 ||
+        typeof candidate.categoryId !== "string" ||
+        typeof candidate.merchant !== "string" ||
+        (candidate.repeat !== "daily" &&
+          candidate.repeat !== "weekly" &&
+          candidate.repeat !== "monthly" &&
+          candidate.repeat !== "yearly") ||
+        typeof candidate.startDate !== "string" ||
+        typeof candidate.isActive !== "boolean" ||
+        typeof candidate.createdAt !== "string"
+      ) {
+        return null;
+      }
+
+      return {
+        id: candidate.id,
+        type: candidate.type,
+        amount: Number(candidate.amount),
+        categoryId: candidate.categoryId,
+        merchant: candidate.merchant,
+        note:
+          typeof candidate.note === "string" && candidate.note.trim()
+            ? candidate.note.trim()
+            : undefined,
+        repeat: candidate.repeat,
+        startDate: candidate.startDate,
+        endDate:
+          typeof candidate.endDate === "string" && candidate.endDate
+            ? candidate.endDate
+            : undefined,
+        isActive: candidate.isActive,
+        lastGeneratedAt:
+          typeof candidate.lastGeneratedAt === "string" && candidate.lastGeneratedAt
+            ? candidate.lastGeneratedAt
+            : undefined,
+        createdAt: candidate.createdAt,
+        updatedAt:
+          typeof candidate.updatedAt === "string" && candidate.updatedAt
+            ? candidate.updatedAt
+            : undefined,
+      } satisfies RecurringTransaction;
+    })
+    .filter((rule): rule is RecurringTransaction => rule !== null);
+
+  return recurringTransactions;
+}
+
+export function getRecurringTransactions(): RecurringTransaction[] {
+  ensureFinanceSeedData();
+  return migrateRecurringTransactions(
+    loadFromStorage<unknown>(
+      STORAGE_KEYS.financeRecurringTransactions,
+      DEFAULT_RECURRING_TRANSACTIONS,
+    ),
+  );
+}
+
+export function saveRecurringTransactions(
+  recurringTransactions: RecurringTransaction[],
+): void {
+  saveToStorage(STORAGE_KEYS.financeRecurringTransactions, recurringTransactions);
+}
+
 export function resetFinanceData(): void {
   if (!canUseStorage()) {
     return;
@@ -387,12 +476,14 @@ export function resetFinanceData(): void {
   window.localStorage.removeItem(STORAGE_KEYS.financeCategories);
   window.localStorage.removeItem(STORAGE_KEYS.financeSettings);
   window.localStorage.removeItem(STORAGE_KEYS.financeMerchantRules);
+  window.localStorage.removeItem(STORAGE_KEYS.financeRecurringTransactions);
   ensureFinanceSeedData();
 }
 
 export interface FinanceSnapshot {
   categories: FinanceCategory[];
   merchantRules: MerchantRule[];
+  recurringTransactions: RecurringTransaction[];
   settings: FinanceSettings;
   transactions: FinanceTransaction[];
 }
@@ -409,6 +500,12 @@ export const financeStorage = {
     const settings = migrateSettings(
       loadFromStorage<unknown>(STORAGE_KEYS.financeSettings, DEFAULT_FINANCE_SETTINGS),
     );
+    const recurringTransactions = migrateRecurringTransactions(
+      loadFromStorage<unknown>(
+        STORAGE_KEYS.financeRecurringTransactions,
+        DEFAULT_RECURRING_TRANSACTIONS,
+      ),
+    );
     const transactions = migrateTransactions(
       loadFromStorage<unknown>(STORAGE_KEYS.financeTransactions, createDefaultTransactions()),
       categories,
@@ -417,6 +514,7 @@ export const financeStorage = {
     return {
       categories,
       merchantRules,
+      recurringTransactions,
       settings,
       transactions,
     };
@@ -424,12 +522,14 @@ export const financeStorage = {
   getCategories,
   getFinanceSettings,
   getMerchantRules,
+  getRecurringTransactions,
   getTransactions,
   loadFromStorage,
   resetFinanceData,
   saveCategories,
   saveFinanceSettings,
   saveMerchantRules,
+  saveRecurringTransactions,
   saveToStorage,
   saveTransactions,
 };

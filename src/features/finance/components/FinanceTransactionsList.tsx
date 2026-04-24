@@ -50,6 +50,11 @@ export function FinanceTransactionsList({
                   {transaction.type === "income" ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                   {transaction.type === "income" ? "Income" : "Expense"}
                 </span>
+                {transaction.recurringId ? (
+                  <span className="finance-transaction-card__chip finance-transaction-card__chip--recurring">
+                    Recurring
+                  </span>
+                ) : null}
                 <strong className="finance-transaction-card__merchant">
                   {transaction.merchant}
                 </strong>

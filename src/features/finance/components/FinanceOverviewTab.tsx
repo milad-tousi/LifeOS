@@ -1,3 +1,5 @@
+import { BudgetOverview } from "@/features/finance/components/BudgetOverview";
+import { FinanceInsights } from "@/features/finance/components/FinanceInsights";
 import { Card } from "@/components/common/Card";
 import { FinanceSummaryCards } from "@/features/finance/components/FinanceSummaryCards";
 import { FinanceTransactionsList } from "@/features/finance/components/FinanceTransactionsList";
@@ -7,23 +9,36 @@ import {
   FinanceSummary,
   FinanceTransaction,
 } from "@/features/finance/types/finance.types";
+import { MonthlyBudgetUsage } from "@/features/finance/utils/finance.budgets";
 
 interface FinanceOverviewTabProps {
+  budgetUsage: MonthlyBudgetUsage[];
   categories: FinanceCategory[];
   currency: FinanceCurrency;
+  insights: string[];
+  onOpenSettings: () => void;
   summary: FinanceSummary;
   transactions: FinanceTransaction[];
 }
 
 export function FinanceOverviewTab({
+  budgetUsage,
   categories,
   currency,
+  insights,
+  onOpenSettings,
   summary,
   transactions,
 }: FinanceOverviewTabProps): JSX.Element {
   return (
     <div className="finance-tab-panel">
       <FinanceSummaryCards currency={currency} summary={summary} />
+      <BudgetOverview
+        budgetUsage={budgetUsage}
+        currency={currency}
+        onOpenSettings={onOpenSettings}
+      />
+      <FinanceInsights insights={insights} />
 
       <Card
         subtitle="A lighter snapshot of your latest activity so you can check momentum without dropping into data entry."

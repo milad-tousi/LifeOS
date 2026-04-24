@@ -14,19 +14,25 @@ export function FinancePage(): JSX.Element {
   const {
     addCategory,
     addMerchantRule,
+    addRecurringTransaction,
     addTransaction,
     analytics,
+    budgetUsage,
     categories,
     deleteTransaction,
     deleteCategory,
     deleteMerchantRule,
+    deleteRecurringTransaction,
+    insights,
     isCategoryInUse,
     merchantRules,
+    recurringTransactions,
     settings,
     summary,
     transactions,
     updateCategory,
     updateMerchantRule,
+    updateRecurringTransaction,
     updateSettings,
     updateTransaction,
   } = useFinanceState();
@@ -45,8 +51,11 @@ export function FinancePage(): JSX.Element {
 
       {activeTab === "overview" ? (
         <FinanceOverviewTab
+          budgetUsage={budgetUsage}
           categories={categories}
           currency={settings.currency}
+          insights={insights}
+          onOpenSettings={() => setIsSettingsOpen(true)}
           summary={summary}
           transactions={transactions}
         />
@@ -67,6 +76,7 @@ export function FinancePage(): JSX.Element {
       {activeTab === "analytics" ? (
         <FinanceAnalyticsTab
           analytics={analytics}
+          budgetUsage={budgetUsage}
           categories={categories}
           currency={settings.currency}
         />
@@ -79,12 +89,17 @@ export function FinancePage(): JSX.Element {
         merchantRules={merchantRules}
         onAddCategory={addCategory}
         onAddMerchantRule={addMerchantRule}
+        onAddRecurringTransaction={addRecurringTransaction}
         onClose={() => setIsSettingsOpen(false)}
         onDeleteCategory={deleteCategory}
         onDeleteMerchantRule={deleteMerchantRule}
+        onDeleteRecurringTransaction={deleteRecurringTransaction}
+        onUpdateRecurringTransaction={updateRecurringTransaction}
         onUpdateCategory={updateCategory}
         onUpdateMerchantRule={updateMerchantRule}
         onUpdateSettings={updateSettings}
+        recurringTransactions={recurringTransactions}
+        currency={settings.currency}
         settings={settings}
       />
     </div>
