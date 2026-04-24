@@ -3,8 +3,10 @@ import { Habit, HabitLog } from "@/domains/habits/types";
 import {
   calculateActiveHabits,
   calculateCompletedToday,
-  calculateSimpleStreak,
+  calculateCurrentStreak,
+  getDateKey,
   getTodayDateKey,
+  isHabitActiveOnDate,
 } from "@/features/habits/utils/habit.utils";
 
 const HABITS_STORAGE_KEY = "lifeos:habits:v1";
@@ -117,6 +119,18 @@ export function saveHabitLogs(logs: HabitLog[]): void {
   writeStorageArray(HABIT_LOGS_STORAGE_KEY, logs);
 }
 
+export function getHabitLogForDate(habitId: string, dateKey: string): HabitLog | undefined {
+  return getHabitLogs().find((log) => log.habitId === habitId && log.date === dateKey);
+}
+
+export function getHabitLogsByHabitId(habitId: string): HabitLog[] {
+  return getHabitLogs().filter((log) => log.habitId === habitId);
+}
+
+export function getHabitValueForDate(habitId: string, dateKey: string): number {
+  return getHabitLogForDate(habitId, dateKey)?.value ?? 0;
+}
+
 export function calculateHabitCompletion(habit: Habit, log?: HabitLog): boolean {
   if (!log) {
     return false;
@@ -125,7 +139,12 @@ export function calculateHabitCompletion(habit: Habit, log?: HabitLog): boolean 
   return habit.type === "binary" ? log.value >= 1 : log.value >= habit.target;
 }
 
-export function upsertHabitLog(habitId: string, date: string, value: number): HabitLog {
+export function upsertHabitLog(
+  habitId: string,
+  date: string,
+  value: number,
+  note?: string,
+): HabitLog {
   const timestamp = new Date().toISOString();
   const habits = getHabits();
   const habit = habits.find((item) => item.id === habitId);
@@ -150,6 +169,7 @@ export function upsertHabitLog(habitId: string, date: string, value: number): Ha
       ...existingLog,
       value: safeValue,
       completed,
+      note: note ?? existingLog.note,
       updatedAt: timestamp,
     };
 
@@ -166,6 +186,7 @@ export function upsertHabitLog(habitId: string, date: string, value: number): Ha
     date,
     value: safeValue,
     completed,
+    note,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -175,18 +196,25 @@ export function upsertHabitLog(habitId: string, date: string, value: number): Ha
   return newLog;
 }
 
+export function deleteHabitLog(habitId: string, dateKey: string): void {
+  saveHabitLogs(
+    getHabitLogs().filter((log) => !(log.habitId === habitId && log.date === dateKey)),
+  );
+}
+
 export function getTodayHabitLog(habitId: string): HabitLog | undefined {
   const today = getTodayDateKey();
 
-  return getHabitLogs().find((log) => log.habitId === habitId && log.date === today);
+  return getHabitLogForDate(habitId, today);
 }
 
 export function calculateTodayProgress(habits: Habit[], logs: HabitLog[]): TodayProgress {
-  const activeHabits = calculateActiveHabits(habits);
-  const completedToday = calculateCompletedToday(habits, logs);
+  const today = new Date();
+  const activeHabits = calculateActiveHabits(habits, today);
+  const completedToday = calculateCompletedToday(habits, logs, today);
   const currentBestStreak = habits
-    .filter((habit) => !habit.archived)
-    .reduce((bestStreak, habit) => Math.max(bestStreak, calculateSimpleStreak(habit, logs)), 0);
+    .filter((habit) => isHabitActiveOnDate(habit, today))
+    .reduce((bestStreak, habit) => Math.max(bestStreak, calculateCurrentStreak(habit, logs, today)), 0);
 
   return {
     activeHabits,
@@ -195,3 +223,5 @@ export function calculateTodayProgress(habits: Habit[], logs: HabitLog[]): Today
     currentBestStreak,
   };
 }
+
+export { getDateKey };
