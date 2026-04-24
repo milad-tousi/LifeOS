@@ -29,6 +29,9 @@ export interface HabitLog {
   id: string;
   habitId: string;
   date: string;
+  periodKey?: string;
+  periodStart?: string;
+  periodEnd?: string;
   value: number;
   completed: boolean;
   note?: string;

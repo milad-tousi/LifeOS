@@ -103,23 +103,158 @@ export function isHabitActiveOnDate(habit: Habit, date: Date): boolean {
   return habit.daysOfWeek?.includes(date.getDay()) ?? false;
 }
 
+export function getHabitPeriodStartDate(habit: Habit, date: Date): Date | null {
+  if (habit.archived) {
+    return null;
+  }
+
+  const dateKey = getDateKey(date);
+
+  if (dateKey < habit.startDate || (habit.endDate && dateKey > habit.endDate)) {
+    return null;
+  }
+
+  if (habit.frequency === "weekly") {
+    const anchorDate = parseDateKey(habit.startDate);
+    const anchorWeekday = anchorDate.getDay();
+    const periodStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const daysSinceAnchor = (periodStart.getDay() - anchorWeekday + 7) % 7;
+    periodStart.setDate(periodStart.getDate() - daysSinceAnchor);
+
+    return periodStart < anchorDate ? anchorDate : periodStart;
+  }
+
+  if (!isHabitActiveOnDate(habit, date)) {
+    return null;
+  }
+
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function getHabitPeriodEndDate(habit: Habit, date: Date): Date | null {
+  const periodStart = getHabitPeriodStartDate(habit, date);
+
+  if (!periodStart) {
+    return null;
+  }
+
+  if (habit.frequency === "weekly") {
+    const periodEnd = new Date(periodStart);
+    periodEnd.setDate(periodEnd.getDate() + 6);
+
+    if (habit.endDate && getDateKey(periodEnd) > habit.endDate) {
+      return parseDateKey(habit.endDate);
+    }
+
+    return periodEnd;
+  }
+
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function getHabitCurrentPeriodKey(habit: Habit, date: Date): string | null {
+  const periodStart = getHabitPeriodStartDate(habit, date);
+
+  if (!periodStart) {
+    return null;
+  }
+
+  const periodStartKey = getDateKey(periodStart);
+
+  return habit.frequency === "weekly" ? `week-${periodStartKey}` : periodStartKey;
+}
+
+export function getHabitCurrentLogKey(habit: Habit, date: Date): string | null {
+  return getHabitCurrentPeriodKey(habit, date);
+}
+
+export function getHabitLogPeriodKey(log: HabitLog): string {
+  return log.periodKey ?? log.date;
+}
+
+export function isHabitLogCompletedForPeriod(
+  habit: Habit,
+  logs: HabitLog[],
+  periodKey: string,
+): boolean {
+  return logs.some(
+    (log) =>
+      log.habitId === habit.id && getHabitLogPeriodKey(log) === periodKey && isHabitLogCompleted(habit, log),
+  );
+}
+
 export function calculateActiveHabits(habits: Habit[], date = new Date()): number {
   return habits.filter((habit) => isHabitActiveOnDate(habit, date)).length;
 }
 
 export function calculateCompletedToday(habits: Habit[], logs: HabitLog[], date = new Date()): number {
-  const today = getDateKey(date);
-  const activeHabitIds = new Set(
-    habits.filter((habit) => isHabitActiveOnDate(habit, date)).map((habit) => habit.id),
-  );
+  return habits.filter((habit) => {
+    if (!isHabitActiveOnDate(habit, date)) {
+      return false;
+    }
 
-  return logs.filter(
-    (log) => log.date === today && log.completed && activeHabitIds.has(log.habitId),
-  ).length;
+    const periodKey = getHabitCurrentPeriodKey(habit, date);
+
+    return periodKey ? isHabitLogCompletedForPeriod(habit, logs, periodKey) : false;
+  }).length;
 }
 
-function hasCompletedLog(habitId: string, logs: HabitLog[], dateKey: string): boolean {
-  return logs.some((log) => log.habitId === habitId && log.date === dateKey && log.completed);
+export function isHabitLogCompleted(habit: Habit, log?: HabitLog): boolean {
+  if (!log) {
+    return false;
+  }
+
+  if (habit.type === "binary") {
+    return log.completed || log.value >= 1;
+  }
+
+  return log.completed || log.value >= habit.target;
+}
+
+export function isHabitLogPartial(habit: Habit, log?: HabitLog): boolean {
+  if (!log || habit.type === "binary") {
+    return false;
+  }
+
+  return log.value > 0 && !isHabitLogCompleted(habit, log);
+}
+
+function getCompletedLogForPeriod(
+  habit: Habit,
+  logs: HabitLog[],
+  periodKey: string,
+): HabitLog | undefined {
+  return logs.find(
+    (log) =>
+      log.habitId === habit.id && getHabitLogPeriodKey(log) === periodKey && isHabitLogCompleted(habit, log),
+  );
+}
+
+function getScheduledPeriodsBetween(
+  habit: Habit,
+  startDate: Date,
+  endDate: Date,
+): Array<{ endKey: string; periodKey: string }> {
+  const periods: Array<{ endKey: string; periodKey: string }> = [];
+  const seenPeriods = new Set<string>();
+  const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+  while (cursor <= end) {
+    if (isHabitActiveOnDate(habit, cursor)) {
+      const periodKey = getHabitCurrentPeriodKey(habit, cursor);
+      const periodEnd = getHabitPeriodEndDate(habit, cursor);
+
+      if (periodKey && periodEnd && !seenPeriods.has(periodKey)) {
+        periods.push({ endKey: getDateKey(periodEnd), periodKey });
+        seenPeriods.add(periodKey);
+      }
+    }
+
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return periods;
 }
 
 export function getScheduledDateKeysBetween(
@@ -133,7 +268,11 @@ export function getScheduledDateKeysBetween(
 
   while (cursor <= end) {
     if (isHabitActiveOnDate(habit, cursor)) {
-      keys.push(getDateKey(cursor));
+      const periodKey = getHabitCurrentPeriodKey(habit, cursor);
+
+      if (periodKey && !keys.includes(periodKey)) {
+        keys.push(periodKey);
+      }
     }
 
     cursor.setDate(cursor.getDate() + 1);
@@ -148,19 +287,26 @@ export function calculateCurrentStreak(
   todayDate = new Date(),
 ): number {
   const todayKey = getDateKey(todayDate);
-  const scheduledKeys = getScheduledDateKeysBetween(
+  const scheduledPeriods = getScheduledPeriodsBetween(
     habit,
     parseDateKey(habit.startDate),
     todayDate,
-  ).filter((dateKey) => dateKey <= todayKey);
+  );
   let streak = 0;
 
-  for (let index = scheduledKeys.length - 1; index >= 0; index -= 1) {
-    if (!hasCompletedLog(habit.id, logs, scheduledKeys[index])) {
-      break;
+  for (let index = scheduledPeriods.length - 1; index >= 0; index -= 1) {
+    const period = scheduledPeriods[index];
+
+    if (getCompletedLogForPeriod(habit, logs, period.periodKey)) {
+      streak += 1;
+      continue;
     }
 
-    streak += 1;
+    if (!isPastDate(period.endKey, todayKey)) {
+      continue;
+    }
+
+    break;
   }
 
   return streak;
@@ -168,14 +314,19 @@ export function calculateCurrentStreak(
 
 export function calculateLongestStreak(habit: Habit, logs: HabitLog[]): number {
   const today = new Date();
-  const scheduledKeys = getScheduledDateKeysBetween(habit, parseDateKey(habit.startDate), today);
+  const todayKey = getDateKey(today);
+  const scheduledPeriods = getScheduledPeriodsBetween(habit, parseDateKey(habit.startDate), today);
   let longestStreak = 0;
   let currentStreak = 0;
 
-  scheduledKeys.forEach((dateKey) => {
-    if (hasCompletedLog(habit.id, logs, dateKey)) {
+  scheduledPeriods.forEach((period) => {
+    if (getCompletedLogForPeriod(habit, logs, period.periodKey)) {
       currentStreak += 1;
       longestStreak = Math.max(longestStreak, currentStreak);
+      return;
+    }
+
+    if (!isPastDate(period.endKey, todayKey)) {
       return;
     }
 

@@ -4,9 +4,14 @@ import {
   calculateActiveHabits,
   calculateCompletedToday,
   calculateCurrentStreak,
+  getHabitCurrentPeriodKey,
+  getHabitLogPeriodKey,
+  getHabitPeriodEndDate,
+  getHabitPeriodStartDate,
   getDateKey,
   getTodayDateKey,
   isHabitActiveOnDate,
+  parseDateKey,
 } from "@/features/habits/utils/habit.utils";
 
 const HABITS_STORAGE_KEY = "lifeos:habits:v1";
@@ -123,6 +128,18 @@ export function getHabitLogForDate(habitId: string, dateKey: string): HabitLog |
   return getHabitLogs().find((log) => log.habitId === habitId && log.date === dateKey);
 }
 
+export function getCurrentHabitLog(habit: Habit, currentDate = new Date()): HabitLog | undefined {
+  const periodKey = getHabitCurrentPeriodKey(habit, currentDate);
+
+  if (!periodKey) {
+    return undefined;
+  }
+
+  return getHabitLogs().find(
+    (log) => log.habitId === habit.id && getHabitLogPeriodKey(log) === periodKey,
+  );
+}
+
 export function getHabitLogsByHabitId(habitId: string): HabitLog[] {
   return getHabitLogs().filter((log) => log.habitId === habitId);
 }
@@ -149,7 +166,13 @@ export function upsertHabitLog(
   const habits = getHabits();
   const habit = habits.find((item) => item.id === habitId);
   const logs = getHabitLogs();
-  const existingLog = logs.find((log) => log.habitId === habitId && log.date === date);
+  const actionDate = parseDateKey(date);
+  const periodKey = habit ? getHabitCurrentPeriodKey(habit, actionDate) ?? date : date;
+  const periodStart = habit ? getHabitPeriodStartDate(habit, actionDate) : null;
+  const periodEnd = habit ? getHabitPeriodEndDate(habit, actionDate) : null;
+  const existingLog = logs.find(
+    (log) => log.habitId === habitId && getHabitLogPeriodKey(log) === periodKey,
+  );
   const safeValue = Math.max(0, value);
   const completionDraft = existingLog
     ? { ...existingLog, value: safeValue }
@@ -167,6 +190,10 @@ export function upsertHabitLog(
   if (existingLog) {
     const updatedLog: HabitLog = {
       ...existingLog,
+      date,
+      periodKey,
+      periodStart: periodStart ? getDateKey(periodStart) : date,
+      periodEnd: periodEnd ? getDateKey(periodEnd) : date,
       value: safeValue,
       completed,
       note: note ?? existingLog.note,
@@ -184,6 +211,9 @@ export function upsertHabitLog(
     id: createId(),
     habitId,
     date,
+    periodKey,
+    periodStart: periodStart ? getDateKey(periodStart) : date,
+    periodEnd: periodEnd ? getDateKey(periodEnd) : date,
     value: safeValue,
     completed,
     note,
@@ -197,19 +227,29 @@ export function upsertHabitLog(
 }
 
 export function deleteHabitLog(habitId: string, dateKey: string): void {
+  const habit = getHabits().find((item) => item.id === habitId);
+  const periodKey = habit
+    ? getHabitCurrentPeriodKey(habit, parseDateKey(dateKey)) ?? dateKey
+    : dateKey;
+
   saveHabitLogs(
-    getHabitLogs().filter((log) => !(log.habitId === habitId && log.date === dateKey)),
+    getHabitLogs().filter(
+      (log) => !(log.habitId === habitId && getHabitLogPeriodKey(log) === periodKey),
+    ),
   );
 }
 
 export function getTodayHabitLog(habitId: string): HabitLog | undefined {
-  const today = getTodayDateKey();
+  const habit = getHabits().find((item) => item.id === habitId);
 
-  return getHabitLogForDate(habitId, today);
+  return habit ? getCurrentHabitLog(habit) : getHabitLogForDate(habitId, getTodayDateKey());
 }
 
-export function calculateTodayProgress(habits: Habit[], logs: HabitLog[]): TodayProgress {
-  const today = new Date();
+export function calculateTodayProgress(
+  habits: Habit[],
+  logs: HabitLog[],
+  today = new Date(),
+): TodayProgress {
   const activeHabits = calculateActiveHabits(habits, today);
   const completedToday = calculateCompletedToday(habits, logs, today);
   const currentBestStreak = habits

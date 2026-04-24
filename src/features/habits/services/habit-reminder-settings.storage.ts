@@ -6,10 +6,12 @@ export interface HabitReminderSettings {
   ringtone: string;
   volume: number;
   vibrate: boolean;
+  snoozeMinutes: number;
 }
 
 export const defaultHabitReminderSettings: HabitReminderSettings = {
   ringtone: "calm-elegant",
+  snoozeMinutes: 10,
   volume: 70,
   vibrate: true,
 };
@@ -22,6 +24,7 @@ function normalizeHabitReminderSettings(value: Partial<HabitReminderSettings>): 
 
   return {
     ringtone: safeRingtone,
+    snoozeMinutes: Math.max(1, value.snoozeMinutes ?? defaultHabitReminderSettings.snoozeMinutes),
     volume: Math.min(100, Math.max(0, value.volume ?? defaultHabitReminderSettings.volume)),
     vibrate: value.vibrate ?? defaultHabitReminderSettings.vibrate,
   };

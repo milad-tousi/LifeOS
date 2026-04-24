@@ -7,7 +7,12 @@ import {
   upsertHabitLog,
 } from "@/features/habits/services/habits.storage";
 import { getHabitReminderSettings } from "@/features/habits/services/habit-reminder-settings.storage";
-import { getDateKey, isHabitActiveOnDate } from "@/features/habits/utils/habit.utils";
+import {
+  getDateKey,
+  getHabitCurrentPeriodKey,
+  getHabitLogPeriodKey,
+  isHabitActiveOnDate,
+} from "@/features/habits/utils/habit.utils";
 
 const CHECK_INTERVAL_MS = 30_000;
 const FIRED_STORAGE_KEY = "lifeos:habitReminderFired:v1";
@@ -59,15 +64,15 @@ function saveFiredReminders(firedReminders: FiredReminderMap): void {
   localStorage.setItem(FIRED_STORAGE_KEY, JSON.stringify(firedReminders));
 }
 
-function hasReminderFiredToday(habitId: string, dateKey: string): boolean {
-  return readFiredReminders()[dateKey]?.[habitId] === true;
+function hasReminderFiredForPeriod(habitId: string, dateKey: string, periodKey: string): boolean {
+  return readFiredReminders()[dateKey]?.[`${habitId}:${periodKey}`] === true;
 }
 
-function markReminderFired(habitId: string, dateKey: string): void {
+function markReminderFired(habitId: string, dateKey: string, periodKey: string): void {
   const firedReminders = readFiredReminders();
   firedReminders[dateKey] = {
     ...(firedReminders[dateKey] ?? {}),
-    [habitId]: true,
+    [`${habitId}:${periodKey}`]: true,
   };
   saveFiredReminders(firedReminders);
 }
@@ -77,7 +82,12 @@ function getCurrentTimeKey(date: Date): string {
 }
 
 function isHabitCompletedToday(habit: Habit, dateKey: string): boolean {
-  const log = getHabitLogs().find((item) => item.habitId === habit.id && item.date === dateKey);
+  const periodKey = getHabitCurrentPeriodKey(habit, new Date());
+  const log = getHabitLogs().find(
+    (item) =>
+      item.habitId === habit.id &&
+      (periodKey ? getHabitLogPeriodKey(item) === periodKey : item.date === dateKey),
+  );
 
   return calculateHabitCompletion(habit, log);
 }
@@ -164,6 +174,12 @@ function checkDueReminders(): void {
       return;
     }
 
+    const periodKey = getHabitCurrentPeriodKey(habit, now);
+
+    if (!periodKey) {
+      return;
+    }
+
     if (isHabitCompletedToday(habit, todayKey)) {
       snoozedReminders.delete(habit.id);
       return;
@@ -179,12 +195,12 @@ function checkDueReminders(): void {
       return;
     }
 
-    if (hasReminderFiredToday(habit.id, todayKey)) {
+    if (hasReminderFiredForPeriod(habit.id, todayKey, periodKey)) {
       return;
     }
 
     if (habit.reminder.time <= currentTime) {
-      markReminderFired(habit.id, todayKey);
+      markReminderFired(habit.id, todayKey, periodKey);
       triggerReminder(habit);
     }
   });
@@ -247,24 +263,18 @@ export function snoozeHabitReminder(habitId: string, minutes: number): void {
 
 export function dismissHabitReminder(habitId: string): void {
   snoozedReminders.delete(habitId);
-  markReminderFired(habitId, getDateKey(new Date()));
+  const habit = getHabits().find((item) => item.id === habitId);
+  const now = new Date();
+  const todayKey = getDateKey(now);
+  const periodKey = habit ? getHabitCurrentPeriodKey(habit, now) ?? todayKey : todayKey;
+  markReminderFired(habitId, todayKey, periodKey);
   stopActiveAudio();
 }
 
 export function completeHabitReminder(habit: Habit): void {
-  if (habit.type === "binary") {
-    upsertHabitLog(habit.id, getDateKey(new Date()), 1);
-    dismissHabitReminder(habit.id);
-    rebuildHabitReminderScheduler();
-    return;
-  }
-
-  window.dispatchEvent(
-    new CustomEvent<{ habitId: string }>(OPEN_HABIT_DETAIL_EVENT_NAME, {
-      detail: { habitId: habit.id },
-    }),
-  );
+  upsertHabitLog(habit.id, getDateKey(new Date()), habit.type === "binary" ? 1 : habit.target);
   dismissHabitReminder(habit.id);
+  rebuildHabitReminderScheduler();
 }
 
 export function triggerTestHabitReminder(): void {

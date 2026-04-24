@@ -11,6 +11,11 @@ import {
   calculateLongestStreak,
   getCalendarDaysForMonth,
   getDateKey,
+  getHabitCurrentPeriodKey,
+  getHabitLogPeriodKey,
+  getHabitPeriodEndDate,
+  isHabitLogCompleted,
+  isHabitLogPartial,
   isFutureDate,
   isHabitActiveOnDate,
   isPastDate,
@@ -34,6 +39,12 @@ interface SelectedLogState {
   dateKey: string;
   value: string;
   note: string;
+}
+
+interface SummaryCard {
+  label: string;
+  value: string | number;
+  subtext?: string;
 }
 
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -74,8 +85,12 @@ function formatSchedule(habit: Habit): string {
   return `Custom days: ${days}${end}`;
 }
 
-function getLogForDate(logs: HabitLog[], habitId: string, dateKey: string): HabitLog | undefined {
-  return logs.find((log) => log.habitId === habitId && log.date === dateKey);
+function getLogForDate(logs: HabitLog[], habit: Habit, dateKey: string): HabitLog | undefined {
+  const periodKey = getHabitCurrentPeriodKey(habit, parseDateKey(dateKey)) ?? dateKey;
+
+  return logs.find(
+    (log) => log.habitId === habit.id && getHabitLogPeriodKey(log) === periodKey,
+  );
 }
 
 export function HabitDetailDrawer({
@@ -112,41 +127,77 @@ export function HabitDetailDrawer({
 
   const summary = useMemo(() => {
     if (!habit) {
-      return { completed: 0, missed: 0, partial: 0, rate: 0, scheduled: 0 };
+      return {
+        completed: 0,
+        eligible: 0,
+        missed: 0,
+        partial: 0,
+        rate: 0,
+        scheduledThisMonth: 0,
+        scheduledSoFar: 0,
+      };
     }
 
     let completed = 0;
+    let eligible = 0;
     let missed = 0;
     let partial = 0;
-    let scheduled = 0;
+    let scheduledThisMonth = 0;
+    let scheduledSoFar = 0;
+    const seenPeriods = new Set<string>();
 
     calendarDays.forEach((day) => {
       if (!day.date || !day.dateKey || !isHabitActiveOnDate(habit, day.date)) {
         return;
       }
 
-      if (isFutureDate(day.dateKey, todayKey)) {
+      const periodKey = getHabitCurrentPeriodKey(habit, day.date);
+
+      if (!periodKey || seenPeriods.has(periodKey)) {
         return;
       }
 
-      scheduled += 1;
-      const log = getLogForDate(habitLogs, habit.id, day.dateKey);
+      seenPeriods.add(periodKey);
+      scheduledThisMonth += 1;
 
-      if (log?.completed) {
+      if (!isFutureDate(day.dateKey, todayKey)) {
+        scheduledSoFar += 1;
+      }
+
+      const log = getLogForDate(habitLogs, habit, day.dateKey);
+      const isCompleted = isHabitLogCompleted(habit, log);
+      const isPartial = isHabitLogPartial(habit, log);
+      const periodEndDate = getHabitPeriodEndDate(habit, day.date);
+      const periodEndKey = periodEndDate ? getDateKey(periodEndDate) : day.dateKey;
+      const isPeriodClosed = isPastDate(periodEndKey, todayKey);
+      const hasStartedOpenPeriod =
+        !isPeriodClosed && !isFutureDate(day.dateKey, todayKey) && (isCompleted || isPartial);
+
+      if (isCompleted) {
         completed += 1;
-      } else if (log && log.value > 0) {
+      }
+
+      if (isPartial) {
         partial += 1;
-      } else {
+      }
+
+      if (isPeriodClosed || hasStartedOpenPeriod) {
+        eligible += 1;
+      }
+
+      if (isPeriodClosed && !isCompleted && !isPartial) {
         missed += 1;
       }
     });
 
     return {
       completed,
+      eligible,
       missed,
       partial,
-      rate: scheduled === 0 ? 0 : Math.round((completed / scheduled) * 100),
-      scheduled,
+      rate: eligible === 0 ? 0 : Math.round((completed / eligible) * 100),
+      scheduledThisMonth,
+      scheduledSoFar,
     };
   }, [calendarDays, habit, habitLogs, todayKey]);
 
@@ -160,7 +211,7 @@ export function HabitDetailDrawer({
     ? goals.find((goal) => goal.id === habit.goalId)?.title ?? "Not found"
     : "None";
   const selectedExistingLog = selectedLog
-    ? getLogForDate(habitLogs, habit.id, selectedLog.dateKey)
+    ? getLogForDate(habitLogs, habit, selectedLog.dateKey)
     : undefined;
 
   function getDayState(date: Date, dateKey: string): string {
@@ -168,17 +219,20 @@ export function HabitDetailDrawer({
       return "not-scheduled";
     }
 
-    const log = getLogForDate(habitLogs, habit.id, dateKey);
+    const log = getLogForDate(habitLogs, habit, dateKey);
 
-    if (log?.completed) {
+    if (isHabitLogCompleted(habit, log)) {
       return "completed";
     }
 
-    if (log && log.value > 0) {
+    if (isHabitLogPartial(habit, log)) {
       return "partial";
     }
 
-    if (isPastDate(dateKey, todayKey)) {
+    const periodEndDate = getHabitPeriodEndDate(habit, date);
+    const periodEndKey = periodEndDate ? getDateKey(periodEndDate) : dateKey;
+
+    if (isPastDate(periodEndKey, todayKey)) {
       return "missed";
     }
 
@@ -198,7 +252,7 @@ export function HabitDetailDrawer({
       return;
     }
 
-    const log = getLogForDate(habitLogs, habit.id, dateKey);
+    const log = getLogForDate(habitLogs, habit, dateKey);
     setMessage(null);
     setSelectedLog({
       dateKey,
@@ -218,6 +272,26 @@ export function HabitDetailDrawer({
     onSaveLog(habit.id, selectedLog.dateKey, Math.max(0, Number.isFinite(value) ? value : 0), selectedLog.note);
     setSelectedLog(null);
   }
+
+  const summaryCards: SummaryCard[] = [
+    { label: "Completion Rate", value: `${summary.rate}%` },
+    { label: "Completed Days", value: summary.completed },
+    { label: "Missed Days", value: summary.missed },
+    { label: "Partial Days", value: summary.partial },
+    habit.endDate
+      ? {
+          label: "Scheduled",
+          value: summary.scheduledThisMonth,
+          subtext: "active days this month",
+        }
+      : {
+          label: "Scheduled",
+          value: "Ongoing",
+          subtext: `${summary.scheduledSoFar} active days so far`,
+        },
+    { label: "Current Streak", value: currentStreak },
+    { label: "Longest Streak", value: longestStreak },
+  ];
 
   return (
     <div className="habit-detail-backdrop" onClick={onClose}>
@@ -261,18 +335,11 @@ export function HabitDetailDrawer({
         </section>
 
         <section className="habit-detail-summary">
-          {[
-            ["Completion Rate", `${summary.rate}%`],
-            ["Completed Days", summary.completed],
-            ["Missed Days", summary.missed],
-            ["Partial Days", summary.partial],
-            ["Scheduled Days", summary.scheduled],
-            ["Current Streak", currentStreak],
-            ["Longest Streak", longestStreak],
-          ].map(([label, value]) => (
-            <article key={label}>
-              <span>{label}</span>
-              <strong>{value}</strong>
+          {summaryCards.map((card) => (
+            <article key={card.label}>
+              <span>{card.label}</span>
+              <strong>{card.value}</strong>
+              {card.subtext ? <small>{card.subtext}</small> : null}
             </article>
           ))}
         </section>

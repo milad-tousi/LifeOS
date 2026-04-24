@@ -224,6 +224,22 @@ export function HabitSettingsModal({
             </label>
           </div>
 
+          <label className="habit-settings__field habit-settings__field--compact">
+            <span>Snooze duration</span>
+            <select
+              value={reminderSettings.snoozeMinutes}
+              onChange={(event) =>
+                onUpdateReminderSettings({ snoozeMinutes: Number(event.target.value) })
+              }
+            >
+              <option value={5}>5 minutes</option>
+              <option value={10}>10 minutes</option>
+              <option value={15}>15 minutes</option>
+              <option value={30}>30 minutes</option>
+              <option value={60}>60 minutes</option>
+            </select>
+          </label>
+
           <div className="habit-settings__preview">
             <Button
               type="button"

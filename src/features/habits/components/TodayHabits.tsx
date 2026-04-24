@@ -3,7 +3,10 @@ import { Goal } from "@/domains/goals/types";
 import { Habit, HabitLog } from "@/domains/habits/types";
 import { HabitCard } from "@/features/habits/components/HabitCard";
 import { HabitCategory } from "@/features/habits/services/habit-categories.storage";
-import { getTodayDateKey } from "@/features/habits/utils/habit.utils";
+import {
+  getHabitCurrentPeriodKey,
+  getHabitLogPeriodKey,
+} from "@/features/habits/utils/habit.utils";
 
 interface TodayHabitsProps {
   categories: HabitCategory[];
@@ -75,8 +78,12 @@ export function TodayHabits({
       </header>
       <div className="today-habits-list">
         {habits.map((habit) => {
-          const today = getTodayDateKey();
-          const todayLog = logs.find((item) => item.habitId === habit.id && item.date === today);
+          const periodKey = getHabitCurrentPeriodKey(habit, new Date());
+          const todayLog = periodKey
+            ? logs.find(
+                (item) => item.habitId === habit.id && getHabitLogPeriodKey(item) === periodKey,
+              )
+            : undefined;
 
           return (
             <HabitCard

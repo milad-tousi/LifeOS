@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Habit, HabitLog } from "@/domains/habits/types";
 import {
   createHabitCategory,
@@ -14,6 +14,7 @@ import {
   updateHabitReminderSettings,
 } from "@/features/habits/services/habit-reminder-settings.storage";
 import { rebuildHabitReminderScheduler } from "@/services/habitReminderScheduler";
+import { getDateKey, parseDateKey } from "@/features/habits/utils/habit.utils";
 import {
   archiveHabit,
   calculateTodayProgress,
@@ -56,6 +57,7 @@ export function useHabits(): UseHabitsResult {
   const [reminderSettings, setReminderSettings] = useState<HabitReminderSettings>(() =>
     getHabitReminderSettings(),
   );
+  const [currentDateKey, setCurrentDateKey] = useState(() => getDateKey(new Date()));
 
   const refreshHabits = useCallback(() => {
     setHabits(getHabits());
@@ -63,6 +65,26 @@ export function useHabits(): UseHabitsResult {
     setLogs(getHabitLogs());
     setReminderSettings(getHabitReminderSettings());
   }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const nextDateKey = getDateKey(new Date());
+
+      setCurrentDateKey((current) => {
+        if (current === nextDateKey) {
+          return current;
+        }
+
+        refreshHabits();
+        rebuildHabitReminderScheduler();
+        return nextDateKey;
+      });
+    }, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [refreshHabits]);
 
   const addHabit = useCallback((input: CreateHabitInput) => {
     const habit = createHabit(input);
@@ -134,14 +156,14 @@ export function useHabits(): UseHabitsResult {
   }, [refreshHabits]);
 
   const updateTodayLog = useCallback((habitId: string, value: number) => {
-    upsertHabitLog(habitId, new Date().toISOString().slice(0, 10), value);
+    upsertHabitLog(habitId, getDateKey(new Date()), value);
     refreshHabits();
     rebuildHabitReminderScheduler();
   }, [refreshHabits]);
 
   const todayProgress = useMemo(
-    () => calculateTodayProgress(habits, logs),
-    [habits, logs],
+    () => calculateTodayProgress(habits, logs, parseDateKey(currentDateKey)),
+    [currentDateKey, habits, logs],
   );
 
   return {

@@ -1,6 +1,7 @@
 import { Habit, HabitLog } from "@/domains/habits/types";
 import {
   getDateKey,
+  getHabitLogPeriodKey,
   getScheduledDateKeysBetween,
   isFutureDate,
   parseDateKey,
@@ -19,8 +20,10 @@ export interface GoalHabitProgress {
   linkedHabits: Habit[];
 }
 
-function getLogForDate(logs: HabitLog[], habitId: string, dateKey: string): HabitLog | undefined {
-  return logs.find((log) => log.habitId === habitId && log.date === dateKey);
+function getLogForPeriod(logs: HabitLog[], habit: Habit, periodKey: string): HabitLog | undefined {
+  return logs.find(
+    (log) => log.habitId === habit.id && getHabitLogPeriodKey(log) === periodKey,
+  );
 }
 
 export function calculateGoalHabitProgress(
@@ -42,12 +45,14 @@ export function calculateGoalHabitProgress(
     );
 
     scheduledKeys.forEach((dateKey) => {
-      if (isFutureDate(dateKey, todayKey)) {
+      const comparableDateKey = dateKey.startsWith("week-") ? dateKey.replace("week-", "") : dateKey;
+
+      if (isFutureDate(comparableDateKey, todayKey)) {
         return;
       }
 
       totalScheduledDays += 1;
-      const log = getLogForDate(logs, habit.id, dateKey);
+      const log = getLogForPeriod(logs, habit, dateKey);
 
       if (!log) {
         return;

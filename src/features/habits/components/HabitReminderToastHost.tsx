@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/common/Button";
 import { Habit } from "@/domains/habits/types";
+import { getHabitReminderSettings } from "@/features/habits/services/habit-reminder-settings.storage";
 import {
   completeHabitReminder,
-  dismissHabitReminder,
   HabitReminderEventDetail,
   REMINDER_EVENT_NAME,
   snoozeHabitReminder,
@@ -15,15 +16,18 @@ interface ActiveReminder {
 }
 
 export function HabitReminderToastHost(): JSX.Element | null {
-  const [activeReminder, setActiveReminder] = useState<ActiveReminder | null>(null);
+  const [reminderQueue, setReminderQueue] = useState<ActiveReminder[]>([]);
 
   useEffect(() => {
     function handleReminder(event: Event): void {
       const reminderEvent = event as CustomEvent<HabitReminderEventDetail>;
-      setActiveReminder({
-        habit: reminderEvent.detail.habit,
-        reminderTime: reminderEvent.detail.reminderTime,
-      });
+      setReminderQueue((currentQueue) => [
+        ...currentQueue,
+        {
+          habit: reminderEvent.detail.habit,
+          reminderTime: reminderEvent.detail.reminderTime,
+        },
+      ]);
     }
 
     window.addEventListener(REMINDER_EVENT_NAME, handleReminder);
@@ -32,62 +36,55 @@ export function HabitReminderToastHost(): JSX.Element | null {
     };
   }, []);
 
+  const activeReminder = reminderQueue[0] ?? null;
+  const snoozeMinutes = getHabitReminderSettings().snoozeMinutes;
+
   if (!activeReminder) {
     return null;
   }
 
-  function closeToast(): void {
-    setActiveReminder(null);
+  function showNextReminder(): void {
+    setReminderQueue((currentQueue) => currentQueue.slice(1));
   }
 
-  return (
-    <aside className="habit-reminder-toast" role="dialog" aria-label="Habit reminder">
-      <div>
-        <p className="habit-reminder-toast__eyebrow">Habit Reminder</p>
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
+    <div className="habit-reminder-popup-backdrop" role="presentation">
+      <aside className="habit-reminder-popup" role="dialog" aria-modal="true" aria-label="Habit reminder">
+        <p className="habit-reminder-popup__eyebrow">Habit Reminder</p>
         <h3>{activeReminder.habit.title}</h3>
-        <p>{activeReminder.reminderTime || "Scheduled now"}</p>
-      </div>
-      <div className="habit-reminder-toast__actions">
-        <Button
-          type="button"
-          onClick={() => {
-            completeHabitReminder(activeReminder.habit);
-            closeToast();
-          }}
-        >
-          Done
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            snoozeHabitReminder(activeReminder.habit.id, 10);
-            closeToast();
-          }}
-        >
-          Snooze 10m
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            snoozeHabitReminder(activeReminder.habit.id, 30);
-            closeToast();
-          }}
-        >
-          Snooze 30m
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => {
-            dismissHabitReminder(activeReminder.habit.id);
-            closeToast();
-          }}
-        >
-          Dismiss
-        </Button>
-      </div>
-    </aside>
+        <span className="habit-reminder-popup__time">
+          {activeReminder.reminderTime || "Due now"}
+        </span>
+        <p>This habit is scheduled now.</p>
+
+        <div className="habit-reminder-popup__actions">
+          <Button
+            className="habit-reminder-popup__done"
+            type="button"
+            onClick={() => {
+              completeHabitReminder(activeReminder.habit);
+              showNextReminder();
+            }}
+          >
+            Done
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              snoozeHabitReminder(activeReminder.habit.id, snoozeMinutes);
+              showNextReminder();
+            }}
+          >
+            Snooze {snoozeMinutes}m
+          </Button>
+        </div>
+      </aside>
+    </div>,
+    document.body,
   );
 }
