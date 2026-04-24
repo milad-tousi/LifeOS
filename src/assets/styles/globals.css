@@ -2874,6 +2874,76 @@ a:focus-visible {
   font-weight: 500;
 }
 
+.goal-card__habit-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.goal-card__habit-progress-header,
+.goal-card__overall-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 700;
+}
+
+.goal-card__habit-progress-header span,
+.goal-card__habit-progress p,
+.goal-card__overall-progress span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.goal-card__habit-progress-header strong,
+.goal-card__overall-progress strong {
+  color: var(--text);
+}
+
+.goal-card__habit-progress p {
+  margin: 0;
+}
+
+.goal-card__habit-progress-track {
+  overflow: hidden;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.goal-card__habit-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #10b981);
+}
+
+.goal-card__linked-habits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.goal-card__linked-habits span {
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.goal-card__overall-progress {
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.85rem;
+  background: rgba(37, 99, 235, 0.08);
+}
+
 .goal-progress {
   display: flex;
   flex-direction: column;

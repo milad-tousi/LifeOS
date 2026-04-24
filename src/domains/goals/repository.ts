@@ -10,6 +10,10 @@ export const goalsRepository = {
     const goals = await db.goals.orderBy("createdAt").reverse().toArray();
     return goals.map(normalizeGoal);
   },
+  async getActiveGoals(): Promise<Goal[]> {
+    const goals = await this.getAll();
+    return goals.filter((goal) => goal.status === "active");
+  },
   async getById(goalId: string): Promise<Goal | undefined> {
     await ensureDatabaseReady();
     const goal = await db.goals.get(goalId);

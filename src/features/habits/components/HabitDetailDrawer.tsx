@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Archive, ChevronLeft, ChevronRight, Pencil, X } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { Goal } from "@/domains/goals/types";
 import { Habit, HabitLog } from "@/domains/habits/types";
 import { HabitCategory } from "@/features/habits/services/habit-categories.storage";
 import { calculateHabitCompletion } from "@/features/habits/services/habits.storage";
@@ -18,6 +19,7 @@ import {
 
 interface HabitDetailDrawerProps {
   categories: HabitCategory[];
+  goals: Goal[];
   habit: Habit | null;
   isOpen: boolean;
   logs: HabitLog[];
@@ -78,6 +80,7 @@ function getLogForDate(logs: HabitLog[], habitId: string, dateKey: string): Habi
 
 export function HabitDetailDrawer({
   categories,
+  goals,
   habit,
   isOpen,
   logs,
@@ -153,6 +156,9 @@ export function HabitDetailDrawer({
 
   const currentStreak = calculateCurrentStreak(habit, logs);
   const longestStreak = calculateLongestStreak(habit, logs);
+  const linkedGoalTitle = habit.goalId
+    ? goals.find((goal) => goal.id === habit.goalId)?.title ?? "Not found"
+    : "None";
   const selectedExistingLog = selectedLog
     ? getLogForDate(habitLogs, habit.id, selectedLog.dateKey)
     : undefined;
@@ -249,6 +255,7 @@ export function HabitDetailDrawer({
             <span>Frequency <strong>{habit.frequency}</strong></span>
             <span>Target <strong>{formatTarget(habit)}</strong></span>
             <span>Reminder <strong>{habit.reminder?.enabled ? habit.reminder.time ?? "Enabled" : "Off"}</strong></span>
+            <span>Goal <strong>{linkedGoalTitle}</strong></span>
             <span className="habit-detail-meta__wide">Schedule <strong>{formatSchedule(habit)}</strong></span>
           </div>
         </section>

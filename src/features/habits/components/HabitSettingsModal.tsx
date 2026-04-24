@@ -5,6 +5,11 @@ import { getHabitSoundById, HABIT_SOUNDS } from "@/config/habitSounds";
 import { Habit } from "@/domains/habits/types";
 import { HabitCategory } from "@/features/habits/services/habit-categories.storage";
 import { HabitReminderSettings } from "@/features/habits/services/habit-reminder-settings.storage";
+import {
+  getNotificationPermissionStatus,
+  requestNotificationPermission,
+  triggerTestHabitReminder,
+} from "@/services/habitReminderScheduler";
 
 interface HabitSettingsModalProps {
   categories: HabitCategory[];
@@ -38,6 +43,10 @@ export function HabitSettingsModal({
   const [message, setMessage] = useState<string | null>(null);
   const [soundMessage, setSoundMessage] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [permissionStatus, setPermissionStatus] = useState(() =>
+    getNotificationPermissionStatus(),
+  );
+  const [lastRefreshAt, setLastRefreshAt] = useState(() => new Date());
 
   function stopSound(): void {
     if (audioRef.current) {
@@ -62,7 +71,11 @@ export function HabitSettingsModal({
   useEffect(() => {
     if (!isOpen) {
       stopSound();
+      return;
     }
+
+    setPermissionStatus(getNotificationPermissionStatus());
+    setLastRefreshAt(new Date());
   }, [isOpen]);
 
   useEffect(() => stopSound, []);
@@ -89,6 +102,11 @@ export function HabitSettingsModal({
 
     onDeleteCategory(category.id);
     setMessage(null);
+  }
+
+  async function handleEnableNotifications(): Promise<void> {
+    const nextStatus = await requestNotificationPermission();
+    setPermissionStatus(nextStatus);
   }
 
   function handleSoundToggle(): void {
@@ -146,6 +164,24 @@ export function HabitSettingsModal({
             <p>Choose the sound profile future habit reminders will use.</p>
           </header>
 
+          <div className="habit-settings__permission">
+            <span className={`habit-settings__permission-badge habit-settings__permission-badge--${permissionStatus}`}>
+              {permissionStatus === "granted"
+                ? "Granted"
+                : permissionStatus === "denied"
+                  ? "Denied"
+                  : "Not Enabled"}
+            </span>
+            {permissionStatus !== "granted" ? (
+              <p>Browser notifications are required for reminders.</p>
+            ) : null}
+            {permissionStatus !== "granted" && permissionStatus !== "unsupported" ? (
+              <Button type="button" variant="secondary" onClick={() => void handleEnableNotifications()}>
+                Enable Notifications
+              </Button>
+            ) : null}
+          </div>
+
           <div className="habit-settings__sound-grid">
             <label className="habit-settings__field">
               <span>Ringtone</span>
@@ -200,6 +236,13 @@ export function HabitSettingsModal({
             <p>
               {soundMessage ?? "Play the selected reminder sound before saving your settings."}
             </p>
+          </div>
+
+          <div className="habit-settings__preview">
+            <Button type="button" variant="secondary" onClick={triggerTestHabitReminder}>
+              Test Reminder
+            </Button>
+            <p>Last scheduler refresh: {lastRefreshAt.toLocaleTimeString()}</p>
           </div>
         </section>
 

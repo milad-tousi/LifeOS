@@ -1,5 +1,6 @@
 import { Activity, Check, Minus, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { Goal } from "@/domains/goals/types";
 import { Habit, HabitLog } from "@/domains/habits/types";
 import { HabitCategory } from "@/features/habits/services/habit-categories.storage";
 import { calculateHabitCompletion } from "@/features/habits/services/habits.storage";
@@ -9,6 +10,7 @@ import { StreakBadge } from "@/features/habits/components/StreakBadge";
 
 interface HabitCardProps {
   categories: HabitCategory[];
+  goals: Goal[];
   habit: Habit;
   logs: HabitLog[];
   todayLog?: HabitLog;
@@ -27,6 +29,14 @@ function getHabitCategoryName(habit: Habit, categories: HabitCategory[]): string
     categories.find((category) => category.id === habit.category || category.name === habit.category)?.name ??
     "Uncategorized"
   );
+}
+
+function getLinkedGoalTitle(habit: Habit, goals: Goal[]): string | null {
+  if (!habit.goalId) {
+    return null;
+  }
+
+  return goals.find((goal) => goal.id === habit.goalId)?.title ?? "Not found";
 }
 
 function formatFrequency(habit: Habit): string {
@@ -77,6 +87,7 @@ function getValueLabel(habit: Habit, value: number): string {
 
 export function HabitCard({
   categories,
+  goals,
   habit,
   logs,
   onArchiveHabit,
@@ -93,6 +104,7 @@ export function HabitCard({
   const streak = calculateCurrentStreak(habit, logs);
   const step = habit.type === "duration" && habit.unit !== "hour" ? 5 : 1;
   const categoryName = getHabitCategoryName(habit, categories);
+  const linkedGoalTitle = getLinkedGoalTitle(habit, goals);
 
   return (
     <article
@@ -124,6 +136,9 @@ export function HabitCard({
           <div className="habit-badge-row">
             <span className="habit-badge">{categoryName}</span>
             <span className="habit-badge habit-badge--soft">{formatFrequency(habit)}</span>
+            {linkedGoalTitle ? (
+              <span className="habit-badge habit-badge--goal">Goal: {linkedGoalTitle}</span>
+            ) : null}
             <StreakBadge streak={streak} />
             {isCompleted ? <span className="habit-completed-label">Completed today</span> : null}
           </div>

@@ -10,7 +10,7 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JSX.Element {
-  const { goal, nextPendingTask, progress } = data;
+  const { goal, habitProgress, linkedHabits, nextPendingTask, overallProgress, progress } = data;
 
   return (
     <button
@@ -39,6 +39,33 @@ export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JS
         summaryText={progress.label}
         total={progress.total}
       />
+
+      <div className="goal-card__habit-progress">
+        <div className="goal-card__habit-progress-header">
+          <span>Habit Progress</span>
+          <strong>{habitProgress.completionRate}%</strong>
+        </div>
+        <div className="goal-card__habit-progress-track">
+          <span style={{ width: `${habitProgress.completionRate}%` }} />
+        </div>
+        <p>
+          {habitProgress.linkedHabitCount} linked habits ·{" "}
+          {Math.round(habitProgress.completedScheduledDays)} of{" "}
+          {habitProgress.totalScheduledDays} scheduled days
+        </p>
+        {linkedHabits.length > 0 ? (
+          <div className="goal-card__linked-habits">
+            {linkedHabits.slice(0, 3).map((habit) => (
+              <span key={habit.id}>{habit.title}</span>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="goal-card__overall-progress">
+        <span>Overall Progress</span>
+        <strong>{overallProgress}%</strong>
+      </div>
 
       <div className="goal-card__footer">
         <div className="goal-card__footer-copy">

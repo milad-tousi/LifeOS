@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { ModalShell } from "@/components/common/ModalShell";
+import { Goal } from "@/domains/goals/types";
 import { Habit, HabitFrequency, HabitType } from "@/domains/habits/types";
 import { HabitCategory } from "@/features/habits/services/habit-categories.storage";
 import { CreateHabitInput } from "@/features/habits/services/habits.storage";
@@ -8,6 +9,7 @@ import { getTodayDateKey } from "@/features/habits/utils/habit.utils";
 
 interface CreateHabitModalProps {
   categories: HabitCategory[];
+  goals: Goal[];
   habit?: Habit | null;
   isOpen: boolean;
   onAddCategory: (input: { name: string }) => HabitCategory;
@@ -40,6 +42,7 @@ interface HabitFormState {
   frequency: HabitFrequency;
   daysOfWeek: number[];
   category: string;
+  goalId: string;
   reminderEnabled: boolean;
   reminderTime: string;
 }
@@ -56,6 +59,7 @@ function createInitialFormState(): HabitFormState {
     frequency: "daily",
     daysOfWeek: [],
     category: "",
+    goalId: "",
     reminderEnabled: false,
     reminderTime: "",
   };
@@ -73,6 +77,7 @@ function getFormStateFromHabit(habit: Habit): HabitFormState {
     frequency: habit.frequency,
     daysOfWeek: habit.daysOfWeek ?? [],
     category: habit.category ?? "",
+    goalId: habit.goalId ?? "",
     reminderEnabled: habit.reminder?.enabled ?? false,
     reminderTime: habit.reminder?.time ?? "",
   };
@@ -80,6 +85,7 @@ function getFormStateFromHabit(habit: Habit): HabitFormState {
 
 export function CreateHabitModal({
   categories,
+  goals,
   habit,
   isOpen,
   onAddCategory,
@@ -209,6 +215,7 @@ export function CreateHabitModal({
       frequency: formState.frequency,
       daysOfWeek: formState.frequency === "custom" ? formState.daysOfWeek : undefined,
       category: formState.category.trim() || undefined,
+      goalId: formState.goalId || undefined,
       reminder: {
         enabled: formState.reminderEnabled,
         time: formState.reminderEnabled ? formState.reminderTime || undefined : undefined,
@@ -422,6 +429,27 @@ export function CreateHabitModal({
             </Button>
           </div>
         ) : null}
+
+        <label className="habit-form__field">
+          <span>Linked Goal</span>
+          <select
+            value={formState.goalId}
+            onChange={(event) => updateField("goalId", event.target.value)}
+            disabled={goals.length === 0}
+          >
+            <option value="">None</option>
+            {goals.map((goal) => (
+              <option key={goal.id} value={goal.id}>
+                {goal.title}
+              </option>
+            ))}
+          </select>
+          <small>
+            {goals.length === 0
+              ? "Create a goal first to link habits."
+              : "Habit progress will contribute to the linked goal."}
+          </small>
+        </label>
 
         <label className="habit-form__check">
           <input

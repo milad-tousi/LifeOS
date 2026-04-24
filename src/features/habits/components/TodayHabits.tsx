@@ -1,4 +1,5 @@
 import { Button } from "@/components/common/Button";
+import { Goal } from "@/domains/goals/types";
 import { Habit, HabitLog } from "@/domains/habits/types";
 import { HabitCard } from "@/features/habits/components/HabitCard";
 import { HabitCategory } from "@/features/habits/services/habit-categories.storage";
@@ -6,6 +7,7 @@ import { getTodayDateKey } from "@/features/habits/utils/habit.utils";
 
 interface TodayHabitsProps {
   categories: HabitCategory[];
+  goals: Goal[];
   hasAnyHabits: boolean;
   habits: Habit[];
   logs: HabitLog[];
@@ -45,6 +47,7 @@ function HabitEmptyCallout({
 
 export function TodayHabits({
   categories,
+  goals,
   hasAnyHabits,
   habits,
   logs,
@@ -78,6 +81,7 @@ export function TodayHabits({
           return (
             <HabitCard
               categories={categories}
+              goals={goals}
               habit={habit}
               key={habit.id}
               logs={logs}

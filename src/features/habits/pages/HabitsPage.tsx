@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { Plus, Settings } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
+import { goalsRepository } from "@/domains/goals/repository";
 import { Habit } from "@/domains/habits/types";
 import { CreateHabitModal } from "@/features/habits/components/CreateHabitModal";
 import { HabitDetailDrawer } from "@/features/habits/components/HabitDetailDrawer";
@@ -10,6 +12,7 @@ import { HabitStats } from "@/features/habits/components/HabitStats";
 import { TodayHabits } from "@/features/habits/components/TodayHabits";
 import { useHabits } from "@/features/habits/hooks/useHabits";
 import { isHabitActiveOnDate } from "@/features/habits/utils/habit.utils";
+import { OPEN_HABIT_DETAIL_EVENT_NAME } from "@/services/habitReminderScheduler";
 
 export function HabitsPage(): JSX.Element {
   const {
@@ -32,6 +35,7 @@ export function HabitsPage(): JSX.Element {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [habitBeingEdited, setHabitBeingEdited] = useState<Habit | null>(null);
+  const activeGoals = useLiveQuery(() => goalsRepository.getActiveGoals(), []);
   const [habitBeingViewed, setHabitBeingViewed] = useState<Habit | null>(null);
   const activeHabits = useMemo(
     () => habits.filter((habit) => !habit.archived),
@@ -41,6 +45,22 @@ export function HabitsPage(): JSX.Element {
     () => activeHabits.filter((habit) => isHabitActiveOnDate(habit, new Date())),
     [activeHabits],
   );
+
+  useEffect(() => {
+    function handleOpenHabitDetail(event: Event): void {
+      const habitEvent = event as CustomEvent<{ habitId: string }>;
+      const habit = habits.find((item) => item.id === habitEvent.detail.habitId);
+
+      if (habit) {
+        setHabitBeingViewed(habit);
+      }
+    }
+
+    window.addEventListener(OPEN_HABIT_DETAIL_EVENT_NAME, handleOpenHabitDetail);
+    return () => {
+      window.removeEventListener(OPEN_HABIT_DETAIL_EVENT_NAME, handleOpenHabitDetail);
+    };
+  }, [habits]);
 
   return (
     <div className="habits-page">
@@ -65,6 +85,7 @@ export function HabitsPage(): JSX.Element {
       <div className="habits-page__content">
         <TodayHabits
           categories={categories}
+          goals={activeGoals ?? []}
           habits={todaysHabits}
           hasAnyHabits={activeHabits.length > 0}
           logs={logs}
@@ -78,6 +99,7 @@ export function HabitsPage(): JSX.Element {
 
       <CreateHabitModal
         categories={categories}
+        goals={activeGoals ?? []}
         habit={habitBeingEdited}
         isOpen={isCreateModalOpen || habitBeingEdited !== null}
         onAddCategory={addCategory}
@@ -116,6 +138,7 @@ export function HabitsPage(): JSX.Element {
 
       <HabitDetailDrawer
         categories={categories}
+        goals={activeGoals ?? []}
         habit={habitBeingViewed}
         isOpen={habitBeingViewed !== null}
         logs={logs}

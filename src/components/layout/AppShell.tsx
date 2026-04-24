@@ -3,6 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { HabitReminderToastHost } from "@/features/habits/components/HabitReminderToastHost";
 import { useSidebar } from "@/hooks/useSidebar";
 
 export function AppShell(): JSX.Element {
@@ -50,6 +51,7 @@ export function AppShell(): JSX.Element {
       </div>
 
       {!sidebar.isDesktop ? <BottomNav /> : null}
+      <HabitReminderToastHost />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   HabitReminderSettings,
   updateHabitReminderSettings,
 } from "@/features/habits/services/habit-reminder-settings.storage";
+import { rebuildHabitReminderScheduler } from "@/services/habitReminderScheduler";
 import {
   archiveHabit,
   calculateTodayProgress,
@@ -66,6 +67,7 @@ export function useHabits(): UseHabitsResult {
   const addHabit = useCallback((input: CreateHabitInput) => {
     const habit = createHabit(input);
     refreshHabits();
+    rebuildHabitReminderScheduler();
 
     return habit;
   }, [refreshHabits]);
@@ -80,6 +82,7 @@ export function useHabits(): UseHabitsResult {
   const archiveHabitById = useCallback((id: string) => {
     archiveHabit(id);
     refreshHabits();
+    rebuildHabitReminderScheduler();
   }, [refreshHabits]);
 
   const deleteCategoryById = useCallback((id: string) => {
@@ -90,6 +93,7 @@ export function useHabits(): UseHabitsResult {
   const editHabitById = useCallback((id: string, patch: Partial<Habit>) => {
     const habit = updateHabit(id, patch);
     refreshHabits();
+    rebuildHabitReminderScheduler();
 
     return habit;
   }, [refreshHabits]);
@@ -107,6 +111,7 @@ export function useHabits(): UseHabitsResult {
   const updateReminderSettings = useCallback((patch: Partial<HabitReminderSettings>) => {
     const settings = updateHabitReminderSettings(patch);
     setReminderSettings(settings);
+    rebuildHabitReminderScheduler();
 
     return settings;
   }, []);
@@ -119,16 +124,19 @@ export function useHabits(): UseHabitsResult {
   ) => {
     upsertHabitLog(habitId, dateKey, value, note);
     refreshHabits();
+    rebuildHabitReminderScheduler();
   }, [refreshHabits]);
 
   const deleteHabitLogForDate = useCallback((habitId: string, dateKey: string) => {
     deleteHabitLog(habitId, dateKey);
     refreshHabits();
+    rebuildHabitReminderScheduler();
   }, [refreshHabits]);
 
   const updateTodayLog = useCallback((habitId: string, value: number) => {
     upsertHabitLog(habitId, new Date().toISOString().slice(0, 10), value);
     refreshHabits();
+    rebuildHabitReminderScheduler();
   }, [refreshHabits]);
 
   const todayProgress = useMemo(
