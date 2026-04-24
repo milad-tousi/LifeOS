@@ -2424,6 +2424,94 @@ a:focus-visible {
   width: 100%;
 }
 
+.finance-quick-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.72);
+  padding: 1rem;
+}
+
+.finance-quick-capture__field {
+  gap: 0.45rem;
+}
+
+.finance-quick-capture__input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.finance-quick-capture__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.finance-quick-capture__mic {
+  width: 2.85rem;
+  height: 2.85rem;
+  flex-shrink: 0;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.96);
+  color: #334155;
+  transition: transform 160ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.finance-quick-capture__mic:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.finance-quick-capture__mic:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.finance-quick-capture__mic--listening {
+  border-color: rgba(37, 99, 235, 0.42);
+  color: #2563eb;
+  box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.28);
+  animation: finance-voice-pulse 1.6s ease infinite;
+}
+
+.finance-quick-capture__spinner {
+  animation: finance-spin 1s linear infinite;
+}
+
+.finance-quick-capture__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.finance-quick-capture__correction {
+  margin: 0;
+  color: #1d4ed8;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.finance-quick-capture__status-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.32rem 0.72rem;
+  background: rgba(226, 232, 240, 0.9);
+  color: #475569;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.finance-quick-capture__status-chip--live {
+  background: rgba(219, 234, 254, 0.95);
+  color: #1d4ed8;
+}
+
 .finance-form__note {
   min-height: 5rem;
   resize: vertical;
@@ -2520,6 +2608,30 @@ a:focus-visible {
 .finance-transaction-card__chip--recurring {
   background: rgba(243, 232, 255, 0.95);
   color: #7c3aed;
+}
+
+@keyframes finance-voice-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.24);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+@keyframes finance-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .finance-transaction-card__merchant {
@@ -2868,6 +2980,130 @@ a:focus-visible {
   gap: 0.5rem;
 }
 
+.finance-voice-alias-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.finance-voice-aliases-shell {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1.15rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 250, 252, 0.78));
+  padding: 1rem;
+}
+
+.finance-settings-form--voice-alias {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 180px;
+  gap: 1rem;
+  align-content: start;
+}
+
+.finance-voice-alias-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.76);
+  padding: 1rem 1rem 1.05rem;
+}
+
+.finance-voice-alias-panel__header strong,
+.finance-voice-training-card__header strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 1rem;
+}
+
+.finance-voice-alias-panel__header p {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.finance-voice-alias-panel__field {
+  min-width: 0;
+  width: 100%;
+}
+
+.finance-voice-alias-panel__field .auth-form__label {
+  white-space: nowrap;
+}
+
+.finance-voice-alias-panel__field--type {
+  max-width: none;
+}
+
+.finance-voice-alias-panel__field--category {
+  grid-column: 1 / -1;
+  max-width: 20rem;
+}
+
+.finance-voice-alias-panel__actions {
+  width: 100%;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.finance-voice-alias-panel__feedback {
+  flex: 1;
+  min-width: 0;
+}
+
+.finance-voice-training-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.76);
+  padding: 1rem 1rem 1.05rem;
+}
+
+.finance-voice-training-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.finance-voice-training-card__header p,
+.finance-voice-training-card__preview p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.finance-voice-training-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.finance-voice-training-card__actions .button {
+  min-width: 8.6rem;
+}
+
+.finance-voice-training-card__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.85rem 0.9rem;
+}
+
+.finance-voice-alias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
 .finance-analytics-placeholder {
   display: flex;
   flex-direction: column;
@@ -3002,6 +3238,7 @@ a:focus-visible {
 
 .finance-settings-form {
   display: grid;
+  width: 100%;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.9rem;
 }
@@ -4232,16 +4469,19 @@ a:focus-visible {
   .finance-form,
   .finance-filter-grid,
   .finance-transaction-summary,
+  .finance-voice-alias-grid,
   .finance-analytics-placeholder__grid,
   .finance-analytics-stats,
   .finance-settings-form,
   .finance-settings-form--recurring,
+  .finance-settings-form--voice-alias,
   .finance-settings-form--merchant,
   .finance-category-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .finance-page__header,
+  .finance-quick-capture__input-wrap,
   .finance-form__footer,
   .finance-filter-panel__header,
   .finance-filter-panel__top,
@@ -4298,6 +4538,19 @@ a:focus-visible {
 
   .finance-toggle {
     min-height: 3.25rem;
+  }
+
+  .finance-voice-aliases-shell {
+    padding: 0.9rem;
+  }
+
+  .finance-voice-training-card__actions .button,
+  .finance-voice-alias-panel__actions .button {
+    width: 100%;
+  }
+
+  .finance-voice-alias-panel__actions {
+    align-items: stretch;
   }
 
   .finance-form__compact {

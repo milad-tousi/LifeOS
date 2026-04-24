@@ -4,6 +4,7 @@ import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { ModalShell } from "@/components/common/ModalShell";
 import { RecurringTransactionsSection } from "@/features/finance/components/RecurringTransactionsSection";
+import { VoiceAliasesSection } from "@/features/finance/components/VoiceAliasesSection";
 import { getFinanceIcon } from "@/features/finance/finance.icons";
 import {
   FinanceCategory,
@@ -11,6 +12,7 @@ import {
   FinanceMerchantRule,
   FinanceSettings,
   RecurringTransaction,
+  VoiceAlias,
 } from "@/features/finance/types/finance.types";
 import { createId } from "@/lib/id";
 
@@ -23,16 +25,20 @@ interface FinanceSettingsModalProps {
   onAddCategory: (category: FinanceCategory) => void;
   onAddMerchantRule: (merchantRule: FinanceMerchantRule) => void;
   onAddRecurringTransaction: (recurringTransaction: RecurringTransaction) => void;
+  onAddVoiceAlias: (voiceAlias: VoiceAlias) => void;
   onClose: () => void;
   onDeleteCategory: (categoryId: string) => boolean;
   onDeleteMerchantRule: (merchantRuleId: string) => void;
   onDeleteRecurringTransaction: (recurringTransactionId: string) => void;
+  onDeleteVoiceAlias: (voiceAliasId: string) => void;
   onUpdateCategory: (category: FinanceCategory) => void;
   onUpdateMerchantRule: (merchantRule: FinanceMerchantRule) => void;
   onUpdateRecurringTransaction: (recurringTransaction: RecurringTransaction) => void;
   onUpdateSettings: (settings: FinanceSettings) => void;
+  onUpdateVoiceAlias: (voiceAlias: VoiceAlias) => void;
   recurringTransactions: RecurringTransaction[];
   settings: FinanceSettings;
+  voiceAliases: VoiceAlias[];
 }
 
 interface CategoryFormState {
@@ -95,16 +101,20 @@ export function FinanceSettingsModal({
   onAddCategory,
   onAddMerchantRule,
   onAddRecurringTransaction,
+  onAddVoiceAlias,
   onClose,
   onDeleteCategory,
   onDeleteMerchantRule,
   onDeleteRecurringTransaction,
+  onDeleteVoiceAlias,
   onUpdateCategory,
   onUpdateMerchantRule,
   onUpdateRecurringTransaction,
   onUpdateSettings,
+  onUpdateVoiceAlias,
   recurringTransactions,
   settings,
+  voiceAliases,
 }: FinanceSettingsModalProps): JSX.Element | null {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryForm, setCategoryForm] = useState<CategoryFormState>(DEFAULT_CATEGORY_FORM);
@@ -614,6 +624,15 @@ export function FinanceSettingsModal({
           onDeleteRecurringTransaction={onDeleteRecurringTransaction}
           onUpdateRecurringTransaction={onUpdateRecurringTransaction}
           recurringTransactions={recurringTransactions}
+        />
+
+        <VoiceAliasesSection
+          categories={categories}
+          merchantRules={merchantRules}
+          onAddVoiceAlias={onAddVoiceAlias}
+          onDeleteVoiceAlias={onDeleteVoiceAlias}
+          onUpdateVoiceAlias={onUpdateVoiceAlias}
+          voiceAliases={voiceAliases}
         />
       </div>
     </ModalShell>

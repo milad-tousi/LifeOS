@@ -11,6 +11,8 @@ export interface FinanceTransaction {
   note?: string;
   date: string;
   recurringId?: string;
+  appliedSmartRuleId?: string;
+  appliedSmartRuleName?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -45,6 +47,48 @@ export interface RecurringTransaction {
   endDate?: string;
   isActive: boolean;
   lastGeneratedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface SmartRuleCondition {
+  id: string;
+  field: "merchant" | "note" | "amount" | "type" | "categoryId";
+  operator:
+    | "contains"
+    | "equals"
+    | "startsWith"
+    | "endsWith"
+    | "greaterThan"
+    | "lessThan";
+  value: string | number;
+}
+
+export interface SmartRuleAction {
+  type?: TransactionType;
+  categoryId?: string;
+  notePrefix?: string;
+}
+
+export interface SmartRule {
+  id: string;
+  name: string;
+  conditions: SmartRuleCondition[];
+  matchMode: "all" | "any";
+  action: SmartRuleAction;
+  priority: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface VoiceAlias {
+  id: string;
+  heardText: string;
+  correctedText: string;
+  targetType: "merchant" | "category" | "general";
+  categoryId?: string;
+  merchantRuleId?: string;
   createdAt: string;
   updatedAt?: string;
 }

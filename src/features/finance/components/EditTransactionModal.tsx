@@ -4,6 +4,7 @@ import {
   FinanceCategory,
   FinanceMerchantRule,
   FinanceTransaction,
+  SmartRule,
 } from "@/features/finance/types/finance.types";
 
 interface EditTransactionModalProps {
@@ -12,6 +13,7 @@ interface EditTransactionModalProps {
   merchantRules: FinanceMerchantRule[];
   onClose: () => void;
   onSubmit: (value: TransactionFormValue) => void;
+  smartRules: SmartRule[];
   transaction: FinanceTransaction | null;
 }
 
@@ -21,6 +23,7 @@ export function EditTransactionModal({
   merchantRules,
   onClose,
   onSubmit,
+  smartRules,
   transaction,
 }: EditTransactionModalProps): JSX.Element | null {
   if (!isOpen || !transaction) {
@@ -43,6 +46,7 @@ export function EditTransactionModal({
           mode="edit"
           onCancel={onClose}
           onSubmit={onSubmit}
+          smartRules={smartRules}
         />
       </div>
     </ModalShell>

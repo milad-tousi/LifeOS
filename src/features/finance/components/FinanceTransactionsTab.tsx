@@ -12,6 +12,8 @@ import {
   FinanceCurrency,
   FinanceMerchantRule,
   FinanceTransaction,
+  SmartRule,
+  VoiceAlias,
 } from "@/features/finance/types/finance.types";
 import {
   filterTransactions,
@@ -29,7 +31,9 @@ interface FinanceTransactionsTabProps {
   onAddTransaction: (transaction: FinanceTransaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
   onUpdateTransaction: (transaction: FinanceTransaction) => void;
+  smartRules: SmartRule[];
   transactions: FinanceTransaction[];
+  voiceAliases: VoiceAlias[];
 }
 
 const DEFAULT_FILTERS: FinanceTransactionFilters = {
@@ -93,7 +97,9 @@ export function FinanceTransactionsTab({
   onAddTransaction,
   onDeleteTransaction,
   onUpdateTransaction,
+  smartRules,
   transactions,
+  voiceAliases,
 }: FinanceTransactionsTabProps): JSX.Element {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FinanceTransactionFilters>(DEFAULT_FILTERS);
@@ -165,6 +171,8 @@ export function FinanceTransactionsTab({
         categories={categories}
         merchantRules={merchantRules}
         onAddTransaction={onAddTransaction}
+        smartRules={smartRules}
+        voiceAliases={voiceAliases}
       />
 
       <Card
@@ -203,14 +211,15 @@ export function FinanceTransactionsTab({
         </div>
       </Card>
 
-      <EditTransactionModal
-        categories={categories}
-        isOpen={transactionToEdit !== null}
-        merchantRules={merchantRules}
-        onClose={() => setTransactionToEdit(null)}
-        onSubmit={handleUpdateTransaction}
-        transaction={transactionToEdit}
-      />
+        <EditTransactionModal
+          categories={categories}
+          isOpen={transactionToEdit !== null}
+          merchantRules={merchantRules}
+          onClose={() => setTransactionToEdit(null)}
+          onSubmit={handleUpdateTransaction}
+          smartRules={smartRules}
+          transaction={transactionToEdit}
+        />
 
       <DeleteTransactionDialog
         isOpen={transactionToDelete !== null}

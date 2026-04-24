@@ -64,6 +64,11 @@ export function TransactionList({
                     Recurring
                   </span>
                 ) : null}
+                {transaction.appliedSmartRuleName ? (
+                  <span className="finance-transaction-card__chip">
+                    Rule: {transaction.appliedSmartRuleName}
+                  </span>
+                ) : null}
                 <strong className="finance-transaction-card__merchant">{transaction.merchant}</strong>
                 {transaction.note ? (
                   <p className="finance-transaction-card__note">{transaction.note}</p>

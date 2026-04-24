@@ -2,10 +2,12 @@ import { STORAGE_KEYS } from "@/constants/storage.keys";
 import {
   FinanceCategory,
   FinanceSettings,
+  SmartRule,
   FinanceTransaction,
   MerchantRule,
   RecurringTransaction,
   TransactionType,
+  VoiceAlias,
 } from "@/features/finance/types/finance.types";
 
 const DEFAULT_FINANCE_SETTINGS: FinanceSettings = {
@@ -38,6 +40,8 @@ const DEFAULT_MERCHANT_RULES: MerchantRule[] = [
   { id: "rule-freelance", name: "Freelance", categoryId: "freelance", defaultType: "income" },
 ];
 const DEFAULT_RECURRING_TRANSACTIONS: RecurringTransaction[] = [];
+const DEFAULT_SMART_RULES: SmartRule[] = [];
+const DEFAULT_VOICE_ALIASES: VoiceAlias[] = [];
 
 function createTransaction(
   input: Omit<FinanceTransaction, "createdAt"> & { createdAt?: string },
@@ -193,6 +197,14 @@ function migrateTransactions(
             ? candidate.note.trim()
             : undefined,
         date,
+        appliedSmartRuleId:
+          typeof candidate.appliedSmartRuleId === "string" && candidate.appliedSmartRuleId
+            ? candidate.appliedSmartRuleId
+            : undefined,
+        appliedSmartRuleName:
+          typeof candidate.appliedSmartRuleName === "string" && candidate.appliedSmartRuleName
+            ? candidate.appliedSmartRuleName
+            : undefined,
         createdAt:
           typeof candidate.createdAt === "string" && candidate.createdAt
             ? candidate.createdAt
@@ -327,6 +339,12 @@ function ensureFinanceSeedData(): void {
       DEFAULT_RECURRING_TRANSACTIONS,
     ),
   );
+  const smartRules = migrateSmartRules(
+    loadFromStorage<unknown>(STORAGE_KEYS.financeSmartRules, DEFAULT_SMART_RULES),
+  );
+  const voiceAliases = migrateVoiceAliases(
+    loadFromStorage<unknown>(STORAGE_KEYS.financeVoiceAliases, DEFAULT_VOICE_ALIASES),
+  );
   const transactions = migrateTransactions(
     loadFromStorage<unknown>(STORAGE_KEYS.financeTransactions, createDefaultTransactions()),
     categories,
@@ -336,6 +354,8 @@ function ensureFinanceSeedData(): void {
   saveToStorage(STORAGE_KEYS.financeMerchantRules, merchantRules);
   saveToStorage(STORAGE_KEYS.financeSettings, settings);
   saveToStorage(STORAGE_KEYS.financeRecurringTransactions, recurringTransactions);
+  saveToStorage(STORAGE_KEYS.financeSmartRules, smartRules);
+  saveToStorage(STORAGE_KEYS.financeVoiceAliases, voiceAliases);
   saveToStorage(STORAGE_KEYS.financeTransactions, transactions);
 }
 
@@ -451,6 +471,158 @@ function migrateRecurringTransactions(value: unknown): RecurringTransaction[] {
   return recurringTransactions;
 }
 
+function migrateSmartRules(value: unknown): SmartRule[] {
+  if (!Array.isArray(value)) {
+    return DEFAULT_SMART_RULES;
+  }
+
+  const smartRules = value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const candidate = item as Partial<SmartRule>;
+      const conditions = Array.isArray(candidate.conditions)
+        ? candidate.conditions
+            .map((condition) => {
+              if (!condition || typeof condition !== "object") {
+                return null;
+              }
+
+              const conditionCandidate = condition as Partial<SmartRule["conditions"][number]>;
+
+              if (
+                typeof conditionCandidate.id !== "string" ||
+                (conditionCandidate.field !== "merchant" &&
+                  conditionCandidate.field !== "note" &&
+                  conditionCandidate.field !== "amount" &&
+                  conditionCandidate.field !== "type" &&
+                  conditionCandidate.field !== "categoryId") ||
+                (conditionCandidate.operator !== "contains" &&
+                  conditionCandidate.operator !== "equals" &&
+                  conditionCandidate.operator !== "startsWith" &&
+                  conditionCandidate.operator !== "endsWith" &&
+                  conditionCandidate.operator !== "greaterThan" &&
+                  conditionCandidate.operator !== "lessThan") ||
+                (typeof conditionCandidate.value !== "string" &&
+                  typeof conditionCandidate.value !== "number")
+              ) {
+                return null;
+              }
+
+              return {
+                id: conditionCandidate.id,
+                field: conditionCandidate.field,
+                operator: conditionCandidate.operator,
+                value: conditionCandidate.value,
+              };
+            })
+            .filter(
+              (
+                condition,
+              ): condition is SmartRule["conditions"][number] => condition !== null,
+            )
+        : [];
+
+      if (
+        typeof candidate.id !== "string" ||
+        typeof candidate.name !== "string" ||
+        (candidate.matchMode !== "all" && candidate.matchMode !== "any") ||
+        typeof candidate.priority !== "number" ||
+        typeof candidate.isActive !== "boolean" ||
+        typeof candidate.createdAt !== "string" ||
+        !candidate.action ||
+        typeof candidate.action !== "object"
+      ) {
+        return null;
+      }
+
+      const action = {
+        type:
+          candidate.action.type === "income" || candidate.action.type === "expense"
+            ? candidate.action.type
+            : undefined,
+        categoryId:
+          typeof candidate.action.categoryId === "string" && candidate.action.categoryId
+            ? candidate.action.categoryId
+            : undefined,
+        notePrefix:
+          typeof candidate.action.notePrefix === "string" && candidate.action.notePrefix.trim()
+            ? candidate.action.notePrefix.trim()
+            : undefined,
+      };
+
+      return {
+        id: candidate.id,
+        name: candidate.name,
+        conditions,
+        matchMode: candidate.matchMode,
+        action,
+        priority: candidate.priority,
+        isActive: candidate.isActive,
+        createdAt: candidate.createdAt,
+        updatedAt:
+          typeof candidate.updatedAt === "string" && candidate.updatedAt
+            ? candidate.updatedAt
+            : undefined,
+      } satisfies SmartRule;
+    })
+    .filter((rule): rule is SmartRule => rule !== null);
+
+  return smartRules;
+}
+
+function migrateVoiceAliases(value: unknown): VoiceAlias[] {
+  if (!Array.isArray(value)) {
+    return DEFAULT_VOICE_ALIASES;
+  }
+
+  const voiceAliases = value
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const candidate = item as Partial<VoiceAlias>;
+
+      if (
+        typeof candidate.id !== "string" ||
+        typeof candidate.heardText !== "string" ||
+        typeof candidate.correctedText !== "string" ||
+        (candidate.targetType !== "merchant" &&
+          candidate.targetType !== "category" &&
+          candidate.targetType !== "general") ||
+        typeof candidate.createdAt !== "string"
+      ) {
+        return null;
+      }
+
+      return {
+        id: candidate.id,
+        heardText: candidate.heardText.trim(),
+        correctedText: candidate.correctedText.trim(),
+        targetType: candidate.targetType,
+        categoryId:
+          typeof candidate.categoryId === "string" && candidate.categoryId
+            ? candidate.categoryId
+            : undefined,
+        merchantRuleId:
+          typeof candidate.merchantRuleId === "string" && candidate.merchantRuleId
+            ? candidate.merchantRuleId
+            : undefined,
+        createdAt: candidate.createdAt,
+        updatedAt:
+          typeof candidate.updatedAt === "string" && candidate.updatedAt
+            ? candidate.updatedAt
+            : undefined,
+      } satisfies VoiceAlias;
+    })
+    .filter((alias): alias is VoiceAlias => alias !== null);
+
+  return voiceAliases;
+}
+
 export function getRecurringTransactions(): RecurringTransaction[] {
   ensureFinanceSeedData();
   return migrateRecurringTransactions(
@@ -467,6 +639,28 @@ export function saveRecurringTransactions(
   saveToStorage(STORAGE_KEYS.financeRecurringTransactions, recurringTransactions);
 }
 
+export function getSmartRules(): SmartRule[] {
+  ensureFinanceSeedData();
+  return migrateSmartRules(
+    loadFromStorage<unknown>(STORAGE_KEYS.financeSmartRules, DEFAULT_SMART_RULES),
+  );
+}
+
+export function saveSmartRules(rules: SmartRule[]): void {
+  saveToStorage(STORAGE_KEYS.financeSmartRules, rules);
+}
+
+export function getVoiceAliases(): VoiceAlias[] {
+  ensureFinanceSeedData();
+  return migrateVoiceAliases(
+    loadFromStorage<unknown>(STORAGE_KEYS.financeVoiceAliases, DEFAULT_VOICE_ALIASES),
+  );
+}
+
+export function saveVoiceAliases(aliases: VoiceAlias[]): void {
+  saveToStorage(STORAGE_KEYS.financeVoiceAliases, aliases);
+}
+
 export function resetFinanceData(): void {
   if (!canUseStorage()) {
     return;
@@ -477,6 +671,8 @@ export function resetFinanceData(): void {
   window.localStorage.removeItem(STORAGE_KEYS.financeSettings);
   window.localStorage.removeItem(STORAGE_KEYS.financeMerchantRules);
   window.localStorage.removeItem(STORAGE_KEYS.financeRecurringTransactions);
+  window.localStorage.removeItem(STORAGE_KEYS.financeSmartRules);
+  window.localStorage.removeItem(STORAGE_KEYS.financeVoiceAliases);
   ensureFinanceSeedData();
 }
 
@@ -484,6 +680,8 @@ export interface FinanceSnapshot {
   categories: FinanceCategory[];
   merchantRules: MerchantRule[];
   recurringTransactions: RecurringTransaction[];
+  smartRules: SmartRule[];
+  voiceAliases: VoiceAlias[];
   settings: FinanceSettings;
   transactions: FinanceTransaction[];
 }
@@ -506,6 +704,12 @@ export const financeStorage = {
         DEFAULT_RECURRING_TRANSACTIONS,
       ),
     );
+    const smartRules = migrateSmartRules(
+      loadFromStorage<unknown>(STORAGE_KEYS.financeSmartRules, DEFAULT_SMART_RULES),
+    );
+    const voiceAliases = migrateVoiceAliases(
+      loadFromStorage<unknown>(STORAGE_KEYS.financeVoiceAliases, DEFAULT_VOICE_ALIASES),
+    );
     const transactions = migrateTransactions(
       loadFromStorage<unknown>(STORAGE_KEYS.financeTransactions, createDefaultTransactions()),
       categories,
@@ -515,6 +719,8 @@ export const financeStorage = {
       categories,
       merchantRules,
       recurringTransactions,
+      smartRules,
+      voiceAliases,
       settings,
       transactions,
     };
@@ -523,6 +729,8 @@ export const financeStorage = {
   getFinanceSettings,
   getMerchantRules,
   getRecurringTransactions,
+  getSmartRules,
+  getVoiceAliases,
   getTransactions,
   loadFromStorage,
   resetFinanceData,
@@ -530,6 +738,8 @@ export const financeStorage = {
   saveFinanceSettings,
   saveMerchantRules,
   saveRecurringTransactions,
+  saveSmartRules,
+  saveVoiceAliases,
   saveToStorage,
   saveTransactions,
 };

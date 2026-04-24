@@ -7,4 +7,6 @@ export const STORAGE_KEYS = {
   financeSettings: "finance:settings",
   financeMerchantRules: "finance:merchantRules",
   financeRecurringTransactions: "finance:recurringTransactions",
+  financeSmartRules: "finance:smartRules",
+  financeVoiceAliases: "finance:voiceAliases",
 } as const;

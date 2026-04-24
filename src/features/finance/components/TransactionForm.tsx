@@ -4,14 +4,22 @@ import {
   getCategoriesForType,
 } from "@/features/finance/finance.utils";
 import {
+  applySmartRules,
+  findMatchingSmartRule,
+  SmartRuleTransactionDraft,
+} from "@/features/finance/services/finance.smartRules";
+import {
   FinanceCategory,
   FinanceMerchantRule,
   FinanceTransaction,
+  SmartRule,
   TransactionType,
 } from "@/features/finance/types/finance.types";
 
 export interface TransactionFormValue {
   amount: number;
+  appliedSmartRuleId?: string;
+  appliedSmartRuleName?: string;
   categoryId: string;
   date: string;
   merchant: string;
@@ -25,7 +33,10 @@ interface TransactionFormProps {
   merchantRules: FinanceMerchantRule[];
   mode: "create" | "edit";
   onCancel?: () => void;
+  prefillValue?: Partial<TransactionFormValue>;
+  prefillVersion?: number;
   onSubmit: (value: TransactionFormValue) => void;
+  smartRules: SmartRule[];
 }
 
 interface TransactionFormState {
@@ -35,6 +46,8 @@ interface TransactionFormState {
   merchant: string;
   note: string;
   type: TransactionType;
+  appliedSmartRuleId?: string;
+  appliedSmartRuleName?: string;
 }
 
 interface TransactionFormErrors {
@@ -72,6 +85,8 @@ function createInitialState(
       merchant: initialValue.merchant,
       date: initialValue.date,
       note: initialValue.note ?? "",
+      appliedSmartRuleId: initialValue.appliedSmartRuleId,
+      appliedSmartRuleName: initialValue.appliedSmartRuleName,
     };
   }
 
@@ -82,6 +97,8 @@ function createInitialState(
     merchant: "",
     date: new Date().toISOString().slice(0, 10),
     note: "",
+    appliedSmartRuleId: undefined,
+    appliedSmartRuleName: undefined,
   };
 }
 
@@ -91,27 +108,55 @@ export function TransactionForm({
   merchantRules,
   mode,
   onCancel,
+  prefillValue,
+  prefillVersion,
   onSubmit,
+  smartRules,
 }: TransactionFormProps): JSX.Element {
   const [formState, setFormState] = useState<TransactionFormState>(() =>
     createInitialState(allCategories, initialValue, mode),
   );
   const [errors, setErrors] = useState<TransactionFormErrors>({});
   const [mappingHint, setMappingHint] = useState("");
-  const [lastMatchedRuleId, setLastMatchedRuleId] = useState<string | null>(null);
   const [hasManualTypeOverride, setHasManualTypeOverride] = useState(false);
   const [hasManualCategoryOverride, setHasManualCategoryOverride] = useState(false);
+  const [hasManualNoteOverride, setHasManualNoteOverride] = useState(false);
   const [hasMerchantBeenEdited, setHasMerchantBeenEdited] = useState(mode === "create");
 
   useEffect(() => {
     setFormState(createInitialState(allCategories, initialValue, mode));
     setErrors({});
     setMappingHint("");
-    setLastMatchedRuleId(null);
     setHasManualTypeOverride(false);
     setHasManualCategoryOverride(false);
+    setHasManualNoteOverride(false);
     setHasMerchantBeenEdited(mode === "create");
   }, [allCategories, initialValue, mode]);
+
+  useEffect(() => {
+    if (mode !== "create" || !prefillValue) {
+      return;
+    }
+
+    setFormState((current) => ({
+      ...current,
+      amount:
+        typeof prefillValue.amount === "number" && Number.isFinite(prefillValue.amount)
+          ? String(prefillValue.amount)
+          : current.amount,
+      categoryId: prefillValue.categoryId ?? current.categoryId,
+      date: prefillValue.date ?? current.date,
+      merchant: prefillValue.merchant ?? current.merchant,
+      note: prefillValue.note ?? current.note,
+      type: prefillValue.type ?? current.type,
+      appliedSmartRuleId: prefillValue.appliedSmartRuleId,
+      appliedSmartRuleName: prefillValue.appliedSmartRuleName,
+    }));
+    setHasManualTypeOverride(false);
+    setHasManualCategoryOverride(false);
+    setHasManualNoteOverride(false);
+    setHasMerchantBeenEdited(Boolean(prefillValue.merchant));
+  }, [mode, prefillValue, prefillVersion]);
 
   const filteredCategories = useMemo(
     () => getCategoriesForType(allCategories, formState.type),
@@ -132,38 +177,74 @@ export function TransactionForm({
       return;
     }
 
-    const matchedRule = findMerchantRuleMatch(merchantRules, formState.merchant);
+    const transactionDraft: SmartRuleTransactionDraft = {
+      amount: Number(formState.amount),
+      categoryId: formState.categoryId,
+      merchant: formState.merchant,
+      note: formState.note,
+      type: formState.type,
+    };
+    const matchedSmartRule = findMatchingSmartRule(transactionDraft, smartRules);
 
-    if (!matchedRule) {
-      setMappingHint("");
-      setLastMatchedRuleId(null);
+    if (matchedSmartRule) {
+      const nextDraft = applySmartRules(transactionDraft, smartRules);
+
+      setFormState((current) => ({
+        ...current,
+        type:
+          !hasManualTypeOverride && nextDraft.type
+            ? nextDraft.type
+            : current.type,
+        categoryId:
+          !hasManualCategoryOverride && nextDraft.categoryId
+            ? nextDraft.categoryId
+            : current.categoryId,
+        note:
+          !hasManualNoteOverride && typeof nextDraft.note === "string"
+            ? nextDraft.note
+            : current.note,
+        appliedSmartRuleId: nextDraft.appliedSmartRuleId,
+        appliedSmartRuleName: nextDraft.appliedSmartRuleName,
+      }));
+      setMappingHint(`Applied smart rule ${matchedSmartRule.name}.`);
       return;
     }
 
-    const isDifferentMatch = matchedRule.id !== lastMatchedRuleId;
+    const matchedMerchantRule = findMerchantRuleMatch(merchantRules, formState.merchant);
+
+    if (!matchedMerchantRule) {
+      setFormState((current) => ({
+        ...current,
+        appliedSmartRuleId: undefined,
+        appliedSmartRuleName: undefined,
+      }));
+      setMappingHint("");
+      return;
+    }
 
     setFormState((current) => ({
       ...current,
-      type:
-        isDifferentMatch || !hasManualTypeOverride
-          ? matchedRule.defaultType
-          : current.type,
+      type: !hasManualTypeOverride ? matchedMerchantRule.defaultType : current.type,
       categoryId:
-        isDifferentMatch || !hasManualCategoryOverride
-          ? matchedRule.categoryId
-          : current.categoryId,
+        !hasManualCategoryOverride ? matchedMerchantRule.categoryId : current.categoryId,
+      appliedSmartRuleId: undefined,
+      appliedSmartRuleName: undefined,
     }));
 
-    setMappingHint(`Matched merchant rule for ${matchedRule.name}.`);
-    setLastMatchedRuleId(matchedRule.id);
+    setMappingHint(`Matched merchant rule for ${matchedMerchantRule.name}.`);
   }, [
+    formState.amount,
+    formState.categoryId,
     formState.merchant,
+    formState.note,
+    formState.type,
     hasManualCategoryOverride,
+    hasManualNoteOverride,
     hasManualTypeOverride,
     hasMerchantBeenEdited,
-    lastMatchedRuleId,
     merchantRules,
     mode,
+    smartRules,
   ]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -200,6 +281,8 @@ export function TransactionForm({
       merchant: formState.merchant.trim(),
       note: formState.note.trim() || undefined,
       date: formState.date,
+      appliedSmartRuleId: formState.appliedSmartRuleId,
+      appliedSmartRuleName: formState.appliedSmartRuleName,
     });
   }
 
@@ -296,9 +379,10 @@ export function TransactionForm({
         <span className="auth-form__label">Note</span>
         <textarea
           className="auth-form__input finance-form__note"
-          onChange={(event) =>
-            setFormState((current) => ({ ...current, note: event.target.value }))
-          }
+          onChange={(event) => {
+            setHasManualNoteOverride(true);
+            setFormState((current) => ({ ...current, note: event.target.value }));
+          }}
           placeholder="Optional context, project name, or reminder"
           value={formState.note}
         />

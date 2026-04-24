@@ -16,6 +16,7 @@ export function FinancePage(): JSX.Element {
     addMerchantRule,
     addRecurringTransaction,
     addTransaction,
+    addVoiceAlias,
     analytics,
     budgetUsage,
     categories,
@@ -23,18 +24,22 @@ export function FinancePage(): JSX.Element {
     deleteCategory,
     deleteMerchantRule,
     deleteRecurringTransaction,
+    deleteVoiceAlias,
     insights,
     isCategoryInUse,
     merchantRules,
     recurringTransactions,
+    smartRules,
     settings,
     summary,
     transactions,
+    voiceAliases,
     updateCategory,
     updateMerchantRule,
     updateRecurringTransaction,
     updateSettings,
     updateTransaction,
+    updateVoiceAlias,
   } = useFinanceState();
 
   return (
@@ -69,7 +74,9 @@ export function FinancePage(): JSX.Element {
           onAddTransaction={addTransaction}
           onDeleteTransaction={deleteTransaction}
           onUpdateTransaction={updateTransaction}
+          smartRules={smartRules}
           transactions={transactions}
+          voiceAliases={voiceAliases}
         />
       ) : null}
 
@@ -90,15 +97,19 @@ export function FinancePage(): JSX.Element {
         onAddCategory={addCategory}
         onAddMerchantRule={addMerchantRule}
         onAddRecurringTransaction={addRecurringTransaction}
+        onAddVoiceAlias={addVoiceAlias}
         onClose={() => setIsSettingsOpen(false)}
         onDeleteCategory={deleteCategory}
         onDeleteMerchantRule={deleteMerchantRule}
         onDeleteRecurringTransaction={deleteRecurringTransaction}
+        onDeleteVoiceAlias={deleteVoiceAlias}
         onUpdateRecurringTransaction={updateRecurringTransaction}
         onUpdateCategory={updateCategory}
         onUpdateMerchantRule={updateMerchantRule}
         onUpdateSettings={updateSettings}
+        onUpdateVoiceAlias={updateVoiceAlias}
         recurringTransactions={recurringTransactions}
+        voiceAliases={voiceAliases}
         currency={settings.currency}
         settings={settings}
       />

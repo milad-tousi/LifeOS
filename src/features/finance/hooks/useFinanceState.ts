@@ -14,6 +14,8 @@ import {
   FinanceSummary,
   FinanceTransaction,
   RecurringTransaction,
+  SmartRule,
+  VoiceAlias,
 } from "@/features/finance/types";
 import { MonthlyBudgetUsage, getMonthlyBudgetUsage } from "@/features/finance/utils/finance.budgets";
 import { getFinanceInsights } from "@/features/finance/utils/finance.insights";
@@ -23,6 +25,7 @@ export interface UseFinanceStateResult {
   addMerchantRule: (merchantRule: FinanceMerchantRule) => void;
   addRecurringTransaction: (recurringTransaction: RecurringTransaction) => void;
   addTransaction: (transaction: FinanceTransaction) => void;
+  addVoiceAlias: (voiceAlias: VoiceAlias) => void;
   budgetUsage: MonthlyBudgetUsage[];
   categories: FinanceCategory[];
   deleteTransaction: (transactionId: string) => void;
@@ -33,15 +36,19 @@ export interface UseFinanceStateResult {
   isCategoryInUse: (categoryId: string) => boolean;
   merchantRules: FinanceMerchantRule[];
   recurringTransactions: RecurringTransaction[];
+  smartRules: SmartRule[];
   settings: FinanceSettings;
   analytics: FinanceAnalyticsSummary;
   summary: FinanceSummary;
   transactions: FinanceTransaction[];
+  voiceAliases: VoiceAlias[];
   updateCategory: (category: FinanceCategory) => void;
   updateMerchantRule: (merchantRule: FinanceMerchantRule) => void;
   updateRecurringTransaction: (recurringTransaction: RecurringTransaction) => void;
   updateSettings: (settings: FinanceSettings) => void;
   updateTransaction: (transaction: FinanceTransaction) => void;
+  updateVoiceAlias: (voiceAlias: VoiceAlias) => void;
+  deleteVoiceAlias: (voiceAliasId: string) => void;
 }
 
 export function useFinanceState(): UseFinanceStateResult {
@@ -57,6 +64,8 @@ export function useFinanceState(): UseFinanceStateResult {
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>(
     snapshot.recurringTransactions,
   );
+  const [smartRules] = useState<SmartRule[]>(snapshot.smartRules);
+  const [voiceAliases, setVoiceAliases] = useState<VoiceAlias[]>(snapshot.voiceAliases);
 
   const summary = useMemo(() => calculateFinanceSummary(transactions), [transactions]);
   const budgetUsage = useMemo(
@@ -106,6 +115,14 @@ export function useFinanceState(): UseFinanceStateResult {
   useEffect(() => {
     financeStorage.saveRecurringTransactions(recurringTransactions);
   }, [recurringTransactions]);
+
+  useEffect(() => {
+    financeStorage.saveSmartRules(smartRules);
+  }, [smartRules]);
+
+  useEffect(() => {
+    financeStorage.saveVoiceAliases(voiceAliases);
+  }, [voiceAliases]);
 
   useEffect(() => {
     const {
@@ -229,11 +246,30 @@ export function useFinanceState(): UseFinanceStateResult {
     );
   }
 
+  function addVoiceAlias(voiceAlias: VoiceAlias): void {
+    setVoiceAliases((currentVoiceAliases) => [...currentVoiceAliases, voiceAlias]);
+  }
+
+  function updateVoiceAlias(voiceAlias: VoiceAlias): void {
+    setVoiceAliases((currentVoiceAliases) =>
+      currentVoiceAliases.map((currentVoiceAlias) =>
+        currentVoiceAlias.id === voiceAlias.id ? voiceAlias : currentVoiceAlias,
+      ),
+    );
+  }
+
+  function deleteVoiceAlias(voiceAliasId: string): void {
+    setVoiceAliases((currentVoiceAliases) =>
+      currentVoiceAliases.filter((voiceAlias) => voiceAlias.id !== voiceAliasId),
+    );
+  }
+
   return {
     addCategory,
     addMerchantRule,
     addRecurringTransaction,
     addTransaction,
+    addVoiceAlias,
     budgetUsage,
     categories,
     deleteTransaction,
@@ -244,14 +280,18 @@ export function useFinanceState(): UseFinanceStateResult {
     isCategoryInUse,
     merchantRules,
     recurringTransactions,
+    smartRules,
     settings,
     analytics,
     summary,
     transactions,
+    voiceAliases,
     updateCategory,
     updateMerchantRule,
     updateRecurringTransaction,
     updateSettings,
     updateTransaction,
+    updateVoiceAlias,
+    deleteVoiceAlias,
   };
 }
