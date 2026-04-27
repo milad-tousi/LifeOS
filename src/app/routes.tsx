@@ -11,7 +11,6 @@ import { SignupPage } from "@/features/onboarding/pages/SignupPage";
 import { TasksPage } from "@/features/tasks/pages/TasksPage";
 import { HabitsPage } from "@/features/habits/pages/HabitsPage";
 import { FinancePage } from "@/features/finance/pages/FinancePage";
-import { HealthPage } from "@/features/health/pages/HealthPage";
 import { ReviewsPage } from "@/features/reviews/pages/ReviewsPage";
 import { SettingsPage } from "@/features/settings/pages/SettingsPage";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
@@ -44,7 +43,6 @@ export function AppRoutes(): JSX.Element {
         <Route path="/goals/new" element={<CreateGoalPage />} />
         <Route path="/goals/:goalId" element={<GoalDetailPage />} />
         <Route path="/finance" element={<FinancePage />} />
-        <Route path="/health" element={<HealthPage />} />
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

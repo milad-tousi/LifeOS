@@ -86,6 +86,7 @@ export function FinancePage(): JSX.Element {
           budgetUsage={budgetUsage}
           categories={categories}
           currency={settings.currency}
+          transactions={transactions}
         />
       ) : null}
 

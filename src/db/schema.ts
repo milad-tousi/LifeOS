@@ -20,7 +20,6 @@ export const TABLES = {
   habitLogs: "habitLogs",
   goals: "goals",
   expenses: "expenses",
-  healthLogs: "healthLogs",
   dailyReviews: "dailyReviews",
   settings: "settings",
 } as const;
@@ -31,7 +30,6 @@ export const schemaV1 = {
   [TABLES.habitLogs]: "id, habitId, date, [habitId+date], [date+habitId]",
   [TABLES.goals]: "id, status, deadline, createdAt, [status+deadline]",
   [TABLES.expenses]: "id, category, expenseDate, createdAt, [expenseDate+category]",
-  [TABLES.healthLogs]: "id, date, createdAt",
   [TABLES.dailyReviews]: "id, date, createdAt",
   [TABLES.settings]: "key",
 } as const;

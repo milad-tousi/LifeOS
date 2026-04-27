@@ -2,7 +2,6 @@ import {
   CircleCheck,
   ClipboardList,
   FileText,
-  Heart,
   Home,
   Settings,
   Target,
@@ -16,7 +15,6 @@ export type NavigationIconKey =
   | "habits"
   | "goals"
   | "finance"
-  | "health"
   | "reviews"
   | "settings";
 
@@ -39,7 +37,6 @@ export const navigationItems: NavigationItem[] = [
   { href: "/habits", label: "Habits", icon: "habits", showInMobileBottomNav: true },
   { href: "/goals", label: "Goals", icon: "goals", showInMobileBottomNav: true },
   { href: "/finance", label: "Finance", icon: "finance", showInMobileBottomNav: true },
-  { href: "/health", label: "Health", icon: "health", showInMobileBottomNav: true },
   { href: "/reviews", label: "Reviews", icon: "reviews", showInMobileBottomNav: false },
   { href: "/settings", label: "Settings", icon: "settings", showInMobileBottomNav: false },
 ];
@@ -59,8 +56,6 @@ export function renderNavigationIcon(
       return <Target className={className} size={size} strokeWidth={strokeWidth} />;
     case "finance":
       return <Wallet className={className} size={size} strokeWidth={strokeWidth} />;
-    case "health":
-      return <Heart className={className} size={size} strokeWidth={strokeWidth} />;
     case "reviews":
       return <FileText className={className} size={size} strokeWidth={strokeWidth} />;
     case "settings":

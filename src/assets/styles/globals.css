@@ -3911,995 +3911,6 @@ a:focus-visible {
   gap: 0.85rem;
 }
 
-.health-page,
-.health-tab-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.health-tabs {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  width: fit-content;
-  max-width: 100%;
-  padding: 0.3rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow-soft);
-}
-
-.health-tabs__item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.6rem;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  padding: 0.55rem 0.95rem;
-  font-weight: 600;
-  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
-}
-
-.health-tabs__item:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-.health-tabs__item--active {
-  background: rgba(236, 253, 245, 0.95);
-  color: #047857;
-}
-
-.health-overview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.health-overview-card {
-  display: flex;
-  min-height: 12rem;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.health-overview-card__top {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.health-overview-card__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.55rem;
-  height: 2.55rem;
-  border-radius: 0.95rem;
-  background: rgba(148, 163, 184, 0.14);
-  color: var(--text);
-}
-
-.health-overview-card--score .health-overview-card__icon {
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
-}
-
-.health-overview-card--sleep .health-overview-card__icon {
-  background: rgba(237, 233, 254, 0.9);
-  color: #7c3aed;
-}
-
-.health-overview-card--water .health-overview-card__icon {
-  background: rgba(224, 242, 254, 0.92);
-  color: #0369a1;
-}
-
-.health-overview-card--workout .health-overview-card__icon {
-  background: rgba(220, 252, 231, 0.92);
-  color: #15803d;
-}
-
-.health-overview-card--energy .health-overview-card__icon {
-  background: rgba(254, 249, 195, 0.92);
-  color: #a16207;
-}
-
-.health-overview-card--weight .health-overview-card__icon {
-  background: rgba(226, 232, 240, 0.9);
-  color: #334155;
-}
-
-.health-overview-card__title,
-.health-log-card__label {
-  color: var(--muted);
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.health-overview-card__value {
-  color: var(--text);
-  font-size: 1.55rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-}
-
-.health-overview-card__status {
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.06);
-  color: #334155;
-  padding: 0.32rem 0.62rem;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.health-overview-card__helper {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.45;
-}
-
-.health-overview-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.health-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.95rem;
-}
-
-.health-form__field {
-  min-width: 0;
-  gap: 0.35rem;
-}
-
-.health-form__field--wide,
-.health-form__footer {
-  grid-column: 1 / -1;
-}
-
-.health-form__check {
-  display: inline-flex;
-  align-items: center;
-  align-self: end;
-  gap: 0.6rem;
-  min-height: 2.85rem;
-  border: 1px solid var(--border);
-  border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.8);
-  padding: 0.7rem 0.8rem;
-  color: var(--text);
-  font-weight: 700;
-}
-
-.health-form__check input {
-  width: 1rem;
-  height: 1rem;
-  flex: 0 0 auto;
-  accent-color: var(--primary);
-}
-
-.health-form__note {
-  min-height: 5.5rem;
-  resize: vertical;
-}
-
-.health-form__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-}
-
-.health-form__feedback {
-  min-height: 1.35rem;
-}
-
-.health-form__feedback p {
-  margin: 0;
-  color: #047857;
-  font-size: 0.88rem;
-  font-weight: 700;
-}
-
-.health-form__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.health-log-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.health-log-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.85rem;
-  align-items: start;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.74);
-  padding: 0.9rem;
-}
-
-.health-log-card__main {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
-}
-
-.health-log-card__main div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.health-log-card__main strong {
-  overflow-wrap: anywhere;
-  color: var(--text);
-}
-
-.health-log-card__metrics {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.health-log-card__metrics span {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(226, 232, 240, 0.86);
-  color: #475569;
-  padding: 0.28rem 0.55rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.health-log-card__delete {
-  color: #991b1b;
-}
-
-.body-metrics-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.95fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.body-metrics-layout__side {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.body-metric-card--bmi .health-overview-card__icon {
-  background: rgba(220, 252, 231, 0.92);
-  color: #15803d;
-}
-
-.body-metric-card--body-fat .health-overview-card__icon {
-  background: rgba(254, 249, 195, 0.92);
-  color: #a16207;
-}
-
-.body-metric-card--muscle .health-overview-card__icon {
-  background: rgba(255, 237, 213, 0.94);
-  color: #c2410c;
-}
-
-.body-metric-card--waist .health-overview-card__icon {
-  background: rgba(224, 242, 254, 0.92);
-  color: #0369a1;
-}
-
-.body-metric-card--entries .health-overview-card__icon {
-  background: rgba(226, 232, 240, 0.9);
-  color: #334155;
-}
-
-.body-metric-form .auth-form__error {
-  margin: 0;
-}
-
-.body-metric-trend {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.body-metric-trend__labels {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.body-metric-trend__labels span {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(236, 253, 245, 0.9);
-  color: #047857;
-  padding: 0.32rem 0.62rem;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.body-metric-trend__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.body-metric-trend__row {
-  display: grid;
-  grid-template-columns: 4.4rem minmax(0, 1fr);
-  gap: 0.55rem 0.75rem;
-  align-items: center;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.74);
-  padding: 0.75rem;
-}
-
-.body-metric-trend__date {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.body-metric-trend__bar {
-  overflow: hidden;
-  height: 0.62rem;
-  border-radius: 999px;
-  background: rgba(226, 232, 240, 0.92);
-}
-
-.body-metric-trend__bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #38bdf8 0%, #22c55e 100%);
-}
-
-.body-metric-trend__metrics {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.body-metric-trend__metrics span {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(226, 232, 240, 0.82);
-  color: #475569;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.workout-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.95fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.workout-layout__side {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.workout-card--today .health-overview-card__icon,
-.workout-card--minutes .health-overview-card__icon {
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
-}
-
-.workout-card--count .health-overview-card__icon,
-.workout-card--streak .health-overview-card__icon {
-  background: rgba(220, 252, 231, 0.92);
-  color: #15803d;
-}
-
-.workout-card--latest .health-overview-card__icon {
-  background: rgba(237, 233, 254, 0.9);
-  color: #7c3aed;
-}
-
-.workout-card--effort .health-overview-card__icon {
-  background: rgba(255, 237, 213, 0.94);
-  color: #c2410c;
-}
-
-.workout-calorie-preview {
-  align-self: end;
-  min-height: 2.85rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 0.85rem;
-  background: rgba(236, 253, 245, 0.78);
-  color: #047857;
-  padding: 0.8rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.workout-exercise-builder {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.72);
-  padding: 0.9rem;
-}
-
-.workout-exercise-builder__add {
-  max-width: 20rem;
-}
-
-.workout-exercise-list,
-.exercise-library,
-.exercise-library__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.workout-empty-inline {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.workout-exercise-card,
-.exercise-library__item {
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.84);
-  padding: 0.85rem;
-}
-
-.workout-exercise-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.workout-exercise-card__header,
-.exercise-library__item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.85rem;
-}
-
-.workout-exercise-card__header div,
-.exercise-library__item div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.workout-exercise-card__header strong,
-.exercise-library__item strong {
-  overflow-wrap: anywhere;
-  color: var(--text);
-}
-
-.workout-exercise-card__header span,
-.exercise-library__item span,
-.exercise-library__item small {
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.35;
-}
-
-.workout-exercise-card__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.exercise-library__item .button {
-  flex: 0 0 auto;
-  min-height: 2.35rem;
-  padding: 0.55rem 0.8rem;
-}
-
-.nutrition-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.95fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.nutrition-layout__side,
-.meal-template-panel,
-.meal-template-panel__list,
-.food-builder,
-.food-builder__list {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.nutrition-note {
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(239, 246, 255, 0.72);
-  color: #1d4ed8;
-  padding: 0.85rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.nutrition-card--calories .health-overview-card__icon,
-.nutrition-card--fat .health-overview-card__icon {
-  background: rgba(255, 237, 213, 0.94);
-  color: #c2410c;
-}
-
-.nutrition-card--protein .health-overview-card__icon {
-  background: rgba(220, 252, 231, 0.92);
-  color: #15803d;
-}
-
-.nutrition-card--carbs .health-overview-card__icon,
-.nutrition-card--water .health-overview-card__icon {
-  background: rgba(224, 242, 254, 0.92);
-  color: #0369a1;
-}
-
-.nutrition-card--meals .health-overview-card__icon {
-  background: rgba(237, 233, 254, 0.9);
-  color: #7c3aed;
-}
-
-.food-builder {
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.72);
-  padding: 0.9rem;
-}
-
-.food-builder__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.food-builder__totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.food-builder__totals span,
-.meal-template-card small {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(226, 232, 240, 0.86);
-  color: #475569;
-  padding: 0.28rem 0.55rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.food-item-card,
-.meal-template-card {
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.84);
-  padding: 0.85rem;
-}
-
-.food-item-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.food-item-card__top,
-.meal-template-card {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.85rem;
-}
-
-.food-item-card__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.meal-template-card div:first-child {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.meal-template-card strong {
-  overflow-wrap: anywhere;
-}
-
-.meal-template-card span {
-  color: var(--muted);
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.meal-template-card__actions {
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.meal-template-card__actions .button {
-  min-height: 2.35rem;
-  padding: 0.55rem 0.8rem;
-}
-
-.recovery-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.95fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.recovery-layout__side,
-.readiness-breakdown,
-.recovery-warnings {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.recovery-card--excellent .health-overview-card__icon,
-.recovery-card--good .health-overview-card__icon,
-.recovery-card--activity .health-overview-card__icon {
-  background: rgba(220, 252, 231, 0.92);
-  color: #15803d;
-}
-
-.recovery-card--moderate .health-overview-card__icon,
-.recovery-card--average .health-overview-card__icon,
-.recovery-card--streak .health-overview-card__icon {
-  background: rgba(254, 249, 195, 0.92);
-  color: #a16207;
-}
-
-.recovery-card--low .health-overview-card__icon,
-.recovery-card--warning .health-overview-card__icon {
-  background: rgba(254, 226, 226, 0.92);
-  color: #dc2626;
-}
-
-.recovery-card--checkin .health-overview-card__icon,
-.recovery-card--empty .health-overview-card__icon {
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
-}
-
-.readiness-breakdown__row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.74);
-  padding: 0.85rem;
-}
-
-.readiness-breakdown__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.readiness-breakdown__top span {
-  color: var(--muted);
-  font-size: 0.84rem;
-  font-weight: 800;
-}
-
-.readiness-breakdown__bar {
-  overflow: hidden;
-  height: 0.55rem;
-  border-radius: 999px;
-  background: rgba(226, 232, 240, 0.9);
-}
-
-.readiness-breakdown__bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #38bdf8 0%, #22c55e 100%);
-}
-
-.readiness-breakdown__row p,
-.recovery-recommendation p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.86rem;
-  line-height: 1.45;
-}
-
-.recovery-warnings__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.recovery-warning-chip {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(254, 226, 226, 0.86);
-  color: #991b1b;
-  padding: 0.34rem 0.62rem;
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.recovery-recommendation {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(239, 246, 255, 0.72);
-  padding: 0.9rem;
-}
-
-.recovery-recommendation span {
-  color: #1d4ed8;
-  font-size: 0.84rem;
-  font-weight: 800;
-}
-
-.insights-layout {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  align-items: start;
-}
-
-.insight-card--positive .health-overview-card__icon,
-.insight-card--best .health-overview-card__icon {
-  background: rgba(220, 252, 231, 0.92);
-  color: #15803d;
-}
-
-.insight-card--warning .health-overview-card__icon {
-  background: rgba(254, 226, 226, 0.92);
-  color: #dc2626;
-}
-
-.insight-card--focus .health-overview-card__icon,
-.insight-card--coverage .health-overview-card__icon {
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
-}
-
-.insight-card--total .health-overview-card__icon {
-  background: rgba(237, 233, 254, 0.9);
-  color: #7c3aed;
-}
-
-.data-coverage-panel,
-.data-coverage-panel__rows,
-.weekly-focus-panel,
-.health-insight-list,
-.health-insight-card {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.data-coverage-panel__score {
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(239, 246, 255, 0.72);
-  padding: 1rem;
-}
-
-.data-coverage-panel__score strong {
-  display: block;
-  color: var(--text);
-  font-size: 1.6rem;
-  line-height: 1.1;
-}
-
-.data-coverage-panel__score span,
-.data-coverage-row span,
-.data-coverage-panel__missing span {
-  color: var(--muted);
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.data-coverage-row {
-  display: grid;
-  grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 1fr);
-  gap: 0.75rem;
-  align-items: center;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.74);
-  padding: 0.8rem;
-}
-
-.data-coverage-row div:first-child,
-.data-coverage-panel__missing,
-.weekly-focus-panel div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.data-coverage-row__bar {
-  overflow: hidden;
-  height: 0.55rem;
-  border-radius: 999px;
-  background: rgba(226, 232, 240, 0.9);
-}
-
-.data-coverage-row__bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #38bdf8 0%, #22c55e 100%);
-}
-
-.weekly-focus-panel {
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.74);
-  padding: 1rem;
-}
-
-.weekly-focus-panel p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-.weekly-focus-panel span {
-  color: #1d4ed8;
-  font-size: 0.88rem;
-  font-weight: 800;
-}
-
-.weekly-focus-panel ul {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin: 0;
-  padding-left: 1.1rem;
-}
-
-.weekly-focus-panel li {
-  color: var(--text);
-  line-height: 1.4;
-}
-
-.health-insight-card {
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.74);
-  padding: 1rem;
-}
-
-.health-insight-card--warning {
-  background: rgba(254, 242, 242, 0.82);
-}
-
-.health-insight-card--opportunity {
-  background: rgba(239, 246, 255, 0.82);
-}
-
-.health-insight-card--positive {
-  background: rgba(236, 253, 245, 0.82);
-}
-
-.health-insight-card__top,
-.health-insight-card__areas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.health-insight-card__badge,
-.health-insight-card__confidence,
-.health-insight-card__areas span {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  padding: 0.3rem 0.58rem;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.health-insight-card__badge {
-  background: rgba(15, 23, 42, 0.08);
-  color: var(--text);
-}
-
-.health-insight-card__confidence,
-.health-insight-card__areas span {
-  background: rgba(226, 232, 240, 0.86);
-  color: #475569;
-}
-
-.health-insight-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.health-insight-card__body h3,
-.health-insight-card__body p {
-  margin: 0;
-}
-
-.health-insight-card__body h3 {
-  font-size: 1rem;
-}
-
-.health-insight-card__body p {
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-.health-insight-card__action {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.16);
-  padding-top: 0.85rem;
-}
-
-.health-insight-card__action span {
-  color: #1d4ed8;
-  font-weight: 700;
-}
-
 .finance-transactions--embedded .finance-transaction-card {
   background: rgba(255, 255, 255, 0.7);
 }
@@ -5462,120 +4473,353 @@ a:focus-visible {
   gap: 0.85rem;
 }
 
-.finance-analytics-placeholder {
+.finance-analytics-dashboard {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.finance-analytics-placeholder__hero {
-  border: 1px solid rgba(148, 163, 184, 0.14);
+.finance-analytics-hero,
+.finance-dashboard-card {
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: linear-gradient(135deg, rgba(239, 246, 255, 0.92), rgba(248, 250, 252, 0.9));
-  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
 }
 
-.finance-analytics-placeholder__title {
-  margin: 0 0 0.35rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+.finance-analytics-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 1rem;
+  padding: 1rem;
 }
 
-.finance-analytics-placeholder__description {
+.finance-analytics-hero h2,
+.finance-dashboard-card__header h3 {
   margin: 0;
+  color: var(--foreground);
+  font-weight: 800;
+}
+
+.finance-analytics-hero h2 {
+  font-size: 1.45rem;
+}
+
+.finance-analytics-hero p,
+.finance-dashboard-card__header p,
+.finance-chart-empty p,
+.finance-smart-insight p {
+  margin: 0.35rem 0 0;
   color: var(--muted);
   line-height: 1.55;
 }
 
-.finance-analytics-placeholder__grid {
+.finance-analytics-hero__eyebrow {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.finance-analytics-hero__stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.finance-analytics-hero__stats div,
+.finance-smart-insight {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 0.9rem;
+  background: rgba(248, 250, 252, 0.82);
+  padding: 0.85rem;
+}
+
+.finance-analytics-hero__stats span,
+.finance-budget-usage__top span,
+.finance-breakdown__row span,
+.finance-smart-insight span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.finance-analytics-hero__stats strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1rem;
+}
+
+.finance-analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
 }
 
-.finance-analytics-placeholder__card {
-  display: flex;
-  min-height: 170px;
-  flex-direction: column;
-  gap: 0.9rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.76);
+.finance-dashboard-card {
+  min-width: 0;
   padding: 1rem;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
-.finance-analytics-placeholder__card--wide {
-  grid-column: 1 / -1;
-  min-height: 150px;
+.finance-dashboard-card:hover {
+  border-color: rgba(37, 99, 235, 0.18);
+  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
-.finance-analytics-placeholder__label {
+.finance-dashboard-card--wide {
+  width: 100%;
+}
+
+.finance-dashboard-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.finance-dashboard-card__header h3 {
+  font-size: 1rem;
+}
+
+.finance-range-toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 0.85rem;
+  background: rgba(248, 250, 252, 0.88);
+  padding: 0.25rem;
+}
+
+.finance-range-toggle__item {
+  border: 0;
+  border-radius: 0.65rem;
+  background: transparent;
   color: var(--muted);
-  font-size: 0.86rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 0.45rem 0.7rem;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-.finance-analytics-placeholder__bar,
-.finance-analytics-placeholder__ring,
-.finance-analytics-placeholder__metric {
-  border-radius: 1rem;
-  background: linear-gradient(135deg, rgba(226, 232, 240, 0.96), rgba(241, 245, 249, 0.88));
+.finance-range-toggle__item--active {
+  background: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
 }
 
-.finance-analytics-placeholder__bar {
-  flex: 1;
+.finance-chart {
+  position: relative;
+  min-width: 0;
 }
 
-.finance-analytics-placeholder__ring {
-  width: 7rem;
-  height: 7rem;
+.finance-chart--large {
+  height: 340px;
+}
+
+.finance-chart--medium {
+  height: 300px;
+}
+
+.finance-chart--donut {
+  height: 260px;
+}
+
+.finance-chart-empty {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(148, 163, 184, 0.34);
+  border-radius: 0.95rem;
+  background: rgba(248, 250, 252, 0.72);
+  padding: 1rem;
+  text-align: center;
+}
+
+.finance-chart-empty--roomy {
+  min-height: 160px;
+}
+
+.finance-breakdown {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.85fr) minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.finance-breakdown__center {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  display: flex;
+  max-width: 7.5rem;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.finance-breakdown__center span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.finance-breakdown__center strong {
+  font-size: 0.98rem;
+}
+
+.finance-breakdown__legend,
+.finance-budget-usage,
+.finance-smart-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.finance-breakdown__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.finance-breakdown__row div {
+  min-width: 0;
+}
+
+.finance-breakdown__row strong,
+.finance-breakdown__row span {
+  display: block;
+}
+
+.finance-breakdown__row b {
+  font-size: 0.88rem;
+}
+
+.finance-breakdown__swatch {
+  width: 0.72rem;
+  height: 0.72rem;
   border-radius: 999px;
 }
 
-.finance-analytics-placeholder__metric-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
-  margin-top: auto;
-}
-
-.finance-analytics-placeholder__metric {
-  min-height: 4.6rem;
-}
-
-.finance-analytics-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.finance-analytics-stats__card {
+.finance-budget-usage__item {
   display: flex;
-  min-height: 124px;
   flex-direction: column;
+  gap: 0.55rem;
+}
+
+.finance-budget-usage__top {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.8);
-  padding: 1rem;
 }
 
-.finance-analytics-stats__label {
+.finance-budget-usage__top span {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.finance-budget-usage__badge {
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+.finance-budget-usage__badge--safe {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.finance-budget-usage__badge--warning {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.finance-budget-usage__badge--danger {
+  background: rgba(239, 68, 68, 0.13);
+  color: #b91c1c;
+}
+
+.finance-budget-usage__track {
+  overflow: hidden;
+  height: 0.62rem;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.9);
+}
+
+.finance-budget-usage__bar {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 260ms ease;
+}
+
+.finance-budget-usage__bar--safe {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.finance-budget-usage__bar--warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.finance-budget-usage__bar--danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.finance-budget-usage__item small {
   color: var(--muted);
-  font-size: 0.84rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
-.finance-analytics-stats__value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+.finance-smart-insights {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.finance-smart-insight {
+  min-height: 142px;
+}
+
+.finance-smart-insight strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.2rem;
+}
+
+.finance-smart-insight--positive {
+  border-color: rgba(34, 197, 94, 0.22);
+  background: rgba(240, 253, 244, 0.72);
+}
+
+.finance-smart-insight--warning {
+  border-color: rgba(245, 158, 11, 0.24);
+  background: rgba(255, 251, 235, 0.78);
+}
+
+@media (max-width: 1120px) {
+  .finance-analytics-hero,
+  .finance-analytics-grid,
+  .finance-breakdown {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .finance-smart-insights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .finance-settings-modal {
@@ -6825,22 +6069,13 @@ a:focus-visible {
 
   .finance-summary-grid,
   .finance-form,
-  .health-overview-grid,
-  .health-overview-layout,
-  .health-form,
-  .body-metrics-layout,
-  .workout-layout,
-  .workout-exercise-card__grid,
-  .nutrition-layout,
-  .food-item-card__grid,
-  .recovery-layout,
-  .insights-layout,
-  .data-coverage-row,
   .finance-filter-grid,
   .finance-transaction-summary,
   .finance-voice-alias-grid,
-  .finance-analytics-placeholder__grid,
-  .finance-analytics-stats,
+  .finance-analytics-hero,
+  .finance-analytics-hero__stats,
+  .finance-analytics-grid,
+  .finance-smart-insights,
   .finance-settings-form,
   .finance-settings-form--recurring,
   .finance-settings-form--voice-alias,
@@ -6867,59 +6102,26 @@ a:focus-visible {
     border-radius: 1rem;
   }
 
-  .health-tabs {
-    width: 100%;
-    border-radius: 1rem;
-  }
-
-  .finance-tabs__item,
-  .health-tabs__item {
+  .finance-tabs__item {
     flex: 1;
   }
 
-  .health-overview-card {
-    min-height: auto;
-  }
-
-  .health-form__actions {
-    width: 100%;
+  .finance-dashboard-card__header,
+  .finance-budget-usage__top {
     flex-direction: column;
   }
 
-  .health-form__actions .button {
+  .finance-range-toggle {
     width: 100%;
   }
 
-  .health-log-card {
-    grid-template-columns: minmax(0, 1fr);
+  .finance-range-toggle__item {
+    flex: 1;
   }
 
-  .health-log-card__delete {
-    width: 100%;
-  }
-
-  .body-metric-trend__row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .workout-exercise-builder__add {
-    max-width: none;
-  }
-
-  .exercise-library__item {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .food-builder__header,
-  .meal-template-card {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .meal-template-card__actions,
-  .meal-template-card__actions .button {
-    width: 100%;
+  .finance-chart--large,
+  .finance-chart--medium {
+    height: 280px;
   }
 
   .finance-recurring-form-card {
