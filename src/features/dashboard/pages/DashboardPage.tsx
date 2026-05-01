@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { tasksRepository } from "@/domains/tasks/repository";
+import { Task } from "@/domains/tasks/types";
 import { DashboardSummaryCards } from "@/features/dashboard/components/DashboardSummaryCards";
 import { DashboardTabs } from "@/features/dashboard/components/DashboardTabs";
 import { GoalMindMap } from "@/features/dashboard/components/GoalMindMap";
@@ -11,6 +12,11 @@ import { TodayPlanPanel } from "@/features/dashboard/components/TodayPlanPanel";
 import { WeeklySnapshot } from "@/features/dashboard/components/WeeklySnapshot";
 import { DashboardTab } from "@/features/dashboard/types/dashboard.types";
 import { calculateDashboardStats } from "@/features/dashboard/utils/calculateDashboardStats";
+import {
+  loadGoalMindMapLayout,
+  mergeGoalMindMapLayout,
+} from "@/features/dashboard/utils/goalMindMapStorage";
+import { EditMindMapTaskInput } from "@/features/dashboard/types/goalMindMap.types";
 import { useFinanceState } from "@/features/finance/hooks/useFinanceState";
 import { useGoals } from "@/features/goals/hooks/useGoals";
 import { useHabits } from "@/features/habits/hooks/useHabits";
@@ -20,7 +26,7 @@ import { getReviews } from "@/features/reviews/services/review.storage";
 export function DashboardPage(): JSX.Element {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
-  const [selectedGoalId, setSelectedGoalId] = useState("");
+  const [selectedGoalId, setSelectedGoalId] = useState(() => loadGoalMindMapLayout().selectedGoalId);
   const [reviews, setReviews] = useState(() => getReviews());
   const { tasks } = useTasks();
   const { habits, logs, updateTodayLog, deleteHabitLogForDate } = useHabits();
@@ -80,20 +86,47 @@ export function DashboardPage(): JSX.Element {
 
   async function handleCreateMindMapTask(input: {
     dueDate?: string;
+    goalId?: string;
+    parentTaskId?: string;
     priority: "low" | "medium" | "high";
+    status: "todo" | "in_progress" | "done" | "cancelled";
     title: string;
-  }): Promise<void> {
-    if (!selectedGoalId) {
+  }): Promise<Task | undefined> {
+    const goalId = input.goalId ?? selectedGoalId;
+
+    if (!goalId) {
+      return undefined;
+    }
+
+    return tasksRepository.add({
+      dueDate: input.dueDate,
+      goalId,
+      parentTaskId: input.parentTaskId,
+      priority: input.priority,
+      status: input.status,
+      title: input.title,
+    });
+  }
+
+  async function handleUpdateMindMapTask(input: EditMindMapTaskInput): Promise<void> {
+    const task = tasks.find((item) => item.id === input.taskId);
+
+    if (!task) {
       return;
     }
 
-    await tasksRepository.add({
+    await tasksRepository.update({
+      ...task,
       dueDate: input.dueDate,
-      goalId: selectedGoalId,
       priority: input.priority,
-      status: "todo",
+      status: input.status,
       title: input.title,
     });
+  }
+
+  function handleSelectGoal(goalId: string): void {
+    setSelectedGoalId(goalId);
+    mergeGoalMindMapLayout({ selectedGoalId: goalId });
   }
 
   return (
@@ -136,15 +169,16 @@ export function DashboardPage(): JSX.Element {
 
       {activeTab === "mind-map" ? (
         <GoalMindMap
-          data={stats.goalMindMap}
           goals={goals}
           onCreateTask={(input) => {
-            void handleCreateMindMapTask(input);
+            return handleCreateMindMapTask(input);
           }}
           onLinkTasks={(taskIds) => {
-            void handleLinkTasks(taskIds);
+            return handleLinkTasks(taskIds);
           }}
-          onSelectGoal={setSelectedGoalId}
+          onNavigateToGoals={() => navigate("/goals")}
+          onSelectGoal={handleSelectGoal}
+          onUpdateTask={handleUpdateMindMapTask}
           selectedGoalId={selectedGoalId}
           tasks={tasks}
         />

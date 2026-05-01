@@ -26,6 +26,7 @@ export function createTaskModel(input: CreateTaskInput): Task {
     priority: normalizedInput.priority ?? "medium",
     category: normalizedInput.category,
     goalId: normalizedInput.goalId,
+    parentTaskId: normalizedInput.parentTaskId,
     dueDate: normalizedInput.dueDate,
     scheduledDate: normalizedInput.dueDate,
     estimatedDurationMinutes: normalizedInput.estimatedDurationMinutes,

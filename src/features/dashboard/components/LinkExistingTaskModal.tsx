@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
+import { ModalShell } from "@/components/common/ModalShell";
 import { Task } from "@/domains/tasks/types";
 
 interface LinkExistingTaskModalProps {
@@ -17,9 +18,11 @@ export function LinkExistingTaskModal({
 }: LinkExistingTaskModalProps): JSX.Element | null {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  if (!isOpen) {
-    return null;
-  }
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedIds([]);
+    }
+  }, [isOpen]);
 
   function toggleTask(taskId: string): void {
     setSelectedIds((current) =>
@@ -35,35 +38,38 @@ export function LinkExistingTaskModal({
   }
 
   return (
-    <div className="dashboard-modal-backdrop" role="presentation">
-      <section className="dashboard-modal" role="dialog" aria-modal="true" aria-label="Link existing tasks">
-        <div className="dashboard-modal__header">
-          <h2>Link Existing Tasks</h2>
-          <button onClick={onClose} type="button">Close</button>
-        </div>
-        {tasks.length > 0 ? (
-          <div className="dashboard-link-task-list">
-            {tasks.map((task) => (
-              <label key={task.id}>
-                <input
-                  checked={selectedIds.includes(task.id)}
-                  onChange={() => toggleTask(task.id)}
-                  type="checkbox"
-                />
-                <span>{task.title}</span>
-              </label>
-            ))}
-          </div>
-        ) : (
-          <p className="dashboard-modal__empty">No unlinked tasks are available.</p>
-        )}
-        <div className="dashboard-modal__actions">
-          <Button onClick={onClose} type="button" variant="ghost">Cancel</Button>
+    <ModalShell
+      description="Choose tasks to add as nodes on this goal canvas."
+      footer={
+        <div className="modal-action-row">
+          <Button onClick={onClose} type="button" variant="ghost">
+            Cancel
+          </Button>
           <Button disabled={selectedIds.length === 0} onClick={handleSubmit} type="button">
             Link Selected
           </Button>
         </div>
-      </section>
-    </div>
+      }
+      isOpen={isOpen}
+      onRequestClose={onClose}
+      title="Link Existing Tasks"
+    >
+      {tasks.length > 0 ? (
+        <div className="dashboard-link-task-list">
+          {tasks.map((task) => (
+            <label key={task.id}>
+              <input
+                checked={selectedIds.includes(task.id)}
+                onChange={() => toggleTask(task.id)}
+                type="checkbox"
+              />
+              <span>{task.title}</span>
+            </label>
+          ))}
+        </div>
+      ) : (
+        <p className="dashboard-modal__empty">No unlinked tasks are available.</p>
+      )}
+    </ModalShell>
   );
 }
