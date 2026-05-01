@@ -48,12 +48,13 @@ export function MonthlyCashflowChart({
               <Tooltip
                 formatter={(value: number | string, name: string) => [
                   formatMoney(Number(value), currency),
-                  name === "income" ? "Income" : "Expenses",
+                  getSeriesLabel(name),
                 ]}
               />
               <Legend />
               <Bar dataKey="income" fill="#22c55e" name="Income" radius={[8, 8, 0, 0]} />
               <Bar dataKey="expenses" fill="#ef4444" name="Expenses" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="netCashflow" fill="#2563eb" name="Net cashflow" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -70,4 +71,16 @@ function compactMoney(value: number, currency: FinanceCurrency): string {
   }
 
   return formatMoney(value, currency);
+}
+
+function getSeriesLabel(name: string): string {
+  if (name === "income") {
+    return "Income";
+  }
+
+  if (name === "expenses") {
+    return "Expenses";
+  }
+
+  return "Net cashflow";
 }
