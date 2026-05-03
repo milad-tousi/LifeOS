@@ -69,6 +69,13 @@ export async function unlinkTaskFromGoal(taskId: string): Promise<Task | undefin
     return undefined;
   }
 
+  if (task.parentTaskId) {
+    const parentTask = await findTask(task.parentTaskId);
+    if (parentTask) {
+      await removeEmbeddedSubtaskFromParent(parentTask, task.id);
+    }
+  }
+
   const updatedTask = await tasksRepository.update({
     ...task,
     goalId: undefined,
@@ -96,6 +103,31 @@ export async function unlinkSubtaskFromParent(taskId: string): Promise<Task | un
     ...task,
     parentTaskId: null,
   });
+}
+
+export async function unlinkTaskFromMindMap(taskId: string): Promise<Task | undefined> {
+  return unlinkTaskFromGoal(taskId);
+}
+
+export async function deleteTaskAndDescendants(taskId: string): Promise<void> {
+  const tasks = await tasksRepository.getAll();
+  const task = tasks.find((item) => item.id === taskId);
+
+  if (!task) {
+    return;
+  }
+
+  if (task.parentTaskId) {
+    const parentTask = tasks.find((item) => item.id === task.parentTaskId);
+    if (parentTask) {
+      await removeEmbeddedSubtaskFromParent(parentTask, task.id);
+    }
+  }
+
+  const descendantTasks = getAllDescendantTasks(tasks, taskId);
+  const taskIdsToDelete = new Set([taskId, ...descendantTasks.map((item) => item.id)]);
+
+  await Promise.all(Array.from(taskIdsToDelete).map((id) => tasksRepository.remove(id)));
 }
 
 export async function createRealTaskFromMindMap(input: CreateTaskInput & { goalId: string }): Promise<Task> {

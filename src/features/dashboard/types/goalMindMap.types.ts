@@ -34,12 +34,13 @@ export interface GoalMindMapTaskNodeData {
   isOverdue: boolean;
   isSubtask: boolean;
   level: number;
-  parentTaskId?: string;
+  parentTaskId?: string | null;
   priority: TaskPriority;
   status: TaskStatus;
   taskId: string;
   title: string;
   onEditTask: (taskId: string) => void;
+  onRemoveTask: (taskId: string) => void;
 }
 
 export type GoalMindMapNodeData = GoalMindMapGoalNodeData | GoalMindMapTaskNodeData;

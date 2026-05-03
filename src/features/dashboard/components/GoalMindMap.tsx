@@ -27,6 +27,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Button } from "@/components/common/Button";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { ModalShell } from "@/components/common/ModalShell";
 import { Task } from "@/domains/tasks/types";
 import { GoalMindMapGoalNode } from "@/features/dashboard/components/GoalMindMapGoalNode";
@@ -34,9 +35,9 @@ import { GoalMindMapTaskNode } from "@/features/dashboard/components/GoalMindMap
 import { GoalMindMapToolbar } from "@/features/dashboard/components/GoalMindMapToolbar";
 import { LinkExistingTaskModal } from "@/features/dashboard/components/LinkExistingTaskModal";
 import { CreateMindMapTaskModal } from "@/features/dashboard/components/CreateMindMapTaskModal";
+import { TaskModal } from "@/features/tasks/components/AddTaskModal";
 import {
   CreateMindMapTaskInput,
-  EditMindMapTaskInput,
   GoalMindMapEdge,
   GoalMindMapNode,
 } from "@/features/dashboard/types/goalMindMap.types";
@@ -56,9 +57,11 @@ import { GoalCardData } from "@/features/goals/hooks/useGoals";
 import {
   createRealSubtaskFromMindMap,
   createRealTaskFromMindMap,
+  deleteTaskAndDescendants,
   linkSubtaskToParent,
   linkTaskToGoal,
   unlinkSubtaskFromParent,
+  unlinkTaskFromMindMap,
   unlinkTaskFromGoal,
   unlinkVisualEdge,
 } from "@/features/dashboard/utils/goalMindMapPersistence";
@@ -67,7 +70,6 @@ interface GoalMindMapProps {
   goals: GoalCardData[];
   onNavigateToGoals: () => void;
   onSelectGoal: (goalId: string) => void;
-  onUpdateTask: (input: EditMindMapTaskInput) => Promise<void>;
   selectedGoalId: string;
   tasks: Task[];
 }
@@ -99,7 +101,6 @@ function GoalMindMapInner({
   goals,
   onNavigateToGoals,
   onSelectGoal,
-  onUpdateTask,
   selectedGoalId,
   tasks,
 }: GoalMindMapProps): JSX.Element {
@@ -109,6 +110,9 @@ function GoalMindMapInner({
   const [connectMode, setConnectMode] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [connectionMessage, setConnectionMessage] = useState("");
+  const [taskPendingRemoveId, setTaskPendingRemoveId] = useState<string | null>(null);
+  const [taskPendingPermanentDeleteId, setTaskPendingPermanentDeleteId] = useState<string | null>(null);
+  const [isRemovingTask, setIsRemovingTask] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [pendingCreation, setPendingCreation] = useState<PendingCreation>({
@@ -131,17 +135,11 @@ function GoalMindMapInner({
   const representedTaskIds = new Set(linkedTasks.map((task) => task.id));
   const linkableTasks = tasks.filter((task) => !representedTaskIds.has(task.id));
   const editingTask = editingTaskId ? tasks.find((task) => task.id === editingTaskId) : undefined;
-  const todayKey = getDateKey(new Date());
-
-  const editInitialValue: EditMindMapTaskInput | undefined = editingTask
-    ? {
-        dueDate: editingTask.dueDate,
-        priority: editingTask.priority,
-        status: editingTask.status,
-        taskId: editingTask.id,
-        title: editingTask.title,
-      }
+  const taskPendingRemove = taskPendingRemoveId ? tasks.find((task) => task.id === taskPendingRemoveId) : undefined;
+  const taskPendingPermanentDelete = taskPendingPermanentDeleteId
+    ? tasks.find((task) => task.id === taskPendingPermanentDeleteId)
     : undefined;
+  const todayKey = getDateKey(new Date());
 
   const [nodes, setNodes] = useNodesState<GoalMindMapNode["data"]>([]);
   const [edges, setEdges] = useEdgesState([]);
@@ -231,6 +229,10 @@ function GoalMindMapInner({
     setEditingTaskId(taskId);
   }, []);
 
+  const openTaskRemoveDialog = useCallback((taskId: string): void => {
+    setTaskPendingRemoveId(taskId);
+  }, []);
+
   const openGoalSelector = useCallback((): void => {
     setIsGoalSelectOpen(true);
   }, []);
@@ -241,6 +243,7 @@ function GoalMindMapInner({
       goalNodeId,
       linkedTasks: taskSnapshot,
       onEditTask: openTaskEditor,
+      onRemoveTask: openTaskRemoveDialog,
       onSelectGoal: openGoalSelector,
       selectedGoal,
       todayKey,
@@ -280,7 +283,7 @@ function GoalMindMapInner({
     } catch {
       setSaveStatus("failed");
     }
-  }, [goalNodeId, linkedTasks, openGoalSelector, openTaskEditor, selectedGoal, selectedGoalId, setEdges, setNodes, todayKey]);
+  }, [goalNodeId, linkedTasks, openGoalSelector, openTaskEditor, openTaskRemoveDialog, selectedGoal, selectedGoalId, setEdges, setNodes, todayKey]);
 
   useEffect(() => {
     refreshMindMap();
@@ -342,7 +345,7 @@ function GoalMindMapInner({
         if (isManualEdge) {
           unlinkVisualEdge(edge.id);
         } else if (sourceNode && isGoalNodeId(sourceNode.id)) {
-          if (requireConfirmation && !window.confirm("Remove this task from the selected goal?")) {
+          if (requireConfirmation && !window.confirm("Remove this task from the goal?")) {
             setSaveStatus("saved");
             return;
           }
@@ -353,7 +356,7 @@ function GoalMindMapInner({
             ? removeTaskSubtreeFromSnapshot(linkedTasks, removedTask.id)
             : linkedTasks.filter((task) => task.id !== targetTaskId);
         } else if (sourceNode?.data.kind === "task") {
-          if (requireConfirmation && !window.confirm("Remove parent relationship from this subtask?")) {
+          if (requireConfirmation && !window.confirm("Remove this subtask from its parent?")) {
             setSaveStatus("saved");
             return;
           }
@@ -770,6 +773,7 @@ function GoalMindMapInner({
           kind: "task" as const,
           level: 0,
           onEditTask: openTaskEditor,
+          onRemoveTask: openTaskRemoveDialog,
           parentTaskId: undefined,
           priority: task?.priority ?? "medium",
           status: task?.status ?? "todo",
@@ -804,17 +808,47 @@ function GoalMindMapInner({
     setIsLinkOpen(false);
   }
 
-  async function handleEditTask(input: CreateMindMapTaskInput): Promise<void> {
-    if (!editingTaskId) {
+  async function handleUnlinkTaskFromMindMap(): Promise<void> {
+    if (!taskPendingRemove) {
       return;
     }
 
-    await onUpdateTask({ ...input, taskId: editingTaskId });
-    persistCurrentLayout();
-    if (editingTask) {
-      refreshMindMap(upsertTaskSnapshot(linkedTasks, { ...editingTask, ...input }));
+    try {
+      setIsRemovingTask(true);
+      setSaveStatus("saving");
+      await unlinkTaskFromMindMap(taskPendingRemove.id);
+      const nextSnapshot = removeTaskSubtreeFromSnapshot(linkedTasks, taskPendingRemove.id);
+      persistCurrentLayout();
+      refreshMindMap(nextSnapshot);
+      setTaskPendingRemoveId(null);
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("failed");
+    } finally {
+      setIsRemovingTask(false);
     }
-    setEditingTaskId(null);
+  }
+
+  async function handleDeleteTaskAndDescendants(): Promise<void> {
+    if (!taskPendingPermanentDelete) {
+      return;
+    }
+
+    try {
+      setIsRemovingTask(true);
+      setSaveStatus("saving");
+      await deleteTaskAndDescendants(taskPendingPermanentDelete.id);
+      const nextSnapshot = removeTaskSubtreeFromSnapshot(linkedTasks, taskPendingPermanentDelete.id);
+      persistCurrentLayout();
+      refreshMindMap(nextSnapshot);
+      setTaskPendingPermanentDeleteId(null);
+      setTaskPendingRemoveId(null);
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("failed");
+    } finally {
+      setIsRemovingTask(false);
+    }
   }
 
   return (
@@ -937,21 +971,65 @@ function GoalMindMapInner({
         tasks={linkableTasks}
       />
       <CreateMindMapTaskModal
-        initialValue={editInitialValue}
-        isOpen={isCreateOpen || Boolean(editingTaskId)}
+        isOpen={isCreateOpen}
         mode={pendingCreation.mode}
         onClose={() => {
           setIsCreateOpen(false);
-          setEditingTaskId(null);
           setPendingCreation({ mode: "task", sourceNodeId: goalNodeId });
         }}
         onSubmit={(input) => {
-          if (editingTaskId) {
-            void handleEditTask(input);
-            return;
-          }
           void handleCreateTask(input);
         }}
+      />
+      <TaskModal
+        initialTask={editingTask ?? null}
+        isOpen={Boolean(editingTask)}
+        mode="edit"
+        onClose={() => setEditingTaskId(null)}
+        onSaved={(task) => {
+          persistCurrentLayout();
+          refreshMindMap(
+            task.goalId === selectedGoalId
+              ? upsertTaskSnapshot(linkedTasks, task)
+              : removeTaskSubtreeFromSnapshot(linkedTasks, task.id),
+          );
+          setEditingTaskId(null);
+        }}
+      />
+      <RemoveTaskFromMindMapDialog
+        isBusy={isRemovingTask}
+        isOpen={Boolean(taskPendingRemove)}
+        onCancel={() => {
+          if (!isRemovingTask) {
+            setTaskPendingRemoveId(null);
+          }
+        }}
+        onDelete={() => {
+          if (taskPendingRemove) {
+            setTaskPendingPermanentDeleteId(taskPendingRemove.id);
+            setTaskPendingRemoveId(null);
+          }
+        }}
+        onUnlink={() => {
+          void handleUnlinkTaskFromMindMap();
+        }}
+      />
+      <ConfirmDialog
+        cancelLabel="Cancel"
+        confirmLabel="Delete task and subtasks"
+        description="This permanently deletes the task and all subtasks under it. This action cannot be undone."
+        isConfirming={isRemovingTask}
+        isOpen={Boolean(taskPendingPermanentDelete)}
+        onCancel={() => {
+          if (!isRemovingTask) {
+            setTaskPendingPermanentDeleteId(null);
+          }
+        }}
+        onConfirm={() => {
+          void handleDeleteTaskAndDescendants();
+        }}
+        title="Also delete all subtasks under this task?"
+        tone="danger"
       />
     </section>
   );
@@ -961,6 +1039,7 @@ interface BuildNodesInput {
   goalNodeId: string;
   linkedTasks: Task[];
   onEditTask: (taskId: string) => void;
+  onRemoveTask: (taskId: string) => void;
   onSelectGoal: () => void;
   selectedGoal?: GoalCardData;
   todayKey: string;
@@ -970,6 +1049,7 @@ function buildNodes({
   goalNodeId,
   linkedTasks,
   onEditTask,
+  onRemoveTask,
   onSelectGoal,
   selectedGoal,
   todayKey,
@@ -1006,6 +1086,7 @@ function buildNodes({
       kind: "task" as const,
       level: getTaskLevel(task, linkedTasks),
       onEditTask,
+      onRemoveTask,
       parentTaskId: task.parentTaskId,
       priority: task.priority,
       status: task.status,
@@ -1205,6 +1286,23 @@ function upsertTaskSnapshot(taskSnapshot: Task[], nextTask: Task): Task[] {
   return taskSnapshot.map((task) => (task.id === nextTask.id ? nextTask : task));
 }
 
+function removeTaskSubtreeFromSnapshot(taskSnapshot: Task[], rootTaskId: string): Task[] {
+  const taskIdsToRemove = new Set([rootTaskId]);
+  let foundNextDescendant = true;
+
+  while (foundNextDescendant) {
+    foundNextDescendant = false;
+    taskSnapshot.forEach((task) => {
+      if (task.parentTaskId && taskIdsToRemove.has(task.parentTaskId) && !taskIdsToRemove.has(task.id)) {
+        taskIdsToRemove.add(task.id);
+        foundNextDescendant = true;
+      }
+    });
+  }
+
+  return taskSnapshot.filter((task) => !taskIdsToRemove.has(task.id));
+}
+
 function getEventClientPosition(event: globalThis.MouseEvent | TouchEvent): { x: number; y: number } | null {
   if ("clientX" in event) {
     return { x: event.clientX, y: event.clientY };
@@ -1225,6 +1323,45 @@ function getDateKey(date: Date): string {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+function RemoveTaskFromMindMapDialog({
+  isBusy,
+  isOpen,
+  onCancel,
+  onDelete,
+  onUnlink,
+}: {
+  isBusy: boolean;
+  isOpen: boolean;
+  onCancel: () => void;
+  onDelete: () => void;
+  onUnlink: () => void;
+}): JSX.Element | null {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <ModalShell
+      description="Choose whether to only remove the task from this goal map or delete the real task."
+      isOpen={isOpen}
+      onRequestClose={onCancel}
+      title="What do you want to remove?"
+    >
+      <div className="dashboard-remove-task-actions">
+        <Button disabled={isBusy} onClick={onUnlink} type="button" variant="secondary">
+          Remove from this mind map / unlink from goal
+        </Button>
+        <Button disabled={isBusy} onClick={onDelete} type="button" variant="danger">
+          Delete task permanently
+        </Button>
+        <Button disabled={isBusy} onClick={onCancel} type="button" variant="ghost">
+          Cancel
+        </Button>
+      </div>
+    </ModalShell>
+  );
 }
 
 function GoalSelectorModal({

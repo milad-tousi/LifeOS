@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { Handle, NodeProps, Position } from "reactflow";
 import { GoalMindMapTaskNodeData } from "@/features/dashboard/types/goalMindMap.types";
 
@@ -19,6 +19,30 @@ export function GoalMindMapTaskNode({ data, selected }: NodeProps<GoalMindMapTas
     <div className={classes} onDoubleClick={() => data.onEditTask(data.taskId)} role="button" tabIndex={0}>
       <Handle className="dashboard-mind-handle" position={Position.Top} type="target" />
       <Handle className="dashboard-mind-handle" position={Position.Bottom} type="source" />
+      <div className="dashboard-mind-node__actions nodrag">
+        <button
+          aria-label="Edit task"
+          className="dashboard-mind-node__action nodrag"
+          onClick={(event) => {
+            event.stopPropagation();
+            data.onEditTask(data.taskId);
+          }}
+          type="button"
+        >
+          <Pencil size={14} />
+        </button>
+        <button
+          aria-label="Remove task"
+          className="dashboard-mind-node__action nodrag"
+          onClick={(event) => {
+            event.stopPropagation();
+            data.onRemoveTask(data.taskId);
+          }}
+          type="button"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
       <div className="dashboard-mind-node__meta">
         <span>{data.priority} priority</span>
         {data.isSubtask ? <span className="dashboard-mind-node__badge">Subtask</span> : null}

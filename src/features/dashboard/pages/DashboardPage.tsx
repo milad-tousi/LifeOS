@@ -15,7 +15,6 @@ import {
   loadGoalMindMapLayout,
   mergeGoalMindMapLayout,
 } from "@/features/dashboard/utils/goalMindMapStorage";
-import { EditMindMapTaskInput } from "@/features/dashboard/types/goalMindMap.types";
 import { useFinanceState } from "@/features/finance/hooks/useFinanceState";
 import { useGoals } from "@/features/goals/hooks/useGoals";
 import { useHabits } from "@/features/habits/hooks/useHabits";
@@ -72,22 +71,6 @@ export function DashboardPage(): JSX.Element {
     updateTodayLog(habitId, 1);
   }
 
-  async function handleUpdateMindMapTask(input: EditMindMapTaskInput): Promise<void> {
-    const task = tasks.find((item) => item.id === input.taskId);
-
-    if (!task) {
-      return;
-    }
-
-    await tasksRepository.update({
-      ...task,
-      dueDate: input.dueDate,
-      priority: input.priority,
-      status: input.status,
-      title: input.title,
-    });
-  }
-
   function handleSelectGoal(goalId: string): void {
     setSelectedGoalId(goalId);
     mergeGoalMindMapLayout({ selectedGoalId: goalId });
@@ -136,7 +119,6 @@ export function DashboardPage(): JSX.Element {
           goals={goals}
           onNavigateToGoals={() => navigate("/goals")}
           onSelectGoal={handleSelectGoal}
-          onUpdateTask={handleUpdateMindMapTask}
           selectedGoalId={selectedGoalId}
           tasks={tasks}
         />

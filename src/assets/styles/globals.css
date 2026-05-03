@@ -5982,6 +5982,47 @@ button.dashboard-mind-node {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  padding-right: 3.6rem;
+}
+
+.dashboard-mind-node__actions {
+  position: absolute;
+  z-index: 2;
+  top: 0.42rem;
+  right: 0.42rem;
+  display: inline-flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.dashboard-mind-node:hover .dashboard-mind-node__actions,
+.dashboard-mind-node:focus-within .dashboard-mind-node__actions,
+.dashboard-mind-node--selected .dashboard-mind-node__actions {
+  opacity: 1;
+}
+
+.dashboard-mind-node__action {
+  display: inline-flex;
+  width: 1.7rem;
+  height: 1.7rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.94);
+  color: #475569;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.dashboard-mind-node__action:hover {
+  border-color: rgba(37, 99, 235, 0.38);
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 .dashboard-mind-node__badge {
@@ -6065,6 +6106,18 @@ button.dashboard-mind-node {
   height: 100%;
   border-radius: inherit;
   background: #2563eb;
+}
+
+.dashboard-remove-task-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (hover: none) {
+  .dashboard-mind-node__actions {
+    opacity: 1;
+  }
 }
 
 .dashboard-mind-handle {
