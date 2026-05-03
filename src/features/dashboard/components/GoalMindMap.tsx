@@ -36,6 +36,7 @@ import { GoalMindMapToolbar } from "@/features/dashboard/components/GoalMindMapT
 import { LinkExistingTaskModal } from "@/features/dashboard/components/LinkExistingTaskModal";
 import { CreateMindMapTaskModal } from "@/features/dashboard/components/CreateMindMapTaskModal";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
+import { useI18n } from "@/i18n";
 import {
   CreateMindMapTaskInput,
   GoalMindMapEdge,
@@ -104,6 +105,7 @@ function GoalMindMapInner({
   selectedGoalId,
   tasks,
 }: GoalMindMapProps): JSX.Element {
+  const { t } = useI18n();
   const [isLinkOpen, setIsLinkOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isGoalSelectOpen, setIsGoalSelectOpen] = useState(false);
@@ -345,7 +347,7 @@ function GoalMindMapInner({
         if (isManualEdge) {
           unlinkVisualEdge(edge.id);
         } else if (sourceNode && isGoalNodeId(sourceNode.id)) {
-          if (requireConfirmation && !window.confirm("Remove this task from the goal?")) {
+          if (requireConfirmation && !window.confirm(t("dashboard.removeTaskFromGoal"))) {
             setSaveStatus("saved");
             return;
           }
@@ -356,7 +358,7 @@ function GoalMindMapInner({
             ? removeTaskSubtreeFromSnapshot(linkedTasks, removedTask.id)
             : linkedTasks.filter((task) => task.id !== targetTaskId);
         } else if (sourceNode?.data.kind === "task") {
-          if (requireConfirmation && !window.confirm("Remove this subtask from its parent?")) {
+          if (requireConfirmation && !window.confirm(t("dashboard.removeSubtaskFromParent"))) {
             setSaveStatus("saved");
             return;
           }
@@ -378,7 +380,7 @@ function GoalMindMapInner({
         setSaveStatus("failed");
       }
     },
-    [edges, linkedTasks, nodes, persistCurrentLayout, refreshMindMap, setEdges],
+    [edges, linkedTasks, nodes, persistCurrentLayout, refreshMindMap, setEdges, t],
   );
 
   useEffect(() => {
@@ -855,8 +857,8 @@ function GoalMindMapInner({
     <section className="dashboard-card dashboard-mind-map">
       <div className="dashboard-card__header dashboard-mind-map__header">
         <div>
-          <h2>Goal Mind Map</h2>
-          <p>Build a goal-centered plan by creating, dragging, linking, and connecting real tasks.</p>
+          <h2>{t("dashboard.goalMindMap")}</h2>
+          <p>{t("dashboard.mindMapSubtitle")}</p>
         </div>
       </div>
       <div className="dashboard-mind-map__canvas">
@@ -916,13 +918,13 @@ function GoalMindMapInner({
           />
           {goals.length === 0 ? (
             <div className="dashboard-mind-empty nodrag nopan">
-              <strong>Create a goal first to build a mind map.</strong>
+              <strong>{t("dashboard.createGoalFirst")}</strong>
               <Button onClick={onNavigateToGoals} type="button">
-                Go to Goals
+                {t("dashboard.goToGoals")}
               </Button>
             </div>
           ) : selectedGoalId && linkedTasks.length === 0 ? (
-            <div className="dashboard-mind-hint nodrag nopan">Add or link tasks to start building your plan.</div>
+            <div className="dashboard-mind-hint nodrag nopan">{t("dashboard.addOrLinkTasks")}</div>
           ) : null}
           {connectionMessage ? (
             <div className="dashboard-mind-message nodrag nopan">{connectionMessage}</div>
@@ -936,10 +938,10 @@ function GoalMindMapInner({
                 type="button"
                 variant="secondary"
               >
-                Delete Link
+                {t("dashboard.deleteLink")}
               </Button>
               <Button onClick={() => setSelectedEdgeId(null)} type="button" variant="ghost">
-                Cancel
+                {t("common.cancel")}
               </Button>
             </div>
           ) : null}
@@ -1015,9 +1017,9 @@ function GoalMindMapInner({
         }}
       />
       <ConfirmDialog
-        cancelLabel="Cancel"
-        confirmLabel="Delete task and subtasks"
-        description="This permanently deletes the task and all subtasks under it. This action cannot be undone."
+        cancelLabel={t("common.cancel")}
+        confirmLabel={t("dashboard.deleteTaskAndSubtasks")}
+        description={t("dashboard.deleteDescendantsDescription")}
         isConfirming={isRemovingTask}
         isOpen={Boolean(taskPendingPermanentDelete)}
         onCancel={() => {
@@ -1028,7 +1030,7 @@ function GoalMindMapInner({
         onConfirm={() => {
           void handleDeleteTaskAndDescendants();
         }}
-        title="Also delete all subtasks under this task?"
+        title={t("dashboard.deleteDescendantsTitle")}
         tone="danger"
       />
     </section>
@@ -1338,26 +1340,28 @@ function RemoveTaskFromMindMapDialog({
   onDelete: () => void;
   onUnlink: () => void;
 }): JSX.Element | null {
+  const { t } = useI18n();
+
   if (!isOpen) {
     return null;
   }
 
   return (
     <ModalShell
-      description="Choose whether to only remove the task from this goal map or delete the real task."
+      description={t("dashboard.removeChoiceDescription")}
       isOpen={isOpen}
       onRequestClose={onCancel}
-      title="What do you want to remove?"
+      title={t("dashboard.removeChoiceTitle")}
     >
       <div className="dashboard-remove-task-actions">
         <Button disabled={isBusy} onClick={onUnlink} type="button" variant="secondary">
-          Remove from this mind map / unlink from goal
+          {t("dashboard.unlinkFromMindMap")}
         </Button>
         <Button disabled={isBusy} onClick={onDelete} type="button" variant="danger">
-          Delete task permanently
+          {t("dashboard.deleteTaskPermanently")}
         </Button>
         <Button disabled={isBusy} onClick={onCancel} type="button" variant="ghost">
-          Cancel
+          {t("common.cancel")}
         </Button>
       </div>
     </ModalShell>

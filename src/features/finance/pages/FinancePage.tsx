@@ -7,10 +7,12 @@ import { FinanceSettingsModal } from "@/features/finance/components/FinanceSetti
 import { FinanceTabs, FinanceTab } from "@/features/finance/components/FinanceTabs";
 import { FinanceTransactionsTab } from "@/features/finance/components/FinanceTransactionsTab";
 import { useFinanceState } from "@/features/finance/hooks/useFinanceState";
+import { useI18n } from "@/i18n";
 
 export function FinancePage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<FinanceTab>("overview");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { t } = useI18n();
   const {
     addCategory,
     addMerchantRule,
@@ -46,8 +48,8 @@ export function FinancePage(): JSX.Element {
     <div className="finance-page">
       <div className="finance-page__header">
         <ScreenHeader
-          title="Finance"
-          description="Track personal income and expenses in one place with a clearer manual workflow that is ready for smarter capture later."
+          title={t("finance.title")}
+          description={t("finance.subtitle")}
         />
         <FinanceSettingsEntry onClick={() => setIsSettingsOpen(true)} />
       </div>

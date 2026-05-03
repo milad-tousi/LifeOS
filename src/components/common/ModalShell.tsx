@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 const MODAL_EXIT_DURATION_MS = 180;
 
@@ -32,6 +33,7 @@ export function ModalShell({
   size = "default",
   title,
 }: ModalShellProps): JSX.Element | null {
+  const { t } = useI18n();
   const titleId = useId();
   const descriptionId = useId();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -179,7 +181,7 @@ export function ModalShell({
             ) : null}
           </div>
           <button
-            aria-label={`Close ${title}`}
+            aria-label={`${t("common.close")} ${title}`}
             className="modal-shell__close"
             onClick={onRequestClose}
             type="button"

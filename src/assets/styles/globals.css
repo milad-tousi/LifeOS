@@ -1382,12 +1382,30 @@ button {
   grid-template-columns: 264px minmax(0, 1fr);
 }
 
+.app-shell--rtl.app-shell--expanded {
+  grid-template-columns: minmax(0, 1fr) 264px;
+}
+
 .app-shell--collapsed {
   grid-template-columns: 88px minmax(0, 1fr);
 }
 
+.app-shell--rtl.app-shell--collapsed {
+  grid-template-columns: minmax(0, 1fr) 88px;
+}
+
 .app-shell--hidden {
   grid-template-columns: minmax(0, 1fr);
+}
+
+.app-shell--rtl.app-shell--desktop .sidebar {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.app-shell--rtl.app-shell--desktop .app-shell__main {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .app-shell__main {
@@ -2807,6 +2825,10 @@ a:focus-visible {
   padding: 1rem;
 }
 
+.sidebar--mobile.sidebar--rtl {
+  inset: 0 0 0 auto;
+}
+
 .sidebar--expanded,
 .sidebar--collapsed {
   position: sticky;
@@ -2860,6 +2882,12 @@ a:focus-visible {
   border-radius: 0.9rem;
   padding: 0 0.75rem;
   color: var(--text);
+}
+
+.sidebar--rtl .sidebar__link,
+.sidebar--rtl .sidebar__brand,
+.sidebar--rtl .sidebar__footer-action {
+  flex-direction: row-reverse;
 }
 
 .sidebar--collapsed .sidebar__link {
@@ -2943,6 +2971,85 @@ a:focus-visible {
 
 .bottom-nav__link--active svg {
   color: var(--primary);
+}
+
+.rtl body,
+.rtl input,
+.rtl textarea,
+.rtl select,
+.rtl button {
+  font-family: inherit;
+}
+
+.rtl .page-container,
+.rtl .modal-shell,
+.rtl .card,
+.rtl .screen-header,
+.rtl .auth-form__field,
+.rtl .dashboard-card,
+.rtl .settings-action-row,
+.rtl .settings-appearance {
+  text-align: right;
+}
+
+.rtl input,
+.rtl textarea {
+  text-align: right;
+}
+
+.ltr input,
+.ltr textarea {
+  text-align: left;
+}
+
+.rtl .dashboard-tabs,
+.rtl .task-view-switcher,
+.rtl .finance-tabs,
+.rtl .review-tabs,
+.rtl .dashboard-mind-toolbar {
+  direction: rtl;
+}
+
+.rtl .dashboard-mind-node {
+  text-align: right;
+}
+
+.settings-language {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem 0 0;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.settings-language__header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.settings-language__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.settings-language__option {
+  min-height: 2.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 0.85rem;
+  cursor: pointer;
+}
+
+.settings-language__option--active {
+  border-color: rgba(37, 99, 235, 0.45);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 800;
 }
 
 .goals-page {

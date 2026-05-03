@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/common/Button";
 import { ModalShell } from "@/components/common/ModalShell";
+import { useI18n } from "@/i18n";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
-  cancelLabel = "Cancel",
+  cancelLabel,
   confirmLabel,
   description,
   isConfirming = false,
@@ -27,6 +28,8 @@ export function ConfirmDialog({
   tone = "default",
   children,
 }: ConfirmDialogProps): JSX.Element | null {
+  const { t } = useI18n();
+
   if (!isOpen) {
     return null;
   }
@@ -36,7 +39,7 @@ export function ConfirmDialog({
       footer={
         <div className="confirm-dialog__actions">
           <Button onClick={onCancel} type="button" variant="secondary">
-            {cancelLabel}
+            {cancelLabel ?? t("common.cancel")}
           </Button>
           <Button
             disabled={isConfirming}

@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { navigationItems, renderNavigationIcon } from "@/config/navigation.config";
 import { SidebarMode } from "@/hooks/useSidebar";
+import { useI18n } from "@/i18n";
 
 interface SidebarProps {
   isDesktop: boolean;
@@ -22,6 +23,8 @@ export function Sidebar({
   onHideSidebar,
   onShrinkSidebar,
 }: SidebarProps): JSX.Element | null {
+  const { direction, t } = useI18n();
+
   if (!isDesktop && !isOpen) {
     return null;
   }
@@ -30,6 +33,7 @@ export function Sidebar({
   const className = [
     "sidebar",
     isDesktop ? `sidebar--${mode}` : "sidebar--mobile",
+    `sidebar--${direction}`,
     isOpen ? "sidebar--open" : "",
   ]
     .filter(Boolean)
@@ -37,8 +41,8 @@ export function Sidebar({
 
   return (
     <>
-      {!isDesktop && <button aria-label="Close menu" className="sidebar-backdrop" onClick={onCloseMobileMenu} />}
-      <aside aria-label="Primary navigation" className={className}>
+      {!isDesktop && <button aria-label={t("navigation.closeMenu")} className="sidebar-backdrop" onClick={onCloseMobileMenu} />}
+      <aside aria-label={t("navigation.openMenu")} className={className}>
         <div className="sidebar__header">
           <div className="sidebar__brand">
             <span className="sidebar__brand-mark">◌</span>
@@ -47,7 +51,7 @@ export function Sidebar({
           {isDesktop ? (
             mode === "expanded" ? (
               <button
-                aria-label="Collapse sidebar"
+                aria-label={t("navigation.collapse")}
                 className="icon-button"
                 onClick={onShrinkSidebar}
                 type="button"
@@ -56,7 +60,7 @@ export function Sidebar({
               </button>
             ) : mode === "collapsed" ? (
               <button
-                aria-label="Expand sidebar"
+                aria-label={t("navigation.expand")}
                 className="icon-button"
                 onClick={onExpandSidebar}
                 type="button"
@@ -65,7 +69,7 @@ export function Sidebar({
               </button>
             ) : null
           ) : (
-            <button aria-label="Close menu" className="icon-button" onClick={onCloseMobileMenu} type="button">
+            <button aria-label={t("navigation.closeMenu")} className="icon-button" onClick={onCloseMobileMenu} type="button">
               <PanelLeftClose size={18} />
             </button>
           )}
@@ -84,7 +88,7 @@ export function Sidebar({
                 {renderNavigationIcon(item.icon, {
                   className: "sidebar__icon",
                 })}
-                {showLabels ? <span className="sidebar__label">{item.label}</span> : null}
+                {showLabels ? <span className="sidebar__label">{t(item.labelKey)}</span> : null}
               </NavLink>
             );
           })}
@@ -95,7 +99,7 @@ export function Sidebar({
             {mode === "expanded" ? (
               <button className="sidebar__footer-action" onClick={onShrinkSidebar} type="button">
                 <PanelLeftClose size={16} />
-                <span>Collapse</span>
+                <span>{t("navigation.collapse")}</span>
               </button>
             ) : (
               <button className="sidebar__footer-action sidebar__footer-action--icon" onClick={onHideSidebar} type="button">

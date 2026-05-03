@@ -34,12 +34,14 @@ import {
   ReviewType,
   WeeklyReviewInput,
 } from "@/features/reviews/types/review.types";
+import { useI18n } from "@/i18n";
 
 export function ReviewsPage(): JSX.Element {
   const [activeType, setActiveType] = useState<ReviewType>("daily");
   const [reviews, setReviews] = useState<ReviewEntry[]>(() => getReviews());
   const [dailyComplete, setDailyComplete] = useState(() => hasDailyReviewForDate());
   const [weeklyComplete, setWeeklyComplete] = useState(() => hasWeeklyReviewForDate());
+  const { t } = useI18n();
   const { tasks } = useTasks();
   const { habits, logs } = useHabits();
   const { goals } = useGoals();
@@ -89,14 +91,14 @@ export function ReviewsPage(): JSX.Element {
   return (
     <div className="reviews-page">
       <ScreenHeader
-        title="Reviews"
-        description="Reflect on your days and weeks with progress signals from tasks, habits, goals, and finance."
+        title={t("reviews.title")}
+        description={t("reviews.subtitle")}
       />
 
       <ReviewTypeTabs activeType={activeType} onChange={setActiveType} />
 
       <div className="reviews-page__period">
-        <span>Current reflection period</span>
+        <span>{t("reviews.currentReflectionPeriod")}</span>
         <strong>{snapshotPeriod.label}</strong>
       </div>
 
@@ -113,10 +115,9 @@ export function ReviewsPage(): JSX.Element {
       {activeType === "monthly" ? (
         <section className="review-card">
           <div className="review-empty-state review-empty-state--monthly">
-            <strong>Monthly review is coming next</strong>
+            <strong>{t("reviews.monthlyComingNext")}</strong>
             <p>
-              Monthly reflections will build on the same history and snapshot system. Daily
-              and weekly reviews are ready now.
+              {t("reviews.monthlyComingNextDescription")}
             </p>
           </div>
         </section>

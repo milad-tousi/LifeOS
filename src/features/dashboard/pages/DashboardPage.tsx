@@ -20,9 +20,11 @@ import { useGoals } from "@/features/goals/hooks/useGoals";
 import { useHabits } from "@/features/habits/hooks/useHabits";
 import { useTasks } from "@/features/tasks/hooks/useTasks";
 import { getReviews } from "@/features/reviews/services/review.storage";
+import { useI18n } from "@/i18n";
 
 export function DashboardPage(): JSX.Element {
   const navigate = useNavigate();
+  const { language, t } = useI18n();
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const [selectedGoalId, setSelectedGoalId] = useState(() => loadGoalMindMapLayout().selectedGoalId);
   const [reviews, setReviews] = useState(() => getReviews());
@@ -80,13 +82,13 @@ export function DashboardPage(): JSX.Element {
     <div className="dashboard-page">
       <header className="dashboard-header">
         <div>
-          <h1>Dashboard</h1>
-          <p>A local-first command center for today’s tasks, habits, goals, finance, and reviews.</p>
+          <h1>{t("dashboard.title")}</h1>
+          <p>{t("dashboard.subtitle")}</p>
         </div>
         <div className="dashboard-date-card">
-          <span>Today</span>
-          <strong>{formatTodayDate()}</strong>
-          <p>{formatCurrentWeek()}</p>
+          <span>{t("dashboard.todayPlan")}</span>
+          <strong>{formatTodayDate(language)}</strong>
+          <p>{formatCurrentWeek(language)}</p>
         </div>
       </header>
 
@@ -131,8 +133,8 @@ export function DashboardPage(): JSX.Element {
   );
 }
 
-function formatTodayDate(): string {
-  return new Intl.DateTimeFormat("en-US", {
+function formatTodayDate(language: "en" | "fa"): string {
+  return new Intl.DateTimeFormat(getLocale(language), {
     day: "numeric",
     month: "long",
     weekday: "long",
@@ -140,7 +142,7 @@ function formatTodayDate(): string {
   }).format(new Date());
 }
 
-function formatCurrentWeek(): string {
+function formatCurrentWeek(language: "en" | "fa"): string {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const day = start.getDay() === 0 ? 7 : start.getDay();
@@ -148,11 +150,15 @@ function formatCurrentWeek(): string {
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
 
-  return `${formatShortDate(start)} - ${formatShortDate(end)}`;
+  return `${formatShortDate(start, language)} - ${formatShortDate(end, language)}`;
 }
 
-function formatShortDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short" }).format(date);
+function formatShortDate(date: Date, language: "en" | "fa"): string {
+  return new Intl.DateTimeFormat(getLocale(language), { day: "numeric", month: "short" }).format(date);
+}
+
+function getLocale(language: "en" | "fa"): string {
+  return language === "fa" ? "fa-IR" : "en-US";
 }
 
 function getDateKey(date: Date): string {

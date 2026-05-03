@@ -1,5 +1,6 @@
 import { Button } from "@/components/common/Button";
 import { GoalCardData } from "@/features/goals/hooks/useGoals";
+import { useI18n } from "@/i18n";
 
 interface GoalMindMapControlsProps {
   goals: GoalCardData[];
@@ -20,12 +21,14 @@ export function GoalMindMapControls({
   onSelectGoal,
   selectedGoalId,
 }: GoalMindMapControlsProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <div className="dashboard-mind-controls">
       <label>
-        <span>Select Goal</span>
+        <span>{t("dashboard.selectGoal")}</span>
         <select onChange={(event) => onSelectGoal(event.target.value)} value={selectedGoalId}>
-          <option value="">Select a Goal</option>
+          <option value="">{t("dashboard.selectGoal")}</option>
           {goals.map((goal) => (
             <option key={goal.goal.id} value={goal.goal.id}>
               {goal.goal.title}
@@ -35,16 +38,16 @@ export function GoalMindMapControls({
       </label>
       <div className="dashboard-mind-controls__actions">
         <Button disabled={!selectedGoalId} onClick={onLinkTask} type="button" variant="secondary">
-          Link Existing Task
+          {t("dashboard.linkExistingTask")}
         </Button>
         <Button disabled={!selectedGoalId} onClick={onCreateTask} type="button" variant="secondary">
-          Create New Task
+          {t("dashboard.createNewTask")}
         </Button>
         <Button onClick={onFitView} type="button" variant="ghost">
-          Fit View
+          {t("dashboard.fitView")}
         </Button>
         <Button onClick={onResetLayout} type="button" variant="ghost">
-          Reset Layout
+          {t("dashboard.resetLayout")}
         </Button>
       </div>
     </div>

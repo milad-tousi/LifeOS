@@ -1,20 +1,23 @@
 import { Button } from "@/components/common/Button";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
+import { useI18n } from "@/i18n";
 
 interface TasksPageHeaderProps {
   onAddTask: () => void;
 }
 
 export function TasksPageHeader({ onAddTask }: TasksPageHeaderProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <div className="tasks-page-header">
       <ScreenHeader
-        title="Tasks"
-        description="Manage your work, daily tasks, and goal-linked actions in one place."
+        title={t("tasks.title")}
+        description={t("tasks.subtitle")}
       />
       <div className="tasks-page-header__actions">
         <Button onClick={onAddTask} type="button">
-          Add task
+          {t("tasks.addTask")}
         </Button>
       </div>
     </div>

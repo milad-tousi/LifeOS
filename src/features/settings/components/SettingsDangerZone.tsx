@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronRight, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { useI18n } from "@/i18n";
 
 interface SettingsDangerZoneProps {
   isLoading?: boolean;
@@ -11,6 +12,7 @@ export function SettingsDangerZone({
   isLoading = false,
   onTerminate,
 }: SettingsDangerZoneProps): JSX.Element {
+  const { t } = useI18n();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -38,9 +40,9 @@ export function SettingsDangerZone({
         </div>
 
         <div className="settings-action-row__content">
-          <span className="settings-action-row__title">Terminate account</span>
+          <span className="settings-action-row__title">{t("settings.terminateAccount")}</span>
           <span className="settings-action-row__subtitle">
-            Permanently remove this local account from this device
+            {t("settings.terminateAccountDescription")}
           </span>
         </div>
 
@@ -50,8 +52,8 @@ export function SettingsDangerZone({
       </button>
 
       <ConfirmDialog
-        confirmLabel="Terminate"
-        description="This will permanently remove your local account and sign you out from this device."
+        confirmLabel={t("settings.terminate")}
+        description={t("settings.terminateAccountConfirmDescription")}
         isConfirming={isConfirming}
         isOpen={isDialogOpen}
         onCancel={() => {
@@ -62,7 +64,7 @@ export function SettingsDangerZone({
         onConfirm={() => {
           void handleConfirm();
         }}
-        title="Terminate account?"
+        title={t("settings.terminateAccountQuestion")}
         tone="danger"
       />
     </>

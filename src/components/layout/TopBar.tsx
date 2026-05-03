@@ -1,5 +1,6 @@
 import { Bell, Menu } from "lucide-react";
 import { PageGreeting } from "@/components/layout/PageGreeting";
+import { useI18n } from "@/i18n";
 
 interface TopBarProps {
   isDesktop: boolean;
@@ -14,6 +15,7 @@ export function TopBar({
   isSidebarHidden,
   onMenuClick,
 }: TopBarProps): JSX.Element {
+  const { t } = useI18n();
   const showMenuButton = !isDesktop || isSidebarHidden;
 
   return (
@@ -22,7 +24,7 @@ export function TopBar({
         {showMenuButton ? (
           <button
             aria-expanded={!isDesktop ? isMobileMenuOpen : undefined}
-            aria-label="Open navigation menu"
+            aria-label={t("navigation.openMenu")}
             className="icon-button"
             onClick={onMenuClick}
             type="button"

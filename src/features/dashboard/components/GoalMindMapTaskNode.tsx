@@ -1,8 +1,10 @@
 import { CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { Handle, NodeProps, Position } from "reactflow";
 import { GoalMindMapTaskNodeData } from "@/features/dashboard/types/goalMindMap.types";
+import { useI18n } from "@/i18n";
 
 export function GoalMindMapTaskNode({ data, selected }: NodeProps<GoalMindMapTaskNodeData>): JSX.Element {
+  const { t } = useI18n();
   const classes = [
     "dashboard-mind-node",
     "dashboard-mind-node--task",
@@ -21,7 +23,7 @@ export function GoalMindMapTaskNode({ data, selected }: NodeProps<GoalMindMapTas
       <Handle className="dashboard-mind-handle" position={Position.Bottom} type="source" />
       <div className="dashboard-mind-node__actions nodrag">
         <button
-          aria-label="Edit task"
+          aria-label={t("common.edit")}
           className="dashboard-mind-node__action nodrag"
           onClick={(event) => {
             event.stopPropagation();
@@ -32,7 +34,7 @@ export function GoalMindMapTaskNode({ data, selected }: NodeProps<GoalMindMapTas
           <Pencil size={14} />
         </button>
         <button
-          aria-label="Remove task"
+          aria-label={t("common.remove")}
           className="dashboard-mind-node__action nodrag"
           onClick={(event) => {
             event.stopPropagation();
@@ -44,8 +46,8 @@ export function GoalMindMapTaskNode({ data, selected }: NodeProps<GoalMindMapTas
         </button>
       </div>
       <div className="dashboard-mind-node__meta">
-        <span>{data.priority} priority</span>
-        {data.isSubtask ? <span className="dashboard-mind-node__badge">Subtask</span> : null}
+        <span>{t("common.priority")}: {data.priority}</span>
+        {data.isSubtask ? <span className="dashboard-mind-node__badge">{t("tasks.subtask")}</span> : null}
       </div>
       <strong>
         {data.status === "done" ? <CheckCircle2 size={15} /> : null}

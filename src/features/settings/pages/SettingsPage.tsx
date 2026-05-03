@@ -6,11 +6,14 @@ import { useOnboarding } from "@/features/onboarding/hooks/useOnboarding";
 import { SettingsAccount } from "@/features/settings/components/SettingsAccount";
 import { SettingsAppearance } from "@/features/settings/components/SettingsAppearance";
 import { SettingsDangerZone } from "@/features/settings/components/SettingsDangerZone";
+import { SettingsLanguage } from "@/features/settings/components/SettingsLanguage";
+import { useI18n } from "@/i18n";
 
 export function SettingsPage(): JSX.Element {
   const navigate = useNavigate();
   const { isLoading, logout, terminateAccount } = useAuth();
   const { resetOnboarding } = useOnboarding();
+  const { t } = useI18n();
 
   async function handleLogout(): Promise<void> {
     await logout();
@@ -27,16 +30,17 @@ export function SettingsPage(): JSX.Element {
   return (
     <>
       <ScreenHeader
-        title="Settings"
-        description="Manage appearance, local account access, and device-only actions."
+        title={t("settings.title")}
+        description={t("settings.subtitle")}
       />
-      <Card title="Appearance">
+      <Card title={t("settings.appearance")}>
         <SettingsAppearance />
+        <SettingsLanguage />
       </Card>
-      <Card title="Account">
+      <Card title={t("settings.account")}>
         <SettingsAccount isLoading={isLoading} onLogout={handleLogout} />
       </Card>
-      <Card title="Danger Zone">
+      <Card title={t("settings.dangerZone")}>
         <SettingsDangerZone isLoading={isLoading} onTerminate={handleTerminateAccount} />
       </Card>
     </>

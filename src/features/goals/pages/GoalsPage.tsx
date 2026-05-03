@@ -5,10 +5,12 @@ import { GoalCarousel } from "@/features/goals/components/GoalCarousel";
 import { GoalCreateButton } from "@/features/goals/components/GoalCreateButton";
 import { GoalEmptyState } from "@/features/goals/components/GoalEmptyState";
 import { useGoals } from "@/features/goals/hooks/useGoals";
+import { useI18n } from "@/i18n";
 
 export function GoalsPage(): JSX.Element {
   const navigate = useNavigate();
   const { goals, loading } = useGoals();
+  const { t } = useI18n();
 
   function openGoal(goalId: string): void {
     navigate(`/goals/${goalId}`);
@@ -22,8 +24,8 @@ export function GoalsPage(): JSX.Element {
     <div className="goals-page">
       <div className="goals-page__header">
         <ScreenHeader
-          description="Track progress through the tasks that actually move each goal forward."
-          title="Goals"
+          description={t("goals.subtitle")}
+          title={t("goals.title")}
         />
         <div className="goals-page__desktop-action">
           <GoalCreateButton onClick={openCreateGoal} />
@@ -31,7 +33,7 @@ export function GoalsPage(): JSX.Element {
       </div>
 
       {loading ? (
-        <p className="text-muted">Loading goals...</p>
+        <p className="text-muted">{t("goals.loading")}</p>
       ) : goals.length === 0 ? (
         <GoalEmptyState onCreate={openCreateGoal} />
       ) : (

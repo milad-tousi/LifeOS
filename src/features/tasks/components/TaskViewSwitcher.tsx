@@ -1,3 +1,6 @@
+import { TranslationKey } from "@/i18n/i18n.types";
+import { useI18n } from "@/i18n";
+
 type TaskView = "list" | "board" | "calendar";
 
 interface TaskViewSwitcherProps {
@@ -8,22 +11,22 @@ interface TaskViewSwitcherProps {
 const VIEW_ITEMS: Array<{
   description: string;
   disabled?: boolean;
-  label: string;
+  labelKey: TranslationKey;
   value: TaskView;
 }> = [
   {
     value: "list",
-    label: "List",
+    labelKey: "tasks.list",
     description: "Execution-focused grouped task list.",
   },
   {
     value: "board",
-    label: "Board",
+    labelKey: "tasks.board",
     description: "Status-based task board.",
   },
   {
     value: "calendar",
-    label: "Calendar",
+    labelKey: "tasks.calendar",
     description: "Monthly planning view.",
   },
 ];
@@ -32,8 +35,10 @@ export function TaskViewSwitcher({
   activeView,
   onChange,
 }: TaskViewSwitcherProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
-    <div className="task-view-switcher" aria-label="Task views" role="tablist">
+    <div className="task-view-switcher" aria-label={t("tasks.title")} role="tablist">
       {VIEW_ITEMS.map((view) => (
         <button
           aria-selected={activeView === view.value}
@@ -49,7 +54,7 @@ export function TaskViewSwitcher({
           role="tab"
           type="button"
         >
-          <span>{view.label}</span>
+          <span>{t(view.labelKey)}</span>
           {view.disabled ? (
             <span className="task-view-switcher__badge">{view.description}</span>
           ) : null}

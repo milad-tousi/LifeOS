@@ -2,12 +2,14 @@ import { FormEvent, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { ModalShell } from "@/components/common/ModalShell";
+import { useI18n } from "@/i18n";
 
 interface AddBoardColumnCardProps {
   onAddColumn: (title: string) => Promise<void> | void;
 }
 
 export function AddBoardColumnCard({ onAddColumn }: AddBoardColumnCardProps): JSX.Element {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [value, setValue] = useState("");
 
@@ -27,7 +29,7 @@ export function AddBoardColumnCard({ onAddColumn }: AddBoardColumnCardProps): JS
     return (
       <Button onClick={() => setIsOpen(true)} type="button" variant="secondary">
         <Plus size={18} />
-        Add column
+        {t("tasks.addColumn")}
       </Button>
     );
   }
@@ -36,13 +38,13 @@ export function AddBoardColumnCard({ onAddColumn }: AddBoardColumnCardProps): JS
     <>
       <Button onClick={() => setIsOpen(true)} type="button" variant="secondary">
         <Plus size={18} />
-        Add column
+        {t("tasks.addColumn")}
       </Button>
       <ModalShell
         description="Create a custom status lane for this board."
         isOpen={isOpen}
         onRequestClose={() => setIsOpen(false)}
-        title="Add Column"
+        title={t("tasks.addColumn")}
       >
         <form className="task-board-add-column-form" onSubmit={(event) => void handleSubmit(event)}>
           <label className="auth-form__field" htmlFor="task-board-new-column">
@@ -58,10 +60,10 @@ export function AddBoardColumnCard({ onAddColumn }: AddBoardColumnCardProps): JS
           </label>
           <div className="modal-action-row">
             <Button onClick={() => setIsOpen(false)} type="button" variant="ghost">
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button disabled={!value.trim()} type="submit">
-              Save
+              {t("common.save")}
             </Button>
           </div>
         </form>

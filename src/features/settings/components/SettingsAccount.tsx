@@ -1,4 +1,5 @@
 import { ChevronRight, LogOut } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 interface SettingsAccountProps {
   isLoading?: boolean;
@@ -9,6 +10,8 @@ export function SettingsAccount({
   isLoading = false,
   onLogout,
 }: SettingsAccountProps): JSX.Element {
+  const { t } = useI18n();
+
   function handleLogoutClick(): void {
     void onLogout();
   }
@@ -25,8 +28,8 @@ export function SettingsAccount({
       </div>
 
       <div className="settings-action-row__content">
-        <span className="settings-action-row__title">Logout</span>
-        <span className="settings-action-row__subtitle">Sign out of your current session</span>
+        <span className="settings-action-row__title">{t("settings.logout")}</span>
+        <span className="settings-action-row__subtitle">{t("settings.logoutDescription")}</span>
       </div>
 
       <div className="settings-action-row__meta">

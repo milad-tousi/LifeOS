@@ -5,18 +5,21 @@ import { TopBar } from "@/components/layout/TopBar";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { HabitReminderToastHost } from "@/features/habits/components/HabitReminderToastHost";
 import { useSidebar } from "@/hooks/useSidebar";
+import { useI18n } from "@/i18n";
 
 export function AppShell(): JSX.Element {
   const sidebar = useSidebar();
+  const { direction } = useI18n();
   const desktopLayoutClass =
     sidebar.isDesktop && sidebar.desktopMode !== "hidden"
       ? `app-shell app-shell--desktop app-shell--${sidebar.desktopMode}`
       : sidebar.isDesktop
         ? "app-shell app-shell--desktop app-shell--hidden"
         : "app-shell app-shell--mobile";
+  const shellClassName = `${desktopLayoutClass} app-shell--${direction}`;
 
   return (
-    <div className={desktopLayoutClass}>
+    <div className={shellClassName}>
       <Sidebar
         isDesktop={sidebar.isDesktop}
         isOpen={sidebar.isDesktop ? sidebar.desktopMode !== "hidden" : sidebar.isMobileMenuOpen}

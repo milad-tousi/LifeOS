@@ -13,6 +13,7 @@ import { TodayHabits } from "@/features/habits/components/TodayHabits";
 import { useHabits } from "@/features/habits/hooks/useHabits";
 import { isHabitActiveOnDate } from "@/features/habits/utils/habit.utils";
 import { OPEN_HABIT_DETAIL_EVENT_NAME } from "@/services/habitReminderScheduler";
+import { useI18n } from "@/i18n";
 
 export function HabitsPage(): JSX.Element {
   const {
@@ -32,6 +33,7 @@ export function HabitsPage(): JSX.Element {
     updateReminderSettings,
     updateTodayLog,
   } = useHabits();
+  const { t } = useI18n();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [habitBeingEdited, setHabitBeingEdited] = useState<Habit | null>(null);
@@ -66,16 +68,16 @@ export function HabitsPage(): JSX.Element {
     <div className="habits-page">
       <div className="habits-page__header">
         <ScreenHeader
-          title="Habits"
-          description="Build consistent routines with simple daily tracking."
+          title={t("habits.title")}
+          description={t("habits.subtitle")}
         />
         <div className="habits-page__actions">
-          <Button variant="secondary" onClick={() => setIsSettingsOpen(true)} aria-label="Open habit settings">
+          <Button variant="secondary" onClick={() => setIsSettingsOpen(true)} aria-label={t("habits.openSettings")}>
             <Settings size={17} />
           </Button>
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus size={17} />
-            New Habit
+            {t("habits.addHabit")}
           </Button>
         </div>
       </div>

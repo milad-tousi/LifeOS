@@ -1,11 +1,14 @@
 import { NavLink } from "react-router-dom";
 import { navigationItems, renderNavigationIcon } from "@/config/navigation.config";
+import { useI18n } from "@/i18n";
 
 const mobileBottomNavItems = navigationItems.filter((item) => item.showInMobileBottomNav);
 
 export function BottomNav(): JSX.Element {
+  const { t } = useI18n();
+
   return (
-    <nav aria-label="Bottom navigation" className="bottom-nav">
+    <nav aria-label={t("navigation.openMenu")} className="bottom-nav">
       <ul className="bottom-nav__list">
         {mobileBottomNavItems.map((item) => {
           return (
@@ -17,7 +20,7 @@ export function BottomNav(): JSX.Element {
                 to={item.href}
               >
                 {renderNavigationIcon(item.icon)}
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </NavLink>
             </li>
           );

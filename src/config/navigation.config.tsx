@@ -8,6 +8,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { ReactElement } from "react";
+import { TranslationKey } from "@/i18n/i18n.types";
 
 export type NavigationIconKey =
   | "dashboard"
@@ -27,18 +28,19 @@ export interface NavigationIconOptions {
 export interface NavigationItem {
   href: string;
   label: string;
+  labelKey: TranslationKey;
   icon: NavigationIconKey;
   showInMobileBottomNav: boolean;
 }
 
 export const navigationItems: NavigationItem[] = [
-  { href: "/", label: "Dashboard", icon: "dashboard", showInMobileBottomNav: false },
-  { href: "/tasks", label: "Tasks", icon: "tasks", showInMobileBottomNav: true },
-  { href: "/habits", label: "Habits", icon: "habits", showInMobileBottomNav: true },
-  { href: "/goals", label: "Goals", icon: "goals", showInMobileBottomNav: true },
-  { href: "/finance", label: "Finance", icon: "finance", showInMobileBottomNav: true },
-  { href: "/reviews", label: "Reviews", icon: "reviews", showInMobileBottomNav: false },
-  { href: "/settings", label: "Settings", icon: "settings", showInMobileBottomNav: false },
+  { href: "/", label: "Dashboard", labelKey: "navigation.dashboard", icon: "dashboard", showInMobileBottomNav: false },
+  { href: "/tasks", label: "Tasks", labelKey: "navigation.tasks", icon: "tasks", showInMobileBottomNav: true },
+  { href: "/habits", label: "Habits", labelKey: "navigation.habits", icon: "habits", showInMobileBottomNav: true },
+  { href: "/goals", label: "Goals", labelKey: "navigation.goals", icon: "goals", showInMobileBottomNav: true },
+  { href: "/finance", label: "Finance", labelKey: "navigation.finance", icon: "finance", showInMobileBottomNav: true },
+  { href: "/reviews", label: "Reviews", labelKey: "navigation.reviews", icon: "reviews", showInMobileBottomNav: false },
+  { href: "/settings", label: "Settings", labelKey: "navigation.settings", icon: "settings", showInMobileBottomNav: false },
 ];
 
 export function renderNavigationIcon(

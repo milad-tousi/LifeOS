@@ -1,3 +1,6 @@
+import { TranslationKey } from "@/i18n/i18n.types";
+import { useI18n } from "@/i18n";
+
 export type FinanceTab = "overview" | "transactions" | "analytics";
 
 interface FinanceTabsProps {
@@ -5,18 +8,20 @@ interface FinanceTabsProps {
   onChange: (tab: FinanceTab) => void;
 }
 
-const TAB_ITEMS: Array<{ label: string; value: FinanceTab }> = [
-  { label: "Overview", value: "overview" },
-  { label: "Transactions", value: "transactions" },
-  { label: "Analytics", value: "analytics" },
+const TAB_ITEMS: Array<{ labelKey: TranslationKey; value: FinanceTab }> = [
+  { labelKey: "finance.overview", value: "overview" },
+  { labelKey: "finance.transactions", value: "transactions" },
+  { labelKey: "finance.analytics", value: "analytics" },
 ];
 
 export function FinanceTabs({
   activeTab,
   onChange,
 }: FinanceTabsProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
-    <div className="finance-tabs" aria-label="Finance sections" role="tablist">
+    <div className="finance-tabs" aria-label={t("finance.title")} role="tablist">
       {TAB_ITEMS.map((tab) => (
         <button
           aria-selected={activeTab === tab.value}
@@ -28,7 +33,7 @@ export function FinanceTabs({
           role="tab"
           type="button"
         >
-          {tab.label}
+          {t(tab.labelKey)}
         </button>
       ))}
     </div>
