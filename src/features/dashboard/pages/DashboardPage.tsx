@@ -21,6 +21,7 @@ import { useHabits } from "@/features/habits/hooks/useHabits";
 import { useTasks } from "@/features/tasks/hooks/useTasks";
 import { getReviews } from "@/features/reviews/services/review.storage";
 import { useI18n } from "@/i18n";
+import { formatAppDate, formatWeekRange } from "@/i18n/formatters";
 
 export function DashboardPage(): JSX.Element {
   const navigate = useNavigate();
@@ -87,7 +88,7 @@ export function DashboardPage(): JSX.Element {
         </div>
         <div className="dashboard-date-card">
           <span>{t("dashboard.todayPlan")}</span>
-          <strong>{formatTodayDate(language)}</strong>
+          <strong>{formatAppDate(new Date(), language)}</strong>
           <p>{formatCurrentWeek(language)}</p>
         </div>
       </header>
@@ -133,32 +134,15 @@ export function DashboardPage(): JSX.Element {
   );
 }
 
-function formatTodayDate(language: "en" | "fa"): string {
-  return new Intl.DateTimeFormat(getLocale(language), {
-    day: "numeric",
-    month: "long",
-    weekday: "long",
-    year: "numeric",
-  }).format(new Date());
-}
-
 function formatCurrentWeek(language: "en" | "fa"): string {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const day = start.getDay() === 0 ? 7 : start.getDay();
-  start.setDate(start.getDate() - day + 1);
+  const day = language === "fa" ? (start.getDay() + 1) % 7 : start.getDay() === 0 ? 7 : start.getDay();
+  start.setDate(start.getDate() - day + (language === "fa" ? 0 : 1));
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
 
-  return `${formatShortDate(start, language)} - ${formatShortDate(end, language)}`;
-}
-
-function formatShortDate(date: Date, language: "en" | "fa"): string {
-  return new Intl.DateTimeFormat(getLocale(language), { day: "numeric", month: "short" }).format(date);
-}
-
-function getLocale(language: "en" | "fa"): string {
-  return language === "fa" ? "fa-IR" : "en-US";
+  return formatWeekRange(start, end, language);
 }
 
 function getDateKey(date: Date): string {

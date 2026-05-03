@@ -1,15 +1,18 @@
 import { LifeOSScore } from "@/features/dashboard/types/dashboard.types";
+import { useI18n } from "@/i18n";
 
 interface LifeScoreCardProps {
   score: LifeOSScore;
 }
 
 export function LifeScoreCard({ score }: LifeScoreCardProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <section className="dashboard-card dashboard-life-score">
       <div className="dashboard-card__header">
         <div>
-          <h2>LifeOS Score</h2>
+          <h2>{t("dashboard.lifeScore")}</h2>
           <p>{score.explanation}</p>
         </div>
         <strong>{score.score}</strong>
@@ -26,7 +29,7 @@ export function LifeScoreCard({ score }: LifeScoreCardProps): JSX.Element {
             </div>
           ))
         ) : (
-          <p>Add local data to activate your score.</p>
+          <p>{t("dashboard.lifeScoreEmpty")}</p>
         )}
       </div>
     </section>

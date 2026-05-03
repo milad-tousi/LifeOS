@@ -1,11 +1,13 @@
 import { KeyboardEvent, useEffect, useState } from "react";
+import { DraggableAttributes } from "@dnd-kit/core";
 import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import { TaskBoardColumn } from "@/domains/tasks/board.types";
+import { useI18n } from "@/i18n";
 
 interface BoardColumnHeaderProps {
   column: TaskBoardColumn;
   count: number;
-  dragAttributes: Record<string, unknown>;
+  dragAttributes: DraggableAttributes;
   dragListeners: Record<string, unknown> | undefined;
   onDeleteColumn: (column: TaskBoardColumn) => void;
   onRenameColumn: (columnId: string, title: string) => Promise<void> | void;
@@ -21,8 +23,10 @@ export function BoardColumnHeader({
   onRenameColumn,
   setDragHandleRef,
 }: BoardColumnHeaderProps): JSX.Element {
+  const { t } = useI18n();
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState(column.title);
+  const title = getColumnTitle(column, t);
 
   useEffect(() => {
     if (!isEditing) {
@@ -64,7 +68,7 @@ export function BoardColumnHeader({
     <div className="task-board-column__header">
       <div className="task-board-column__header-main">
         <button
-          aria-label={`Reorder column ${column.title}`}
+          aria-label={`${t("common.edit")} ${title}`}
           className="task-board-column__drag-handle"
           ref={setDragHandleRef}
           type="button"
@@ -86,7 +90,7 @@ export function BoardColumnHeader({
           </div>
         ) : (
           <h3 className="task-board-column__title">
-            {column.title} <span className="task-board-column__count">({count})</span>
+            {title} <span className="task-board-column__count">({count})</span>
           </h3>
         )}
       </div>
@@ -94,7 +98,7 @@ export function BoardColumnHeader({
       {!isEditing ? (
         <div className="task-board-column__actions">
           <button
-            aria-label={`Rename column ${column.title}`}
+            aria-label={`${t("common.edit")} ${title}`}
             className="task-board-column__action"
             onClick={() => setIsEditing(true)}
             type="button"
@@ -102,7 +106,7 @@ export function BoardColumnHeader({
             <Pencil size={15} />
           </button>
           <button
-            aria-label={`Delete column ${column.title}`}
+            aria-label={`${t("common.delete")} ${title}`}
             className="task-board-column__action"
             onClick={() => onDeleteColumn(column)}
             type="button"
@@ -113,4 +117,20 @@ export function BoardColumnHeader({
       ) : null}
     </div>
   );
+}
+
+function getColumnTitle(column: TaskBoardColumn, t: ReturnType<typeof useI18n>["t"]): string {
+  if (column.kind !== "default") {
+    return column.title;
+  }
+
+  switch (column.statusKey) {
+    case "in_progress":
+      return t("tasks.inProgress");
+    case "done":
+      return t("tasks.done");
+    case "todo":
+    default:
+      return t("tasks.todo");
+  }
 }

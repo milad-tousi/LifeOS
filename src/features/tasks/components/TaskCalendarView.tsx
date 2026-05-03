@@ -9,15 +9,19 @@ import { EventModal } from "@/features/tasks/components/EventModal";
 import { SelectedDayTasksPanel } from "@/features/tasks/components/SelectedDayTasksPanel";
 import {
   getCalendarEventOccurrencesForMonth,
+  getCalendarMonthStart,
   getEventsForCalendarDate,
   getHolidaysForCalendarDate,
+  getPersianHolidaysForMonth,
   getItemsForDate,
   getMonthGrid,
   getTasksForCalendarDate,
   groupCalendarItemsByDate,
   sortCalendarItems,
   toCalendarDateKey,
+  addCalendarMonths,
 } from "@/features/tasks/utils/tasks-calendar-view.utils";
+import { useI18n } from "@/i18n";
 
 interface TaskCalendarViewProps {
   events: CalendarEvent[];
@@ -42,9 +46,10 @@ export function TaskCalendarView({
   onToggleTask,
   tasks,
 }: TaskCalendarViewProps): JSX.Element {
+  const { language } = useI18n();
   const today = new Date();
   const [visibleMonth, setVisibleMonth] = useState(
-    () => new Date(today.getFullYear(), today.getMonth(), 1),
+    () => getCalendarMonthStart(today, language),
   );
   const [selectedDate, setSelectedDate] = useState(() => today);
   const [contextMenu, setContextMenu] = useState<{
@@ -55,14 +60,17 @@ export function TaskCalendarView({
   const [eventBeingEdited, setEventBeingEdited] = useState<CalendarEvent | null>(null);
   const holidayRegion = "NL";
 
-  const monthDays = useMemo(() => getMonthGrid(visibleMonth), [visibleMonth]);
+  const monthDays = useMemo(() => getMonthGrid(visibleMonth, language), [language, visibleMonth]);
   const holidays = useMemo<CalendarHoliday[]>(
-    () => getHolidayItemsForMonth(visibleMonth, holidayRegion),
-    [holidayRegion, visibleMonth],
+    () =>
+      language === "fa"
+        ? getPersianHolidaysForMonth(visibleMonth)
+        : getHolidayItemsForMonth(visibleMonth, holidayRegion),
+    [holidayRegion, language, visibleMonth],
   );
   const eventOccurrences = useMemo(
-    () => getCalendarEventOccurrencesForMonth(visibleMonth, events),
-    [events, visibleMonth],
+    () => getCalendarEventOccurrencesForMonth(visibleMonth, events, language),
+    [events, language, visibleMonth],
   );
   const itemsByDate = useMemo(
     () => groupCalendarItemsByDate(tasks, eventOccurrences, holidays),
@@ -84,6 +92,10 @@ export function TaskCalendarView({
     () => getHolidaysForCalendarDate(selectedDayItems),
     [selectedDayItems],
   );
+
+  useEffect(() => {
+    setVisibleMonth(getCalendarMonthStart(selectedDate, language));
+  }, [language, selectedDate]);
 
   useEffect(() => {
     function handleDismiss(): void {
@@ -110,15 +122,14 @@ export function TaskCalendarView({
     setContextMenu(null);
 
     if (
-      date.getMonth() !== visibleMonth.getMonth() ||
-      date.getFullYear() !== visibleMonth.getFullYear()
+      !monthDays.some((day) => day.isCurrentMonth && toCalendarDateKey(day.date) === toCalendarDateKey(date))
     ) {
-      setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+      setVisibleMonth(getCalendarMonthStart(date, language));
     }
   }
 
   function handleChangeMonth(offset: number): void {
-    const nextMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + offset, 1);
+    const nextMonth = getCalendarMonthStart(addCalendarMonths(visibleMonth, offset, language), language);
     setVisibleMonth(nextMonth);
     setSelectedDate(nextMonth);
     setContextMenu(null);
@@ -126,7 +137,7 @@ export function TaskCalendarView({
 
   function handleGoToToday(): void {
     const nextToday = new Date();
-    setVisibleMonth(new Date(nextToday.getFullYear(), nextToday.getMonth(), 1));
+    setVisibleMonth(getCalendarMonthStart(nextToday, language));
     setSelectedDate(nextToday);
     setContextMenu(null);
   }
@@ -154,6 +165,7 @@ export function TaskCalendarView({
     <>
       <div className="task-calendar">
         <CalendarHeader
+          language={language}
           monthDate={visibleMonth}
           onGoToToday={handleGoToToday}
           onNextMonth={() => handleChangeMonth(1)}
@@ -163,6 +175,7 @@ export function TaskCalendarView({
         <CalendarGrid
           days={monthDays}
           itemsByDate={itemsByDate}
+          language={language}
           onDayContextMenu={handleOpenContextMenu}
           onSelectDate={handleSelectDate}
           selectedDate={selectedDate}
@@ -175,6 +188,7 @@ export function TaskCalendarView({
           events={selectedDayEvents}
           goalTitlesById={goalTitlesById}
           holidays={selectedDayHolidays}
+          language={language}
           onAddEvent={() => handleAddEventForDate(toCalendarDateKey(selectedDate))}
           onAddTask={() => handleAddTaskForDate(toCalendarDateKey(selectedDate))}
           onDeleteTask={onDeleteTask}

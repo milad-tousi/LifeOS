@@ -5,6 +5,7 @@ import { TaskBoardColumn } from "@/domains/tasks/board.types";
 import { Task } from "@/domains/tasks/types";
 import { BoardColumnHeader } from "@/features/tasks/components/BoardColumnHeader";
 import { TaskCard } from "@/features/tasks/components/TaskCard";
+import { useI18n } from "@/i18n";
 
 interface TaskColumnProps {
   allTasks: Task[];
@@ -27,6 +28,7 @@ export function TaskColumn({
   onRenameColumn,
   tasks,
 }: TaskColumnProps): JSX.Element {
+  const { t } = useI18n();
   const {
     attributes,
     listeners,
@@ -72,7 +74,7 @@ export function TaskColumn({
 
       <div className="task-board-column__body" ref={setNodeRef}>
         {tasks.length === 0 ? (
-          <div className="task-board-column__empty">Drop a task here</div>
+          <div className="task-board-column__empty">{t("tasks.dropTaskHere")}</div>
         ) : (
           tasks.map((task) => (
             <TaskCard

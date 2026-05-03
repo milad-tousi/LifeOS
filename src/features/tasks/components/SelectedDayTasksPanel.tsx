@@ -11,6 +11,8 @@ import {
   formatSelectedDayLabel,
   formatTaskDateTime,
 } from "@/features/tasks/utils/tasks-calendar-view.utils";
+import { Language } from "@/i18n/i18n.types";
+import { useI18n } from "@/i18n";
 
 interface SelectedDayTasksPanelProps {
   allTasks?: Task[];
@@ -18,6 +20,7 @@ interface SelectedDayTasksPanelProps {
   events: CalendarEventOccurrence[];
   goalTitlesById: Record<string, string>;
   holidays: CalendarHoliday[];
+  language: Language;
   onAddEvent: () => void;
   onAddTask: () => void;
   onDeleteTask: (task: Task) => void;
@@ -28,11 +31,12 @@ interface SelectedDayTasksPanelProps {
 }
 
 export function SelectedDayTasksPanel({
-  allTasks = tasks,
+  allTasks,
   date,
   events,
   goalTitlesById,
   holidays,
+  language,
   onAddEvent,
   onAddTask,
   onDeleteTask,
@@ -41,31 +45,33 @@ export function SelectedDayTasksPanel({
   onToggleTask,
   tasks,
 }: SelectedDayTasksPanelProps): JSX.Element {
+  const { t } = useI18n();
+  const effectiveAllTasks = allTasks ?? tasks;
   const hasItems = tasks.length > 0 || events.length > 0 || holidays.length > 0;
 
   return (
     <section className="task-calendar__panel">
       <div className="task-calendar__panel-header">
         <div>
-          <p className="task-calendar__panel-eyebrow">Selected day</p>
-          <h3 className="task-calendar__panel-title">{formatSelectedDayLabel(date)}</h3>
+          <p className="task-calendar__panel-eyebrow">{t("calendar.selectedDay")}</p>
+          <h3 className="task-calendar__panel-title">{formatSelectedDayLabel(date, language)}</h3>
         </div>
         <div className="task-calendar__panel-actions">
           <Button onClick={onAddTask} type="button" variant="ghost">
             <Plus size={15} />
-            Add task
+            {t("tasks.addTask")}
           </Button>
           <Button onClick={onAddEvent} type="button" variant="secondary">
             <CalendarRange size={15} />
-            Add event
+            {t("calendar.addEvent")}
           </Button>
         </div>
       </div>
 
       {!hasItems ? (
         <EmptyState
-          description="Use the add actions to schedule work, events, or reminders for this date."
-          title="Nothing planned for this day."
+          description={t("calendar.emptyDescription")}
+          title={t("calendar.emptyTitle")}
         />
       ) : (
         <div className="task-calendar__panel-sections">
@@ -74,13 +80,15 @@ export function SelectedDayTasksPanel({
               <div className="task-calendar__panel-section-header">
                 <h4 className="task-calendar__panel-section-title">
                   <PartyPopper size={15} />
-                  Holidays
+                  {t("calendar.holidays")}
                 </h4>
               </div>
               <div className="task-calendar__holiday-list">
                 {holidays.map((holiday) => (
                   <div className="task-calendar__holiday-item" key={holiday.id}>
-                    <span className="task-calendar__holiday-badge">Holiday</span>
+                    <span className="task-calendar__holiday-badge">
+                      {holiday.calendarType === "occasion" ? t("calendar.occasion") : t("calendar.holiday")}
+                    </span>
                     <strong>{holiday.title}</strong>
                     {holiday.region ? <span className="text-muted">{holiday.region}</span> : null}
                   </div>
@@ -94,7 +102,7 @@ export function SelectedDayTasksPanel({
               <div className="task-calendar__panel-section-header">
                 <h4 className="task-calendar__panel-section-title">
                   <CalendarRange size={15} />
-                  Events
+                  {t("calendar.events")}
                 </h4>
               </div>
               <div className="task-calendar__event-list">
@@ -116,7 +124,7 @@ export function SelectedDayTasksPanel({
                     ) : null}
                     <div className="task-calendar__event-meta">
                       {doesEventOccurrenceSpanMultipleDays(event) ? (
-                        <span className="task-calendar__holiday-badge">Multi-day</span>
+                        <span className="task-calendar__holiday-badge">{t("calendar.multiDay")}</span>
                       ) : null}
                       {formatCalendarOccurrenceRecurrence(event) ? (
                         <span className="task-calendar__holiday-badge">
@@ -135,7 +143,7 @@ export function SelectedDayTasksPanel({
               <div className="task-calendar__panel-section-header">
                 <h4 className="task-calendar__panel-section-title">
                   <CalendarDays size={15} />
-                  Tasks
+                  {t("tasks.title")}
                 </h4>
               </div>
               <div className="task-calendar__panel-list">
@@ -143,11 +151,11 @@ export function SelectedDayTasksPanel({
                   <div className="task-calendar__panel-item" key={task.id}>
                     <div className="task-calendar__panel-meta-line">
                       <span className="task-calendar__panel-due">
-                        {formatTaskDateTime(task) ?? "No time set"}
+                        {formatTaskDateTime(task, language) ?? t("calendar.noTimeSet")}
                       </span>
                     </div>
                     <TaskListRow
-                      allTasks={allTasks}
+                      allTasks={effectiveAllTasks}
                       goalTitle={task.goalId ? goalTitlesById[task.goalId] : undefined}
                       goalTitlesById={goalTitlesById}
                       isStandalone={!task.goalId}

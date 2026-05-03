@@ -1373,9 +1373,22 @@ button {
   display: grid;
   height: 100vh;
   gap: 1rem;
+  grid-template-areas: "sidebar main";
   overflow: hidden;
   padding: 1rem;
   transition: grid-template-columns 180ms ease;
+}
+
+.app-shell--desktop .sidebar {
+  grid-area: sidebar;
+}
+
+.app-shell--desktop .app-shell__main {
+  grid-area: main;
+}
+
+.app-shell--rtl.app-shell--desktop {
+  grid-template-areas: "main sidebar";
 }
 
 .app-shell--expanded {
@@ -1396,16 +1409,6 @@ button {
 
 .app-shell--hidden {
   grid-template-columns: minmax(0, 1fr);
-}
-
-.app-shell--rtl.app-shell--desktop .sidebar {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.app-shell--rtl.app-shell--desktop .app-shell__main {
-  grid-column: 1;
-  grid-row: 1;
 }
 
 .app-shell__main {

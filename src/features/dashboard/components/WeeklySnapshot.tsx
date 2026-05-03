@@ -1,6 +1,7 @@
 import { WeeklySnapshot as WeeklySnapshotData } from "@/features/dashboard/types/dashboard.types";
 import { FinanceCurrency } from "@/features/finance/types/finance.types";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
 
 interface WeeklySnapshotProps {
   currency: FinanceCurrency;
@@ -11,20 +12,21 @@ export function WeeklySnapshot({
   currency,
   snapshot,
 }: WeeklySnapshotProps): JSX.Element {
+  const { t } = useI18n();
   const items = [
-    { label: "Tasks completed", value: String(snapshot.tasksCompleted) },
-    { label: "Habit completion", value: `${snapshot.habitCompletionRate}%` },
-    { label: "Goal progress", value: `${snapshot.goalProgressAverage}%` },
-    { label: "Finance net", value: formatMoney(snapshot.financeNet, currency) },
-    { label: "Reviews completed", value: String(snapshot.reviewsCompleted) },
+    { label: t("dashboard.tasksCompleted"), value: String(snapshot.tasksCompleted) },
+    { label: t("dashboard.habitCompletion"), value: `${snapshot.habitCompletionRate}%` },
+    { label: t("dashboard.goalProgress"), value: `${snapshot.goalProgressAverage}%` },
+    { label: t("dashboard.financeNet"), value: formatMoney(snapshot.financeNet, currency) },
+    { label: t("dashboard.reviewsCompleted"), value: String(snapshot.reviewsCompleted) },
   ];
 
   return (
     <section className="dashboard-card">
       <div className="dashboard-card__header">
         <div>
-          <h2>Weekly Snapshot</h2>
-          <p>A compact view of this week’s progress.</p>
+          <h2>{t("dashboard.weeklySnapshot")}</h2>
+          <p>{t("dashboard.weeklySnapshotSubtitle")}</p>
         </div>
       </div>
       <div className="dashboard-weekly-grid">

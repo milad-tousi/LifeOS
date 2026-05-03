@@ -7,10 +7,12 @@ import {
   isSameDay,
   CalendarItem,
 } from "@/features/tasks/utils/tasks-calendar-view.utils";
+import { Language } from "@/i18n/i18n.types";
 
 interface CalendarGridProps {
   days: CalendarDay[];
   itemsByDate: Record<string, CalendarItem[]>;
+  language: Language;
   onDayContextMenu: (date: Date, position: { x: number; y: number }) => void;
   onSelectDate: (date: Date) => void;
   selectedDate: Date;
@@ -20,12 +22,13 @@ interface CalendarGridProps {
 export function CalendarGrid({
   days,
   itemsByDate,
+  language,
   onDayContextMenu,
   onSelectDate,
   selectedDate,
   today,
 }: CalendarGridProps): JSX.Element {
-  const weekdayLabels = getCalendarWeekdayLabels();
+  const weekdayLabels = getCalendarWeekdayLabels(language);
 
   return (
     <div className="task-calendar__grid-shell">
@@ -46,6 +49,7 @@ export function CalendarGrid({
             <CalendarDayCell
               day={day}
               dayState={dayState}
+              language={language}
               isSelected={isSameDay(day.date, selectedDate)}
               isToday={isSameDay(day.date, today)}
               items={items}

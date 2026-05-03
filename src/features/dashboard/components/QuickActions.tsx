@@ -1,24 +1,27 @@
 import { Plus, ReceiptText, ScrollText, Target, CheckSquare, Repeat2 } from "lucide-react";
+import { TranslationKey } from "@/i18n/i18n.types";
+import { useI18n } from "@/i18n";
 
 interface QuickActionsProps {
   onNavigate: (path: string) => void;
 }
 
 export function QuickActions({ onNavigate }: QuickActionsProps): JSX.Element {
+  const { t } = useI18n();
   const actions = [
-    { icon: CheckSquare, label: "Add Task", path: "/tasks" },
-    { icon: Repeat2, label: "Add Habit", path: "/habits" },
-    { icon: Target, label: "Add Goal", path: "/goals/new" },
-    { icon: ReceiptText, label: "Add Transaction", path: "/finance" },
-    { icon: ScrollText, label: "Write Daily Review", path: "/reviews" },
-  ] as const;
+    { icon: CheckSquare, labelKey: "tasks.addTask", path: "/tasks" },
+    { icon: Repeat2, labelKey: "habits.addHabit", path: "/habits" },
+    { icon: Target, labelKey: "goals.addGoal", path: "/goals/new" },
+    { icon: ReceiptText, labelKey: "dashboard.addTransaction", path: "/finance" },
+    { icon: ScrollText, labelKey: "dashboard.writeDailyReview", path: "/reviews" },
+  ] satisfies Array<{ icon: typeof CheckSquare; labelKey: TranslationKey; path: string }>;
 
   return (
     <section className="dashboard-card">
       <div className="dashboard-card__header">
         <div>
-          <h2>Quick Actions</h2>
-          <p>Jump directly into the next useful action.</p>
+          <h2>{t("dashboard.quickActions")}</h2>
+          <p>{t("dashboard.quickActionsSubtitle")}</p>
         </div>
       </div>
       <div className="dashboard-quick-actions">
@@ -26,9 +29,9 @@ export function QuickActions({ onNavigate }: QuickActionsProps): JSX.Element {
           const Icon = action.icon;
 
           return (
-            <button key={action.label} onClick={() => onNavigate(action.path)} type="button">
+            <button key={action.labelKey} onClick={() => onNavigate(action.path)} type="button">
               <Icon size={17} />
-              <span>{action.label}</span>
+              <span>{t(action.labelKey)}</span>
               <Plus size={14} />
             </button>
           );

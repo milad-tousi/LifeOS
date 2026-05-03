@@ -2,6 +2,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { Task } from "@/domains/tasks/types";
 import { TaskGroupSection } from "@/features/tasks/components/TaskGroupSection";
 import { TaskListGroup } from "@/features/tasks/utils/tasks-list-view.utils";
+import { useI18n } from "@/i18n";
 
 interface TasksListViewProps {
   allTasks: Task[];
@@ -22,11 +23,13 @@ export function TasksListView({
   onEditTask,
   onToggleTask,
 }: TasksListViewProps): JSX.Element {
+  const { t } = useI18n();
+
   if (!hasTasks) {
     return (
       <EmptyState
-        title="No tasks yet"
-        description="Add your first task to get started."
+        title={t("tasks.noTasksYet")}
+        description={t("tasks.noTasksDescription")}
       />
     );
   }
@@ -42,6 +45,7 @@ export function TasksListView({
           onEditTask={onEditTask}
           onToggleTask={onToggleTask}
           tasks={group.tasks}
+          groupKey={group.key}
           title={group.title}
         />
       ))}

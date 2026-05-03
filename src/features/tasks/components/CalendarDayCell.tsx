@@ -1,4 +1,6 @@
 import { CalendarDay, CalendarDayState, CalendarItem } from "@/features/tasks/utils/tasks-calendar-view.utils";
+import { Language } from "@/i18n/i18n.types";
+import { useI18n } from "@/i18n";
 
 interface CalendarDayCellProps {
   day: CalendarDay;
@@ -6,6 +8,7 @@ interface CalendarDayCellProps {
   isSelected: boolean;
   isToday: boolean;
   items: CalendarItem[];
+  language: Language;
   onContextMenu: (date: Date, position: { x: number; y: number }) => void;
   onSelect: (date: Date) => void;
 }
@@ -16,9 +19,11 @@ export function CalendarDayCell({
   isSelected,
   isToday,
   items,
+  language,
   onContextMenu,
   onSelect,
 }: CalendarDayCellProps): JSX.Element {
+  const { t } = useI18n();
   const previewItems = items.slice(0, 2);
   const extraCount = items.length - previewItems.length;
 
@@ -46,7 +51,7 @@ export function CalendarDayCell({
       type="button"
     >
       <div className="task-calendar__day-header">
-        <span className="task-calendar__day-number">{day.date.getDate()}</span>
+        <span className="task-calendar__day-number">{day.label}</span>
         {dayState.hasItems ? (
           <span className="task-calendar__day-count">{items.length}</span>
         ) : null}
@@ -61,28 +66,36 @@ export function CalendarDayCell({
             {getPreviewLabel(item)}
           </span>
         ))}
-        {extraCount > 0 ? <span className="task-calendar__day-more">+{extraCount} more</span> : null}
+        {extraCount > 0 ? (
+          <span className="task-calendar__day-more">
+            +{formatCount(extraCount, language)} {t("common.more")}
+          </span>
+        ) : null}
       </div>
 
       <div className="task-calendar__day-indicators">
         {dayState.taskCount > 0 ? (
           <span className="task-calendar__day-indicator task-calendar__day-indicator--task">
-            {dayState.taskCount} task{dayState.taskCount === 1 ? "" : "s"}
+            {formatCount(dayState.taskCount, language)} {t("tasks.task")}
           </span>
         ) : null}
         {dayState.eventCount > 0 ? (
           <span className="task-calendar__day-indicator task-calendar__day-indicator--info">
-            {dayState.eventCount} event{dayState.eventCount === 1 ? "" : "s"}
+            {formatCount(dayState.eventCount, language)} {t("calendar.event")}
           </span>
         ) : null}
         {dayState.holidayCount > 0 ? (
           <span className="task-calendar__day-indicator task-calendar__day-indicator--holiday">
-            Holiday
+            {t("calendar.holiday")}
           </span>
         ) : null}
       </div>
     </button>
   );
+}
+
+function formatCount(value: number, language: Language): string {
+  return new Intl.NumberFormat(language === "fa" ? "fa-IR" : "en-US").format(value);
 }
 
 function getPreviewLabel(item: CalendarItem): string {

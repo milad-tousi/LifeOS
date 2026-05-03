@@ -50,7 +50,9 @@ export interface CalendarHoliday {
   title: string;
   date: ISODateString;
   type: "holiday";
+  calendarType?: "holiday" | "occasion";
   region?: string;
+  isHoliday?: boolean;
   isReadOnly: true;
 }
 

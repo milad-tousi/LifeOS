@@ -1,7 +1,10 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatCalendarMonthLabel } from "@/features/tasks/utils/tasks-calendar-view.utils";
+import { Language } from "@/i18n/i18n.types";
+import { useI18n } from "@/i18n";
 
 interface CalendarHeaderProps {
+  language: Language;
   monthDate: Date;
   onGoToToday: () => void;
   onNextMonth: () => void;
@@ -9,21 +12,24 @@ interface CalendarHeaderProps {
 }
 
 export function CalendarHeader({
+  language,
   monthDate,
   onGoToToday,
   onNextMonth,
   onPreviousMonth,
 }: CalendarHeaderProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <div className="task-calendar__header">
       <div>
-        <p className="task-calendar__eyebrow">Month view</p>
-        <h2 className="task-calendar__month">{formatCalendarMonthLabel(monthDate)}</h2>
+        <p className="task-calendar__eyebrow">{t("calendar.monthView")}</p>
+        <h2 className="task-calendar__month">{formatCalendarMonthLabel(monthDate, language)}</h2>
       </div>
 
       <div className="task-calendar__header-actions">
         <button
-          aria-label="Go to previous month"
+          aria-label={t("calendar.previous")}
           className="task-calendar__nav-button"
           onClick={onPreviousMonth}
           type="button"
@@ -31,7 +37,7 @@ export function CalendarHeader({
           <ChevronLeft size={18} />
         </button>
         <button
-          aria-label="Go to next month"
+          aria-label={t("calendar.next")}
           className="task-calendar__nav-button"
           onClick={onNextMonth}
           type="button"
@@ -39,7 +45,7 @@ export function CalendarHeader({
           <ChevronRight size={18} />
         </button>
         <button className="task-calendar__today-button" onClick={onGoToToday} type="button">
-          Today
+          {t("common.today")}
         </button>
       </div>
     </div>

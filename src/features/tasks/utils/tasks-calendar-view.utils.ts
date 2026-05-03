@@ -10,11 +10,25 @@ import {
   getRecurrenceLabel,
 } from "@/domains/calendar/calendar.utils";
 import { Task } from "@/domains/tasks/types";
+import { getPersianCalendarEventsForMonth } from "@/i18n/calendars/persianHolidays";
+import {
+  addPersianMonths,
+  formatPersianDate,
+  formatPersianMonth,
+  formatPersianNumber,
+  formatPersianShortDate,
+  getPersianMonthStart,
+  getPersianWeekdayIndex,
+  PERSIAN_WEEKDAY_NAMES,
+  toPersianDate,
+} from "@/i18n/calendars/persianCalendar";
+import { Language } from "@/i18n/i18n.types";
 
 export interface CalendarDay {
   date: Date;
   key: string;
   isCurrentMonth: boolean;
+  label: string;
 }
 
 export type CalendarItem =
@@ -35,11 +49,15 @@ export interface CalendarDayState {
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
-export function getCalendarWeekdayLabels(): readonly string[] {
-  return WEEKDAY_LABELS;
+export function getCalendarWeekdayLabels(language: Language): readonly string[] {
+  return language === "fa" ? PERSIAN_WEEKDAY_NAMES : WEEKDAY_LABELS;
 }
 
-export function getMonthGrid(monthDate: Date): CalendarDay[] {
+export function getMonthGrid(monthDate: Date, language: Language = "en"): CalendarDay[] {
+  if (language === "fa") {
+    return getPersianMonthGrid(monthDate);
+  }
+
   const monthStart = getStartOfMonth(monthDate);
   const startOffset = (monthStart.getDay() + 6) % 7;
   const gridStart = addDays(monthStart, -startOffset);
@@ -51,8 +69,22 @@ export function getMonthGrid(monthDate: Date): CalendarDay[] {
       date,
       key: toCalendarDateKey(date),
       isCurrentMonth: date.getMonth() === monthStart.getMonth(),
+      label: String(date.getDate()),
     };
   });
+}
+
+export function getCalendarMonthStart(date: Date, language: Language): Date {
+  return language === "fa" ? getPersianMonthStart(date) : getStartOfMonth(date);
+}
+
+export function addCalendarMonths(date: Date, offset: number, language: Language): Date {
+  return language === "fa" ? addPersianMonths(date, offset) : new Date(date.getFullYear(), date.getMonth() + offset, 1);
+}
+
+export function getPersianHolidaysForMonth(monthDate: Date): CalendarHoliday[] {
+  const persianDate = toPersianDate(monthDate);
+  return getPersianCalendarEventsForMonth(persianDate.year, persianDate.month);
 }
 
 export function groupCalendarItemsByDate(
@@ -122,8 +154,9 @@ export function getHolidaysForCalendarDate(items: CalendarItem[]): CalendarHolid
 export function getCalendarEventOccurrencesForMonth(
   visibleMonth: Date,
   events: import("@/domains/calendar/types").CalendarEvent[],
+  language: Language = "en",
 ): CalendarEventOccurrence[] {
-  const monthGrid = getMonthGrid(visibleMonth);
+  const monthGrid = getMonthGrid(visibleMonth, language);
   return expandRecurringEventsForRange(events, monthGrid[0].date, monthGrid[monthGrid.length - 1].date);
 }
 
@@ -198,14 +231,22 @@ export function toCalendarDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function formatCalendarMonthLabel(date: Date): string {
+export function formatCalendarMonthLabel(date: Date, language: Language = "en"): string {
+  if (language === "fa") {
+    return formatPersianMonth(date);
+  }
+
   return new Intl.DateTimeFormat("en-GB", {
     month: "long",
     year: "numeric",
   }).format(date);
 }
 
-export function formatSelectedDayLabel(date: Date): string {
+export function formatSelectedDayLabel(date: Date, language: Language = "en"): string {
+  if (language === "fa") {
+    return formatPersianDate(date, true);
+  }
+
   return new Intl.DateTimeFormat("en-GB", {
     weekday: "long",
     day: "numeric",
@@ -214,7 +255,7 @@ export function formatSelectedDayLabel(date: Date): string {
   }).format(date);
 }
 
-export function formatTaskDateTime(task: Task): string | null {
+export function formatTaskDateTime(task: Task, language: Language = "en"): string | null {
   const taskDate = getTaskCalendarDate(task);
 
   if (!taskDate) {
@@ -223,6 +264,17 @@ export function formatTaskDateTime(task: Task): string | null {
 
   const scheduledTime = task.scheduledAt ? new Date(task.scheduledAt) : null;
   const hasScheduledTime = scheduledTime && !Number.isNaN(scheduledTime.getTime());
+
+  if (language === "fa") {
+    return hasScheduledTime
+      ? new Intl.DateTimeFormat("fa-IR", {
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          month: "short",
+        }).format(scheduledTime)
+      : formatPersianShortDate(taskDate);
+  }
 
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
@@ -234,6 +286,26 @@ export function formatTaskDateTime(task: Task): string | null {
         }
       : {}),
   }).format(hasScheduledTime ? scheduledTime : taskDate);
+}
+
+function getPersianMonthGrid(monthDate: Date): CalendarDay[] {
+  const persianMonthStart = getPersianMonthStart(monthDate);
+  const persianMonth = toPersianDate(persianMonthStart);
+  const startOffset = getPersianWeekdayIndex(persianMonthStart);
+  const gridStart = addDays(persianMonthStart, -startOffset);
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = addDays(gridStart, index);
+    const persianDate = toPersianDate(date);
+
+    return {
+      date,
+      key: toCalendarDateKey(date),
+      isCurrentMonth:
+        persianDate.year === persianMonth.year && persianDate.month === persianMonth.month,
+      label: formatPersianNumber(persianDate.day),
+    };
+  });
 }
 
 export function formatCalendarOccurrenceLabel(
