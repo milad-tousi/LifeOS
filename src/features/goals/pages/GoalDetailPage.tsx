@@ -16,6 +16,7 @@ import { GoalProgress } from "@/features/goals/components/GoalProgress";
 import { GoalTaskList } from "@/features/goals/components/GoalTaskList";
 import { useGoalDetail } from "@/features/goals/hooks/useGoalDetail";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
+import { getAllDescendantTasks } from "@/features/tasks/utils/taskHierarchy";
 
 const TASK_ROW_TRANSITION_MS = 220;
 
@@ -191,6 +192,7 @@ export function GoalDetailPage(): JSX.Element {
         ) : (
           <GoalTaskList
             deletingTaskId={deletingTaskId}
+            goalId={displayGoal.id}
             onMarkHighPriority={(task) => {
               commitTaskUpdate(task, {
                 priority: "high",
@@ -207,7 +209,7 @@ export function GoalDetailPage(): JSX.Element {
             onReorderTasks={handleReorderTasks}
             onToggleTask={(task) => {
               const hasIncompleteSubtasks =
-                task.subtaskProgress.total > task.subtaskProgress.completed;
+                getIncompleteDescendantCount(task, taskListState) > 0;
 
               if (task.status !== "done" && hasIncompleteSubtasks) {
                 setTaskPendingCompletion(task);
@@ -340,4 +342,14 @@ export function GoalDetailPage(): JSX.Element {
       />
     </div>
   );
+}
+
+function getIncompleteDescendantCount(task: Task, tasks: Task[]): number {
+  const descendants = getAllDescendantTasks(tasks, task.id);
+
+  if (descendants.length === 0) {
+    return task.subtaskProgress.total - task.subtaskProgress.completed;
+  }
+
+  return descendants.filter((descendant) => descendant.status !== "done" && descendant.status !== "cancelled").length;
 }

@@ -22,7 +22,18 @@ function getSafeTasks(tasks?: Task[]): Task[] {
 }
 
 function getSafeSubtasks(tasks: Task[]): TaskSubtask[] {
-  return tasks.flatMap((task) => (Array.isArray(task.subtasks) ? task.subtasks : []));
+  const taskSubtasks = tasks
+    .filter((task) => task.parentTaskId)
+    .map((task) => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      completed: task.status === "done",
+    }));
+  const embeddedSubtasks = tasks.flatMap((task) => (Array.isArray(task.subtasks) ? task.subtasks : []));
+  const subtasksById = new Map([...embeddedSubtasks, ...taskSubtasks].map((subtask) => [subtask.id, subtask]));
+
+  return Array.from(subtasksById.values());
 }
 
 export function computeTasksProgress(tasks?: Task[]): GoalProgressSnapshot {
@@ -36,6 +47,35 @@ export function computeTasksProgress(tasks?: Task[]): GoalProgressSnapshot {
     total,
     label: total > 0 ? `${completed} of ${total} tasks completed` : "No steps yet",
   };
+}
+
+export function computeRootTaskProgress(rootTask: Task, allTasks: Task[]): GoalProgressSnapshot {
+  const descendantTasks = getAllDescendantTasksForProgress(allTasks, rootTask.id);
+  const progressTasks = descendantTasks.length > 0 ? descendantTasks : [rootTask];
+
+  return computeTasksProgress(progressTasks);
+}
+
+function getAllDescendantTasksForProgress(tasks: Task[], parentTaskId: string): Task[] {
+  const descendants: Task[] = [];
+  const visitedTaskIds = new Set<string>();
+
+  collect(parentTaskId);
+  return descendants;
+
+  function collect(currentParentTaskId: string): void {
+    if (visitedTaskIds.has(currentParentTaskId)) {
+      return;
+    }
+
+    visitedTaskIds.add(currentParentTaskId);
+    tasks
+      .filter((task) => task.parentTaskId === currentParentTaskId)
+      .forEach((task) => {
+        descendants.push(task);
+        collect(task.id);
+      });
+  }
 }
 
 export function computeSubtasksProgress(tasks?: Task[]): GoalProgressSnapshot {

@@ -3,15 +3,30 @@ import { CSS } from "@dnd-kit/utilities";
 import { CalendarDays, CheckCircle2, Circle, CircleDashed, GripVertical, ListChecks, Target, Trash2, XCircle } from "lucide-react";
 import { Task } from "@/domains/tasks/types";
 import { formatTaskDueDate } from "@/features/tasks/utils/tasks-list-view.utils";
+import {
+  getAllDescendantTasks,
+  getParentTask,
+  getRootTask,
+  getTaskDepth,
+} from "@/features/tasks/utils/taskHierarchy";
 
 interface TaskCardProps {
+  allTasks?: Task[];
   goalTitle?: string;
+  goalTitlesById?: Record<string, string>;
   onDelete: (task: Task) => void;
   onEdit: (task: Task) => void;
   task: Task;
 }
 
-export function TaskCard({ goalTitle, onDelete, onEdit, task }: TaskCardProps): JSX.Element {
+export function TaskCard({
+  allTasks = [task],
+  goalTitle,
+  goalTitlesById = {},
+  onDelete,
+  onEdit,
+  task,
+}: TaskCardProps): JSX.Element {
   const {
     attributes,
     isDragging,
@@ -32,6 +47,18 @@ export function TaskCard({ goalTitle, onDelete, onEdit, task }: TaskCardProps): 
     transform: CSS.Translate.toString(transform),
   };
   const formattedDueDate = formatTaskDueDate(task);
+  const depth = getTaskDepth(task.id, allTasks);
+  const parentTask = getParentTask(task, allTasks);
+  const rootTask = getRootTask(task, allTasks);
+  const descendants = getAllDescendantTasks(allTasks, task.id);
+  const childProgress =
+    descendants.length > 0
+      ? {
+          completed: descendants.filter((item) => item.status === "done").length,
+          total: descendants.filter((item) => item.status !== "cancelled").length,
+        }
+      : task.subtaskProgress;
+  const resolvedGoalTitle = goalTitle ?? (task.goalId ? goalTitlesById[task.goalId] : undefined);
 
   return (
     <article
@@ -53,6 +80,7 @@ export function TaskCard({ goalTitle, onDelete, onEdit, task }: TaskCardProps): 
         <span className={`goal-task-list__priority-chip goal-task-list__priority-chip--${task.priority}`}>
           {getPriorityLabel(task.priority)}
         </span>
+        <span className="tasks-list-row__scope-chip">{getHierarchyLabel(task, depth)}</span>
         <button
           aria-label={`Delete task ${task.title}`}
           className="task-board-card__delete"
@@ -77,11 +105,23 @@ export function TaskCard({ goalTitle, onDelete, onEdit, task }: TaskCardProps): 
         {task.description ? <p className="task-board-card__description">{task.description}</p> : null}
 
         <div className="task-board-card__meta">
-          {goalTitle ? (
+          {resolvedGoalTitle ? (
             <span className="tasks-list-row__scope-chip tasks-list-row__scope-chip--goal">
               <Target size={13} />
-              {goalTitle}
+              Goal: {resolvedGoalTitle}
             </span>
+          ) : null}
+          {task.parentTaskId ? (
+            parentTask ? (
+              <span className="tasks-list-row__scope-chip">Parent: {parentTask.title}</span>
+            ) : (
+              <span className="tasks-list-row__scope-chip tasks-list-row__scope-chip--warning">
+                Missing parent
+              </span>
+            )
+          ) : null}
+          {depth > 1 && rootTask.id !== task.id ? (
+            <span className="tasks-list-row__scope-chip">Root: {rootTask.title}</span>
           ) : null}
           {formattedDueDate ? (
             <span className="goal-task-list__meta-chip">
@@ -89,16 +129,24 @@ export function TaskCard({ goalTitle, onDelete, onEdit, task }: TaskCardProps): 
               {formattedDueDate}
             </span>
           ) : null}
-          {task.subtaskProgress.total > 0 ? (
+          {childProgress.total > 0 ? (
             <span className="goal-task-list__meta-chip goal-task-list__meta-chip--success">
               <ListChecks size={13} />
-              {task.subtaskProgress.completed}/{task.subtaskProgress.total}
+              {childProgress.completed}/{childProgress.total}
             </span>
           ) : null}
         </div>
       </button>
     </article>
   );
+}
+
+function getHierarchyLabel(task: Task, depth: number): string {
+  if (!task.parentTaskId) {
+    return "Task";
+  }
+
+  return depth <= 1 ? "Subtask" : "Nested subtask";
 }
 
 function renderStatusIcon(status: Task["status"]): JSX.Element {

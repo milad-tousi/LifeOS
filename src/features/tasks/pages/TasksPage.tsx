@@ -4,6 +4,7 @@ import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { CalendarEvent } from "@/domains/calendar/types";
 import { taskBoardColumnsRepository } from "@/domains/tasks/board.repository";
 import { TaskBoardColumn } from "@/domains/tasks/board.types";
+import { AddBoardColumnCard } from "@/features/tasks/components/AddBoardColumnCard";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
 import { TaskBoardView } from "@/features/tasks/components/TaskBoardView";
 import { TaskCalendarView } from "@/features/tasks/components/TaskCalendarView";
@@ -228,7 +229,6 @@ export function TasksPage(): JSX.Element {
           <TaskBoardView
             boardColumns={boardColumnsState}
             goalTitlesById={goalTitlesById}
-            onAddColumn={handleAddBoardColumn}
             onDeleteColumn={handleDeleteBoardColumn}
             onDeleteTask={setTaskPendingDelete}
             onEditTask={setTaskBeingEdited}
@@ -273,6 +273,7 @@ export function TasksPage(): JSX.Element {
         return (
           <TasksListView
             goalTitlesById={goalTitlesById}
+            allTasks={taskListState}
             groups={groupedTasks}
             hasTasks={taskListState.length > 0}
             onDeleteTask={setTaskPendingDelete}
@@ -284,7 +285,7 @@ export function TasksPage(): JSX.Element {
   }
 
   return (
-    <>
+    <div className="tasks-page">
       <TasksPageHeader
         onAddTask={() => {
           setTaskDraftDueDate(undefined);
@@ -294,23 +295,34 @@ export function TasksPage(): JSX.Element {
 
       <Card>
         <div className="tasks-page-shell">
-          <TaskViewSwitcher activeView={activeTaskView} onChange={setActiveTaskView} />
+          <div className="tasks-page-shell__top-row">
+            <TaskViewSwitcher activeView={activeTaskView} onChange={setActiveTaskView} />
+            <div className="tasks-page-shell__actions">
+              {activeTaskView === "board" ? (
+                <AddBoardColumnCard onAddColumn={handleAddBoardColumn} />
+              ) : null}
+            </div>
+          </div>
           {activeTaskView !== "calendar" ? (
-            <TasksQuickAdd
-              isSubmitting={isQuickAdding}
-              onChange={setQuickAddValue}
-              onOpenAddTaskModal={() => {
-                setTaskDraftDueDate(undefined);
-                setIsAddTaskModalOpen(true);
-              }}
-              onSubmit={() => void handleQuickAdd()}
-              value={quickAddValue}
-            />
+            <div className="tasks-page-shell__quick-add">
+              <TasksQuickAdd
+                isSubmitting={isQuickAdding}
+                onChange={setQuickAddValue}
+                onOpenAddTaskModal={() => {
+                  setTaskDraftDueDate(undefined);
+                  setIsAddTaskModalOpen(true);
+                }}
+                onSubmit={() => void handleQuickAdd()}
+                value={quickAddValue}
+              />
+            </div>
           ) : null}
         </div>
       </Card>
 
-      {loading ? <p className="text-muted">Loading tasks...</p> : renderActiveView()}
+      <div className={`tasks-page__view tasks-page__view--${activeTaskView}`}>
+        {loading ? <p className="text-muted">Loading tasks...</p> : renderActiveView()}
+      </div>
 
       <TaskModal
         initialValues={addTaskInitialValues}
@@ -370,6 +382,6 @@ export function TasksPage(): JSX.Element {
         title="Delete this task?"
         tone="danger"
       />
-    </>
+    </div>
   );
 }

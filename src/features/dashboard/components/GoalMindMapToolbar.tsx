@@ -12,6 +12,7 @@ interface GoalMindMapToolbarProps {
   onSaveLayout: () => void;
   onSelectGoal: () => void;
   onToggleConnectMode: () => void;
+  saveStatus: "saved" | "saving" | "unsaved" | "failed";
 }
 
 export function GoalMindMapToolbar({
@@ -24,6 +25,7 @@ export function GoalMindMapToolbar({
   onSaveLayout,
   onSelectGoal,
   onToggleConnectMode,
+  saveStatus,
 }: GoalMindMapToolbarProps): JSX.Element {
   return (
     <Panel className="dashboard-mind-toolbar nodrag nopan" position="top-left">
@@ -72,6 +74,23 @@ export function GoalMindMapToolbar({
         <Expand size={16} />
         <span>Fit View</span>
       </Button>
+      <span className={`dashboard-mind-toolbar__status dashboard-mind-toolbar__status--${saveStatus}`}>
+        {getSaveStatusLabel(saveStatus)}
+      </span>
     </Panel>
   );
+}
+
+function getSaveStatusLabel(saveStatus: GoalMindMapToolbarProps["saveStatus"]): string {
+  switch (saveStatus) {
+    case "saving":
+      return "Saving...";
+    case "unsaved":
+      return "Unsaved changes";
+    case "failed":
+      return "Save failed";
+    case "saved":
+    default:
+      return "Saved";
+  }
 }

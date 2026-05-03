@@ -4,6 +4,7 @@ import { TaskGroupSection } from "@/features/tasks/components/TaskGroupSection";
 import { TaskListGroup } from "@/features/tasks/utils/tasks-list-view.utils";
 
 interface TasksListViewProps {
+  allTasks: Task[];
   goalTitlesById: Record<string, string>;
   groups: TaskListGroup[];
   hasTasks: boolean;
@@ -13,6 +14,7 @@ interface TasksListViewProps {
 }
 
 export function TasksListView({
+  allTasks,
   goalTitlesById,
   groups,
   hasTasks,
@@ -34,6 +36,7 @@ export function TasksListView({
       {groups.map((group) => (
         <TaskGroupSection
           goalTitlesById={goalTitlesById}
+          allTasks={allTasks}
           key={group.key}
           onDeleteTask={onDeleteTask}
           onEditTask={onEditTask}

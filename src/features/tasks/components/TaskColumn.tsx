@@ -7,6 +7,7 @@ import { BoardColumnHeader } from "@/features/tasks/components/BoardColumnHeader
 import { TaskCard } from "@/features/tasks/components/TaskCard";
 
 interface TaskColumnProps {
+  allTasks: Task[];
   column: TaskBoardColumn;
   goalTitlesById: Record<string, string>;
   onDeleteColumn: (column: TaskBoardColumn) => void;
@@ -17,6 +18,7 @@ interface TaskColumnProps {
 }
 
 export function TaskColumn({
+  allTasks,
   column,
   goalTitlesById,
   onDeleteColumn,
@@ -74,6 +76,8 @@ export function TaskColumn({
         ) : (
           tasks.map((task) => (
             <TaskCard
+              allTasks={allTasks}
+              goalTitlesById={goalTitlesById}
               goalTitle={task.goalId ? goalTitlesById[task.goalId] : undefined}
               key={task.id}
               onDelete={onDeleteTask}

@@ -1,11 +1,17 @@
 import { Task } from "@/domains/tasks/types";
 import { GoalMindMapNode } from "@/features/dashboard/types/goalMindMap.types";
 
-const GOAL_NODE_ID = "goal";
+const LEGACY_GOAL_NODE_ID = "goal";
+const GOAL_NODE_PREFIX = "goal:";
 const TASK_NODE_PREFIX = "task-";
 
 export function isGoalNode(node: GoalMindMapNode | undefined): boolean {
-  return Boolean(node && (node.id === GOAL_NODE_ID || node.data.kind === "goal"));
+  return Boolean(
+    node &&
+      (node.id === LEGACY_GOAL_NODE_ID ||
+        node.id.startsWith(GOAL_NODE_PREFIX) ||
+        node.data.kind === "goal"),
+  );
 }
 
 export function isTaskNode(node: GoalMindMapNode | undefined): boolean {
@@ -59,6 +65,31 @@ export function canConnectMindMapNodes(
   }
 
   return isTaskNode(sourceNode) && isTaskNode(targetNode);
+}
+
+export function wouldCreateCycle(sourceTaskId: string, targetTaskId: string, tasks: Task[]): boolean {
+  if (sourceTaskId === targetTaskId) {
+    return true;
+  }
+
+  const tasksById = new Map(tasks.map((task) => [task.id, task]));
+  const visitedTaskIds = new Set<string>();
+  let cursor = tasksById.get(sourceTaskId);
+
+  while (cursor?.parentTaskId) {
+    if (cursor.parentTaskId === targetTaskId) {
+      return true;
+    }
+
+    if (visitedTaskIds.has(cursor.parentTaskId)) {
+      return true;
+    }
+
+    visitedTaskIds.add(cursor.parentTaskId);
+    cursor = tasksById.get(cursor.parentTaskId);
+  }
+
+  return false;
 }
 
 export function getTaskIdFromMindMapNodeId(nodeId: string): string {

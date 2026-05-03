@@ -2,6 +2,7 @@ import { Task } from "@/domains/tasks/types";
 import { TaskListRow } from "@/features/tasks/components/TaskListRow";
 
 interface TaskGroupSectionProps {
+  allTasks: Task[];
   goalTitlesById: Record<string, string>;
   onDeleteTask: (task: Task) => void;
   onEditTask: (task: Task) => void;
@@ -11,6 +12,7 @@ interface TaskGroupSectionProps {
 }
 
 export function TaskGroupSection({
+  allTasks,
   goalTitlesById,
   onDeleteTask,
   onEditTask,
@@ -29,7 +31,9 @@ export function TaskGroupSection({
       <div className="goal-task-list">
         {tasks.map((task) => (
           <TaskListRow
+            allTasks={allTasks}
             goalTitle={task.goalId ? goalTitlesById[task.goalId] : undefined}
+            goalTitlesById={goalTitlesById}
             isStandalone={!task.goalId}
             key={task.id}
             onDelete={onDeleteTask}

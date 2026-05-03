@@ -40,7 +40,7 @@ export interface Task {
   priority: TaskPriority;
   category?: string;
   goalId?: EntityId;
-  parentTaskId?: EntityId;
+  parentTaskId?: EntityId | null;
   dueDate?: ISODateString;
   scheduledDate?: ISODateString;
   estimatedDurationMinutes?: number;
@@ -64,7 +64,7 @@ export interface CreateTaskInput {
   priority?: TaskPriority;
   category?: string;
   goalId?: EntityId;
-  parentTaskId?: EntityId;
+  parentTaskId?: EntityId | null;
   dueDate?: ISODateString;
   scheduledDate?: ISODateString;
   estimatedDurationMinutes?: number;

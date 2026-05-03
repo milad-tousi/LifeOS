@@ -12,9 +12,10 @@ export interface GoalMindMapStoredEdge {
 }
 
 export interface GoalMindMapLayout {
-  edges: GoalMindMapStoredEdge[];
+  manualEdges: GoalMindMapStoredEdge[];
   nodePositions: Record<string, XYPosition>;
   selectedGoalId: string;
+  updatedAt?: string;
 }
 
 export interface GoalMindMapGoalNodeData {

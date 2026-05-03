@@ -36,8 +36,15 @@ import {
 import { EmptyState } from "@/components/common/EmptyState";
 import { Task } from "@/domains/tasks/types";
 import { summarizeTaskSources } from "@/domains/tasks/task.utils";
+import { TaskTree } from "@/features/tasks/components/TaskTree";
+import {
+  buildGoalTaskTree,
+  getAllDescendantTasks,
+  TaskTreeNode,
+} from "@/features/tasks/utils/taskHierarchy";
 
 interface GoalTaskListProps {
+  goalId: string;
   onMarkHighPriority: (task: Task) => void;
   onMarkInProgress: (task: Task) => void;
   onReorderTasks: (tasks: Task[]) => void;
@@ -52,6 +59,7 @@ interface GoalTaskListProps {
 
 export function GoalTaskList({
   deletingTaskId = null,
+  goalId,
   onMarkHighPriority,
   onMarkInProgress,
   onReorderTasks,
@@ -62,6 +70,8 @@ export function GoalTaskList({
   recentTaskTone = null,
   tasks,
 }: GoalTaskListProps): JSX.Element {
+  const taskTrees = buildGoalTaskTree(tasks, goalId);
+  const rootTasks = taskTrees.map((node) => node.task);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -79,7 +89,7 @@ export function GoalTaskList({
     }),
   );
 
-  if (tasks.length === 0) {
+  if (rootTasks.length === 0) {
     return (
       <EmptyState
         title="No steps yet"
@@ -95,33 +105,36 @@ export function GoalTaskList({
       return;
     }
 
-    const oldIndex = tasks.findIndex((task) => task.id === active.id);
-    const newIndex = tasks.findIndex((task) => task.id === over.id);
+    const oldIndex = rootTasks.findIndex((task) => task.id === active.id);
+    const newIndex = rootTasks.findIndex((task) => task.id === over.id);
 
     if (oldIndex < 0 || newIndex < 0) {
       return;
     }
 
-    const reorderedTasks = [...tasks];
+    const reorderedTasks = [...rootTasks];
     const [movedTask] = reorderedTasks.splice(oldIndex, 1);
     reorderedTasks.splice(newIndex, 0, movedTask);
 
     onReorderTasks(
-      reorderedTasks.map((task, index) => ({
-        ...task,
-        sortOrder: index,
-      })),
+      [
+        ...reorderedTasks.map((task, index) => ({
+          ...task,
+          sortOrder: index,
+        })),
+        ...tasks.filter((task) => task.parentTaskId),
+      ],
     );
   }
 
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} sensors={sensors}>
-      <SortableContext items={tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={rootTasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
         <div className="goal-task-list">
-          {tasks.map((task) => (
+          {taskTrees.map((treeNode) => (
             <SortableTaskItem
               deletingTaskId={deletingTaskId}
-              key={task.id}
+              key={treeNode.task.id}
               onDeleteTask={onDeleteTask}
               onEditTask={onEditTask}
               onMarkHighPriority={onMarkHighPriority}
@@ -129,7 +142,9 @@ export function GoalTaskList({
               onToggleTask={onToggleTask}
               recentTaskId={recentTaskId}
               recentTaskTone={recentTaskTone}
-              task={task}
+              task={treeNode.task}
+              taskTreeChildren={treeNode.children}
+              allTasks={tasks}
             />
           ))}
         </div>
@@ -148,6 +163,8 @@ interface SortableTaskItemProps {
   recentTaskId: string | null;
   recentTaskTone: "created" | "updated" | null;
   task: Task;
+  taskTreeChildren: TaskTreeNode["children"];
+  allTasks: Task[];
 }
 
 function SortableTaskItem({
@@ -160,6 +177,8 @@ function SortableTaskItem({
   recentTaskId,
   recentTaskTone,
   task,
+  taskTreeChildren,
+  allTasks,
 }: SortableTaskItemProps): JSX.Element {
   const {
     attributes,
@@ -174,6 +193,8 @@ function SortableTaskItem({
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  const descendantTasks = getAllDescendantTasks(allTasks, task.id);
+  const subtaskProgress = getDescendantProgress(task, descendantTasks);
 
   return (
     <article
@@ -277,28 +298,28 @@ function SortableTaskItem({
                 {source.label}
               </span>
             ))}
-            {task.subtaskProgress.total > 0 ? (
+            {subtaskProgress.total > 0 ? (
               <span className="goal-task-list__meta-chip goal-task-list__meta-chip--success">
                 <ListChecks size={14} />
-                {task.subtaskProgress.completed} / {task.subtaskProgress.total} subtasks
+                {subtaskProgress.completed} / {subtaskProgress.total} subtasks
               </span>
             ) : null}
           </div>
-          {task.subtaskProgress.total > 0 ? (
+          {subtaskProgress.total > 0 ? (
             <div className="goal-task-list__subtasks">
               <div className="goal-task-list__subtasks-header">
                 <span className="goal-task-list__subtasks-label">
-                  {task.subtaskProgress.completed} / {task.subtaskProgress.total} subtasks
+                  {subtaskProgress.completed} / {subtaskProgress.total} subtasks
                 </span>
                 <span className="goal-task-list__subtasks-value">
-                  {Math.round((task.subtaskProgress.completed / task.subtaskProgress.total) * 100)}
+                  {Math.round((subtaskProgress.completed / subtaskProgress.total) * 100)}
                   %
                 </span>
               </div>
               <div
                 aria-hidden="true"
                 className={`goal-task-list__subtasks-bar${
-                  task.subtaskProgress.completed === task.subtaskProgress.total
+                  subtaskProgress.completed === subtaskProgress.total
                     ? " goal-task-list__subtasks-bar--complete"
                     : ""
                 }`}
@@ -307,7 +328,7 @@ function SortableTaskItem({
                   className="goal-task-list__subtasks-bar-fill"
                   style={{
                     width: `${Math.round(
-                      (task.subtaskProgress.completed / task.subtaskProgress.total) * 100,
+                      (subtaskProgress.completed / subtaskProgress.total) * 100,
                     )}%`,
                   }}
                 />
@@ -315,15 +336,27 @@ function SortableTaskItem({
             </div>
           ) : null}
           {task.status === "done" &&
-          task.subtaskProgress.total > task.subtaskProgress.completed ? (
+          subtaskProgress.total > subtaskProgress.completed ? (
             <p className="goal-task-list__warning">
-              {task.subtaskProgress.total - task.subtaskProgress.completed} of{" "}
-              {task.subtaskProgress.total} subtasks still incomplete
+              {subtaskProgress.total - subtaskProgress.completed} of{" "}
+              {subtaskProgress.total} subtasks still incomplete
             </p>
           ) : null}
           {task.description ? <p className="goal-task-list__description">{task.description}</p> : null}
         </div>
       </button>
+
+      {taskTreeChildren.length > 0 ? (
+        <div className="goal-task-list__tree">
+          <TaskTree
+            compact
+            depth={1}
+            nodes={taskTreeChildren}
+            onEditTask={onEditTask}
+            onToggleComplete={onToggleTask}
+          />
+        </div>
+      ) : null}
 
       <div className="goal-task-list__quick-actions" aria-label={`Quick actions for ${task.title}`}>
         {task.status !== "in_progress" ? (
@@ -369,6 +402,20 @@ function SortableTaskItem({
       </button>
     </article>
   );
+}
+
+function getDescendantProgress(
+  task: Task,
+  descendants: Task[],
+): { completed: number; total: number } {
+  if (descendants.length > 0) {
+    return {
+      completed: descendants.filter((descendant) => descendant.status === "done").length,
+      total: descendants.filter((descendant) => descendant.status !== "cancelled").length,
+    };
+  }
+
+  return task.subtaskProgress;
 }
 
 function renderTaskStatusIcon(status: Task["status"]): JSX.Element {

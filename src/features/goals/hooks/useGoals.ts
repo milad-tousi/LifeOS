@@ -41,8 +41,9 @@ export function useGoals(): UseGoalsResult {
     };
 
     return goalRecords.map((goal) => {
-      const linkedTasks = tasks.filter((task) => task.goalId === goal.id);
-      const progress = computeGoalProgress(goal, linkedTasks);
+      const allGoalTasks = tasks.filter((task) => task.goalId === goal.id);
+      const linkedTasks = allGoalTasks.filter((task) => !task.parentTaskId);
+      const progress = computeGoalProgress(goal, allGoalTasks);
       const habitProgress = calculateGoalHabitProgress(goal.id, habits, habitLogs, monthRange);
       const hasExistingProgress = progress.total > 0 || progress.percentage > 0;
       const hasHabitProgress = habitProgress.totalScheduledDays > 0;

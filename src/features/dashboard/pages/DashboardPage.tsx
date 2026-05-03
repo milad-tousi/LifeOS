@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { tasksRepository } from "@/domains/tasks/repository";
-import { Task } from "@/domains/tasks/types";
 import { DashboardSummaryCards } from "@/features/dashboard/components/DashboardSummaryCards";
 import { DashboardTabs } from "@/features/dashboard/components/DashboardTabs";
 import { GoalMindMap } from "@/features/dashboard/components/GoalMindMap";
@@ -40,6 +39,7 @@ export function DashboardPage(): JSX.Element {
   useEffect(() => {
     if (selectedGoalId && !goals.some((goal) => goal.goal.id === selectedGoalId)) {
       setSelectedGoalId("");
+      mergeGoalMindMapLayout({ selectedGoalId: "" });
     }
   }, [goals, selectedGoalId]);
 
@@ -70,42 +70,6 @@ export function DashboardPage(): JSX.Element {
     }
 
     updateTodayLog(habitId, 1);
-  }
-
-  async function handleLinkTasks(taskIds: string[]): Promise<void> {
-    if (!selectedGoalId) {
-      return;
-    }
-
-    await Promise.all(
-      tasks
-        .filter((task) => taskIds.includes(task.id))
-        .map((task) => tasksRepository.update({ ...task, goalId: selectedGoalId })),
-    );
-  }
-
-  async function handleCreateMindMapTask(input: {
-    dueDate?: string;
-    goalId?: string;
-    parentTaskId?: string;
-    priority: "low" | "medium" | "high";
-    status: "todo" | "in_progress" | "done" | "cancelled";
-    title: string;
-  }): Promise<Task | undefined> {
-    const goalId = input.goalId ?? selectedGoalId;
-
-    if (!goalId) {
-      return undefined;
-    }
-
-    return tasksRepository.add({
-      dueDate: input.dueDate,
-      goalId,
-      parentTaskId: input.parentTaskId,
-      priority: input.priority,
-      status: input.status,
-      title: input.title,
-    });
   }
 
   async function handleUpdateMindMapTask(input: EditMindMapTaskInput): Promise<void> {
@@ -170,12 +134,6 @@ export function DashboardPage(): JSX.Element {
       {activeTab === "mind-map" ? (
         <GoalMindMap
           goals={goals}
-          onCreateTask={(input) => {
-            return handleCreateMindMapTask(input);
-          }}
-          onLinkTasks={(taskIds) => {
-            return handleLinkTasks(taskIds);
-          }}
           onNavigateToGoals={() => navigate("/goals")}
           onSelectGoal={handleSelectGoal}
           onUpdateTask={handleUpdateMindMapTask}

@@ -49,13 +49,21 @@ import {
   canConnectMindMapNodes,
   getTaskIdFromMindMapNodeId,
   getTaskLevel,
+  wouldCreateCycle,
 } from "@/features/dashboard/utils/goalMindMapRules";
 import { GoalCardData } from "@/features/goals/hooks/useGoals";
+import {
+  createRealSubtaskFromMindMap,
+  createRealTaskFromMindMap,
+  linkSubtaskToParent,
+  linkTaskToGoal,
+  unlinkSubtaskFromParent,
+  unlinkTaskFromGoal,
+  unlinkVisualEdge,
+} from "@/features/dashboard/utils/goalMindMapPersistence";
 
 interface GoalMindMapProps {
   goals: GoalCardData[];
-  onCreateTask: (input: CreateMindMapTaskInput) => Promise<Task | undefined>;
-  onLinkTasks: (taskIds: string[]) => Promise<void>;
   onNavigateToGoals: () => void;
   onSelectGoal: (goalId: string) => void;
   onUpdateTask: (input: EditMindMapTaskInput) => Promise<void>;
@@ -63,12 +71,15 @@ interface GoalMindMapProps {
   tasks: Task[];
 }
 
-const GOAL_NODE_ID = "goal";
+const LEGACY_GOAL_NODE_ID = "goal";
+const EMPTY_GOAL_NODE_ID = "goal:empty";
 
 interface PendingCreation {
   mode: "task" | "subtask";
   sourceNodeId: string;
 }
+
+type SaveStatus = "saved" | "saving" | "unsaved" | "failed";
 
 const nodeTypes = {
   goalNode: GoalMindMapGoalNode,
@@ -85,8 +96,6 @@ export function GoalMindMap(props: GoalMindMapProps): JSX.Element {
 
 function GoalMindMapInner({
   goals,
-  onCreateTask,
-  onLinkTasks,
   onNavigateToGoals,
   onSelectGoal,
   onUpdateTask,
@@ -99,17 +108,20 @@ function GoalMindMapInner({
   const [connectMode, setConnectMode] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [connectionMessage, setConnectionMessage] = useState("");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [pendingCreation, setPendingCreation] = useState<PendingCreation>({
     mode: "task",
-    sourceNodeId: GOAL_NODE_ID,
+    sourceNodeId: EMPTY_GOAL_NODE_ID,
   });
   const [pendingNodePosition, setPendingNodePosition] = useState({ x: 640, y: 260 });
   const flowRef = useRef<ReactFlowInstance | null>(null);
   const fitGoalRef = useRef<string | null>(null);
   const connectionStartRef = useRef<OnConnectStartParams | null>(null);
   const connectionCompletedRef = useRef(false);
+  const autosaveTimeoutRef = useRef<number | null>(null);
   const { screenToFlowPosition } = useReactFlow();
   const selectedGoal = goals.find((goal) => goal.goal.id === selectedGoalId);
+  const goalNodeId = getGoalNodeId(selectedGoalId);
   const linkedTasks = useMemo(
     () => (selectedGoalId ? tasks.filter((task) => task.goalId === selectedGoalId) : []),
     [selectedGoalId, tasks],
@@ -133,10 +145,10 @@ function GoalMindMapInner({
   const [edges, setEdges] = useEdgesState([]);
 
   const validNodeIds = useMemo(() => {
-    const ids = new Set([GOAL_NODE_ID]);
+    const ids = new Set([goalNodeId]);
     linkedTasks.forEach((task) => ids.add(getTaskNodeId(task.id)));
     return ids;
-  }, [linkedTasks]);
+  }, [goalNodeId, linkedTasks]);
 
   const showConnectionMessage = useCallback((message: string): void => {
     setConnectionMessage(message);
@@ -147,18 +159,42 @@ function GoalMindMapInner({
 
   const persistCurrentLayout = useCallback(
     (nextNodes: GoalMindMapNode[] = nodes, nextEdges: GoalMindMapEdge[] = edges): void => {
-      const currentLayout = loadGoalMindMapLayout();
-      const nodePositions = { ...currentLayout.nodePositions };
-      nextNodes.forEach((node) => {
-        nodePositions[node.id] = node.position;
-      });
-      saveGoalMindMapLayout({
-        selectedGoalId,
-        nodePositions,
-        edges: toStoredEdges(nextEdges),
-      });
+      try {
+        setSaveStatus("saving");
+        const currentLayout = loadGoalMindMapLayout();
+        const nodePositions = { ...currentLayout.nodePositions };
+        nextNodes.forEach((node) => {
+          nodePositions[node.id] = node.position;
+        });
+        const hierarchyEdges = buildDefaultHierarchyEdges(linkedTasks, goalNodeId);
+        saveGoalMindMapLayout({
+          selectedGoalId,
+          nodePositions,
+          manualEdges: getPersistedManualEdges(currentLayout.manualEdges, nextEdges, hierarchyEdges),
+          updatedAt: new Date().toISOString(),
+        });
+        setSaveStatus("saved");
+      } catch {
+        setSaveStatus("failed");
+      }
     },
-    [edges, nodes, selectedGoalId],
+    [edges, goalNodeId, linkedTasks, nodes, selectedGoalId],
+  );
+
+  const schedulePersistCurrentLayout = useCallback(
+    (nextNodes: GoalMindMapNode[], nextEdges: GoalMindMapEdge[]): void => {
+      setSaveStatus("unsaved");
+
+      if (autosaveTimeoutRef.current !== null) {
+        window.clearTimeout(autosaveTimeoutRef.current);
+      }
+
+      autosaveTimeoutRef.current = window.setTimeout(() => {
+        autosaveTimeoutRef.current = null;
+        persistCurrentLayout(nextNodes, nextEdges);
+      }, 450);
+    },
+    [persistCurrentLayout],
   );
 
   const openTaskEditor = useCallback((taskId: string): void => {
@@ -169,10 +205,11 @@ function GoalMindMapInner({
     setIsGoalSelectOpen(true);
   }, []);
 
-  useEffect(() => {
+  const refreshMindMap = useCallback((taskSnapshot: Task[] = linkedTasks): void => {
     const layout = loadGoalMindMapLayout();
     const nextNodes = buildNodes({
-      linkedTasks,
+      goalNodeId,
+      linkedTasks: taskSnapshot,
       onEditTask: openTaskEditor,
       onSelectGoal: openGoalSelector,
       selectedGoal,
@@ -182,26 +219,51 @@ function GoalMindMapInner({
       ...node,
       position:
         layout.nodePositions[node.id] ??
-        getHierarchicalNodePositions(nextNodes, linkedTasks)[node.id] ??
-        getDefaultNodePosition(index, nextNodes.length, node.id === GOAL_NODE_ID),
+        (node.id === goalNodeId ? layout.nodePositions[LEGACY_GOAL_NODE_ID] : undefined) ??
+        getHierarchicalNodePositions(nextNodes, taskSnapshot, goalNodeId)[node.id] ??
+        getDefaultNodePosition(index, nextNodes.length, node.id === goalNodeId),
     }));
     const cleanedEdges = buildEdges({
-      layoutEdges: layout.edges,
+      goalNodeId,
+      manualEdges: layout.manualEdges,
       nodes: positionedNodes,
-      tasks: linkedTasks,
+      tasks: taskSnapshot,
     });
 
     setNodes(positionedNodes);
     setEdges(cleanedEdges);
-    saveGoalMindMapLayout({
-      selectedGoalId,
-      nodePositions: {
-        ...layout.nodePositions,
-        ...Object.fromEntries(positionedNodes.map((node) => [node.id, node.position])),
-      },
-      edges: toStoredEdges(cleanedEdges),
-    });
-  }, [linkedTasks, openGoalSelector, openTaskEditor, selectedGoal, selectedGoalId, setEdges, setNodes, todayKey]);
+    try {
+      saveGoalMindMapLayout({
+        selectedGoalId,
+        nodePositions: {
+          ...layout.nodePositions,
+          ...Object.fromEntries(positionedNodes.map((node) => [node.id, node.position])),
+        },
+        manualEdges: getPersistedManualEdges(
+          layout.manualEdges,
+          cleanedEdges,
+          buildDefaultHierarchyEdges(taskSnapshot, goalNodeId),
+        ),
+        updatedAt: new Date().toISOString(),
+      });
+      setSaveStatus("saved");
+    } catch {
+      setSaveStatus("failed");
+    }
+  }, [goalNodeId, linkedTasks, openGoalSelector, openTaskEditor, selectedGoal, selectedGoalId, setEdges, setNodes, todayKey]);
+
+  useEffect(() => {
+    refreshMindMap();
+  }, [refreshMindMap]);
+
+  useEffect(() => {
+    function handleMindMapRefresh(): void {
+      refreshMindMap();
+    }
+
+    window.addEventListener("lifeos:goal-mind-map-refresh", handleMindMapRefresh);
+    return () => window.removeEventListener("lifeos:goal-mind-map-refresh", handleMindMapRefresh);
+  }, [refreshMindMap]);
 
   useEffect(() => {
     if (selectedGoalId && fitGoalRef.current !== selectedGoalId && nodes.length > 0) {
@@ -215,29 +277,88 @@ function GoalMindMapInner({
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
         persistCurrentLayout();
+        refreshMindMap();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [persistCurrentLayout]);
+  }, [persistCurrentLayout, refreshMindMap]);
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimeoutRef.current !== null) {
+        window.clearTimeout(autosaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleNodesChange = useCallback(
     (changes: NodeChange[]): void => {
       const nonDeleteChanges = changes.filter((change) => change.type !== "remove");
       setNodes((currentNodes) => {
         const nextNodes = applyNodeChanges(nonDeleteChanges, currentNodes);
-        persistCurrentLayout(nextNodes, edges);
+        schedulePersistCurrentLayout(nextNodes, edges);
         return nextNodes;
       });
     },
-    [edges, persistCurrentLayout, setNodes],
+    [edges, schedulePersistCurrentLayout, setNodes],
   );
 
-  const handleEdgesChange = useCallback(
-    (changes: EdgeChange[]): void => {
+  const handleEdgesChangeAsync = useCallback(
+    async (changes: EdgeChange[]): Promise<void> => {
+      const removeChanges = changes.filter((change) => change.type === "remove");
+      const blockedRemoveIds = new Set<string>();
+      let nextTaskSnapshot = linkedTasks;
+
+      for (const change of removeChanges) {
+        const edge = edges.find((item) => item.id === change.id);
+
+        if (!edge) {
+          continue;
+        }
+
+        const sourceNode = nodes.find((node) => node.id === edge.source);
+        const targetTaskId = getTaskIdFromNodeId(edge.target);
+        const isManualEdge = loadGoalMindMapLayout().manualEdges.some((item) => item.id === edge.id);
+
+        try {
+          if (isManualEdge) {
+            unlinkVisualEdge(edge.id);
+          } else if (sourceNode && isGoalNodeId(sourceNode.id)) {
+            if (!window.confirm("Remove this task from the goal?")) {
+              blockedRemoveIds.add(edge.id);
+              continue;
+            }
+
+            const updatedTask = await unlinkTaskFromGoal(targetTaskId);
+            if (updatedTask) {
+              nextTaskSnapshot = nextTaskSnapshot.filter((task) => task.id !== updatedTask.id);
+            }
+          } else if (sourceNode?.data.kind === "task") {
+            if (!window.confirm("Remove parent relationship for this subtask?")) {
+              blockedRemoveIds.add(edge.id);
+              continue;
+            }
+
+            const updatedTask = await unlinkSubtaskFromParent(targetTaskId);
+            if (updatedTask) {
+              nextTaskSnapshot = upsertTaskSnapshot(nextTaskSnapshot, updatedTask);
+            }
+          } else {
+            unlinkVisualEdge(edge.id);
+          }
+        } catch {
+          blockedRemoveIds.add(edge.id);
+          setSaveStatus("failed");
+        }
+      }
+
       setEdges((currentEdges) => {
-        const nextEdges = applyEdgeChanges(changes, currentEdges).filter(
+        const allowedChanges = changes.filter(
+          (change) => change.type !== "remove" || !blockedRemoveIds.has(change.id),
+        );
+        const nextEdges = applyEdgeChanges(allowedChanges, currentEdges).filter(
           (edge) =>
             validNodeIds.has(edge.source) &&
             validNodeIds.has(edge.target) &&
@@ -250,12 +371,20 @@ function GoalMindMapInner({
         persistCurrentLayout(nodes, nextEdges);
         return nextEdges;
       });
+      refreshMindMap(nextTaskSnapshot);
     },
-    [linkedTasks, nodes, persistCurrentLayout, setEdges, validNodeIds],
+    [edges, linkedTasks, nodes, persistCurrentLayout, refreshMindMap, setEdges, validNodeIds],
   );
 
-  const handleConnect = useCallback(
-    (connection: Connection): void => {
+  const handleEdgesChange = useCallback(
+    (changes: EdgeChange[]): void => {
+      void handleEdgesChangeAsync(changes);
+    },
+    [handleEdgesChangeAsync],
+  );
+
+  const handleConnectAsync = useCallback(
+    async (connection: Connection): Promise<void> => {
       connectionCompletedRef.current = true;
 
       if (!connection.source || !connection.target || connection.source === connection.target) {
@@ -269,6 +398,14 @@ function GoalMindMapInner({
 
       if (!canConnectMindMapNodes(sourceNode, targetNode, linkedTasks)) {
         showConnectionMessage("Goals can only connect to top-level tasks.");
+        return;
+      }
+
+      const sourceTaskId = getTaskIdFromNodeId(source);
+      const targetTaskId = getTaskIdFromNodeId(target);
+
+      if (sourceNode?.data.kind === "task" && wouldCreateCycle(sourceTaskId, targetTaskId, tasks)) {
+        showConnectionMessage("This link would create a circular task chain.");
         return;
       }
 
@@ -291,8 +428,32 @@ function GoalMindMapInner({
         persistCurrentLayout(nodes, nextEdges);
         return nextEdges;
       });
+
+      try {
+        setSaveStatus("saving");
+        let updatedTask: Task | undefined;
+        if (sourceNode && isGoalNodeId(sourceNode.id)) {
+          updatedTask = await linkTaskToGoal(targetTaskId, selectedGoalId);
+        } else {
+          updatedTask = await linkSubtaskToParent(targetTaskId, sourceTaskId, selectedGoalId);
+        }
+        persistCurrentLayout();
+        if (updatedTask) {
+          refreshMindMap(upsertTaskSnapshot(linkedTasks, updatedTask));
+        }
+      } catch {
+        setEdges((currentEdges) => currentEdges.filter((edge) => edge.id !== getEdgeId(source, target)));
+        setSaveStatus("failed");
+      }
     },
-    [linkedTasks, nodes, persistCurrentLayout, setEdges, showConnectionMessage],
+    [linkedTasks, nodes, persistCurrentLayout, refreshMindMap, selectedGoalId, setEdges, showConnectionMessage, tasks],
+  );
+
+  const handleConnect = useCallback(
+    (connection: Connection): void => {
+      void handleConnectAsync(connection);
+    },
+    [handleConnectAsync],
   );
 
   const handleConnectStart = useCallback(
@@ -327,8 +488,8 @@ function GoalMindMapInner({
         return;
       }
 
-      if (startParams.nodeId === GOAL_NODE_ID) {
-        setPendingCreation({ mode: "task", sourceNodeId: GOAL_NODE_ID });
+      if (startParams.nodeId === goalNodeId || startParams.nodeId === LEGACY_GOAL_NODE_ID) {
+        setPendingCreation({ mode: "task", sourceNodeId: goalNodeId });
         setPendingNodePosition(screenToFlowPosition(pointerPosition));
         setIsCreateOpen(true);
         return;
@@ -340,7 +501,7 @@ function GoalMindMapInner({
         setIsCreateOpen(true);
       }
     },
-    [screenToFlowPosition, selectedGoalId],
+    [goalNodeId, screenToFlowPosition, selectedGoalId],
   );
 
   function fitView(): void {
@@ -348,26 +509,34 @@ function GoalMindMapInner({
   }
 
   function resetLayout(): void {
-    const hierarchicalPositions = getHierarchicalNodePositions(nodes, linkedTasks);
+    const hierarchicalPositions = getHierarchicalNodePositions(nodes, linkedTasks, goalNodeId);
     const nextNodes = nodes.map((node, index) => ({
       ...node,
       position:
         hierarchicalPositions[node.id] ??
-        getDefaultNodePosition(index, nodes.length, node.id === GOAL_NODE_ID),
+        getDefaultNodePosition(index, nodes.length, node.id === goalNodeId),
     }));
-    const nextEdges = buildDefaultHierarchyEdges(linkedTasks);
+    const nextEdges = buildDefaultHierarchyEdges(linkedTasks, goalNodeId);
 
     setNodes(nextNodes);
     setEdges(nextEdges);
-    const layout = loadGoalMindMapLayout();
-    saveGoalMindMapLayout({
-      selectedGoalId,
-      nodePositions: {
-        ...layout.nodePositions,
-        ...Object.fromEntries(nextNodes.map((node) => [node.id, node.position])),
-      },
-      edges: toStoredEdges(nextEdges),
-    });
+    try {
+      setSaveStatus("saving");
+      const layout = loadGoalMindMapLayout();
+      saveGoalMindMapLayout({
+        ...layout,
+        selectedGoalId,
+        nodePositions: {
+          ...layout.nodePositions,
+          ...Object.fromEntries(nextNodes.map((node) => [node.id, node.position])),
+        },
+        updatedAt: new Date().toISOString(),
+      });
+      setSaveStatus("saved");
+      refreshMindMap();
+    } catch {
+      setSaveStatus("failed");
+    }
     window.setTimeout(fitView, 0);
   }
 
@@ -381,7 +550,7 @@ function GoalMindMapInner({
       return;
     }
 
-    setPendingCreation({ mode: "task", sourceNodeId: GOAL_NODE_ID });
+    setPendingCreation({ mode: "task", sourceNodeId: goalNodeId });
     setPendingNodePosition(screenToFlowPosition({ x: event.clientX, y: event.clientY }));
     setIsCreateOpen(true);
   }
@@ -390,15 +559,23 @@ function GoalMindMapInner({
     const parentTaskId =
       pendingCreation.mode === "subtask" ? getTaskIdFromNodeId(pendingCreation.sourceNodeId) : undefined;
     const parentTask = parentTaskId ? tasks.find((taskItem) => taskItem.id === parentTaskId) : undefined;
-    const task = await onCreateTask({
-      ...input,
-      goalId: parentTask?.goalId ?? selectedGoalId,
-      parentTaskId,
-    });
+    const task =
+      pendingCreation.mode === "subtask" && parentTaskId
+        ? await createRealSubtaskFromMindMap({
+            ...input,
+            goalId: parentTask?.goalId ?? selectedGoalId,
+            parentTaskId,
+          })
+        : selectedGoalId
+          ? await createRealTaskFromMindMap({
+              ...input,
+              goalId: selectedGoalId,
+            })
+          : undefined;
 
     if (task) {
       const taskNodeId = getTaskNodeId(task.id);
-      const edgeSource = pendingCreation.mode === "subtask" ? pendingCreation.sourceNodeId : GOAL_NODE_ID;
+      const edgeSource = pendingCreation.mode === "subtask" ? pendingCreation.sourceNodeId : goalNodeId;
       const nextEdge = {
         id: getEdgeId(edgeSource, taskNodeId),
         source: edgeSource,
@@ -406,21 +583,47 @@ function GoalMindMapInner({
         type: "smoothstep",
       };
       const nextEdges = edges.some((edge) => edge.id === nextEdge.id) ? edges : [...edges, nextEdge];
-      mergeGoalMindMapLayout({
-        nodePositions: {
-          ...loadGoalMindMapLayout().nodePositions,
-          [taskNodeId]: pendingNodePosition,
-        },
-        edges: toStoredEdges(nextEdges),
-        selectedGoalId,
-      });
+      try {
+        setSaveStatus("saving");
+        mergeGoalMindMapLayout({
+          nodePositions: {
+            ...loadGoalMindMapLayout().nodePositions,
+            [taskNodeId]: pendingNodePosition,
+          },
+          manualEdges: getPersistedManualEdges(
+            loadGoalMindMapLayout().manualEdges,
+            nextEdges,
+            buildDefaultHierarchyEdges(linkedTasks, goalNodeId),
+          ),
+          selectedGoalId,
+        });
+        setSaveStatus("saved");
+        refreshMindMap(upsertTaskSnapshot(linkedTasks, task));
+      } catch {
+        setSaveStatus("failed");
+      }
     }
     setIsCreateOpen(false);
-    setPendingCreation({ mode: "task", sourceNodeId: GOAL_NODE_ID });
+    setPendingCreation({ mode: "task", sourceNodeId: goalNodeId });
   }
 
   async function handleLinkTasks(taskIds: string[]): Promise<void> {
-    await onLinkTasks(taskIds);
+    if (!selectedGoalId) {
+      return;
+    }
+
+    await Promise.all(taskIds.map((taskId) => linkTaskToGoal(taskId, selectedGoalId)));
+    const linkedTaskSnapshot = tasks
+      .filter((task) => taskIds.includes(task.id))
+      .reduce<Task[]>(
+        (snapshot, task) =>
+          upsertTaskSnapshot(snapshot, {
+            ...task,
+            goalId: selectedGoalId,
+            parentTaskId: null,
+          }),
+        linkedTasks,
+      );
     const layout = loadGoalMindMapLayout();
     const nodePositions = { ...layout.nodePositions };
     const nextEdges = [...edges];
@@ -428,7 +631,7 @@ function GoalMindMapInner({
       const task = tasks.find((item) => item.id === taskId);
       const taskNodeId = getTaskNodeId(taskId);
       nodePositions[taskNodeId] = nodePositions[taskNodeId] ?? getDefaultNodePosition(nodes.length + index, nodes.length + taskIds.length, false);
-      const sourceNodeId = task?.parentTaskId ? getTaskNodeId(task.parentTaskId) : GOAL_NODE_ID;
+      const sourceNodeId = goalNodeId;
       const edgeId = getEdgeId(sourceNodeId, taskNodeId);
       const sourceNode = nodes.find((node) => node.id === sourceNodeId);
       const targetNode = nodes.find((node) => node.id === taskNodeId) ?? {
@@ -438,11 +641,11 @@ function GoalMindMapInner({
         data: {
           dueDate: task?.dueDate,
           isOverdue: task ? isTaskOverdue(task, todayKey) : false,
-          isSubtask: Boolean(task?.parentTaskId),
+          isSubtask: false,
           kind: "task" as const,
-          level: task ? getTaskLevel(task, linkedTasks) : 0,
+          level: 0,
           onEditTask: openTaskEditor,
-          parentTaskId: task?.parentTaskId,
+          parentTaskId: undefined,
           priority: task?.priority ?? "medium",
           status: task?.status ?? "todo",
           taskId,
@@ -457,7 +660,22 @@ function GoalMindMapInner({
         nextEdges.push({ id: edgeId, source: sourceNodeId, target: taskNodeId, type: "smoothstep" });
       }
     });
-    mergeGoalMindMapLayout({ edges: toStoredEdges(nextEdges), nodePositions, selectedGoalId });
+    try {
+      setSaveStatus("saving");
+      mergeGoalMindMapLayout({
+        manualEdges: getPersistedManualEdges(
+          layout.manualEdges,
+          nextEdges,
+          buildDefaultHierarchyEdges(linkedTasks, goalNodeId),
+        ),
+        nodePositions,
+        selectedGoalId,
+      });
+      setSaveStatus("saved");
+      refreshMindMap(linkedTaskSnapshot);
+    } catch {
+      setSaveStatus("failed");
+    }
     setIsLinkOpen(false);
   }
 
@@ -467,6 +685,10 @@ function GoalMindMapInner({
     }
 
     await onUpdateTask({ ...input, taskId: editingTaskId });
+    persistCurrentLayout();
+    if (editingTask) {
+      refreshMindMap(upsertTaskSnapshot(linkedTasks, { ...editingTask, ...input }));
+    }
     setEditingTaskId(null);
   }
 
@@ -509,16 +731,20 @@ function GoalMindMapInner({
             canCreateTask={Boolean(selectedGoalId)}
             connectMode={connectMode}
             onAddTask={() => {
-              setPendingCreation({ mode: "task", sourceNodeId: GOAL_NODE_ID });
+              setPendingCreation({ mode: "task", sourceNodeId: goalNodeId });
               setPendingNodePosition({ x: 640, y: 260 });
               setIsCreateOpen(true);
             }}
             onFitView={fitView}
             onLinkExistingTask={() => setIsLinkOpen(true)}
             onResetLayout={resetLayout}
-            onSaveLayout={() => persistCurrentLayout()}
+            onSaveLayout={() => {
+              persistCurrentLayout();
+              refreshMindMap();
+            }}
             onSelectGoal={() => setIsGoalSelectOpen(true)}
             onToggleConnectMode={() => setConnectMode((current) => !current)}
+            saveStatus={saveStatus}
           />
           {goals.length === 0 ? (
             <div className="dashboard-mind-empty nodrag nopan">
@@ -541,7 +767,13 @@ function GoalMindMapInner({
         onClose={() => setIsGoalSelectOpen(false)}
         onSelect={(goalId) => {
           onSelectGoal(goalId);
-          mergeGoalMindMapLayout({ selectedGoalId: goalId });
+          try {
+            setSaveStatus("saving");
+            mergeGoalMindMapLayout({ selectedGoalId: goalId });
+            setSaveStatus("saved");
+          } catch {
+            setSaveStatus("failed");
+          }
           setIsGoalSelectOpen(false);
         }}
         selectedGoalId={selectedGoalId}
@@ -561,7 +793,7 @@ function GoalMindMapInner({
         onClose={() => {
           setIsCreateOpen(false);
           setEditingTaskId(null);
-          setPendingCreation({ mode: "task", sourceNodeId: GOAL_NODE_ID });
+          setPendingCreation({ mode: "task", sourceNodeId: goalNodeId });
         }}
         onSubmit={(input) => {
           if (editingTaskId) {
@@ -576,6 +808,7 @@ function GoalMindMapInner({
 }
 
 interface BuildNodesInput {
+  goalNodeId: string;
   linkedTasks: Task[];
   onEditTask: (taskId: string) => void;
   onSelectGoal: () => void;
@@ -584,6 +817,7 @@ interface BuildNodesInput {
 }
 
 function buildNodes({
+  goalNodeId,
   linkedTasks,
   onEditTask,
   onSelectGoal,
@@ -591,7 +825,7 @@ function buildNodes({
   todayKey,
 }: BuildNodesInput): GoalMindMapNode[] {
   const goalNode: GoalMindMapNode = {
-    id: GOAL_NODE_ID,
+    id: goalNodeId,
     type: "goalNode",
     position: { x: 360, y: 220 },
     data: selectedGoal
@@ -634,32 +868,46 @@ function buildNodes({
 }
 
 function buildEdges({
-  layoutEdges,
+  goalNodeId,
+  manualEdges,
   nodes,
   tasks,
 }: {
-  layoutEdges: Array<{ id: string; source: string; target: string; type?: string }>;
+  goalNodeId: string;
+  manualEdges: Array<{ id: string; source: string; target: string; type?: string }>;
   nodes: GoalMindMapNode[];
   tasks: Task[];
 }): GoalMindMapEdge[] {
   const nodesById = new Map(nodes.map((node) => [node.id, node]));
-  const cleanedStoredEdges: GoalMindMapEdge[] = layoutEdges
-    .filter((edge) =>
-      canConnectMindMapNodes(nodesById.get(edge.source), nodesById.get(edge.target), tasks),
-    )
-    .map((edge) => ({ ...edge, type: edge.type ?? "smoothstep" }));
-  const edgesById = new Map<string, GoalMindMapEdge>(cleanedStoredEdges.map((edge) => [edge.id, edge]));
+  const edgesById = new Map<string, GoalMindMapEdge>();
 
-  buildDefaultHierarchyEdges(tasks).forEach((edge) => {
-    if (!edgesById.has(edge.id)) {
+  buildDefaultHierarchyEdges(tasks, goalNodeId).forEach((edge) => {
+    if (canConnectMindMapNodes(nodesById.get(edge.source), nodesById.get(edge.target), tasks)) {
       edgesById.set(edge.id, edge);
     }
   });
 
+  manualEdges
+    .map((edge) => ({
+      ...edge,
+      id: getEdgeId(normalizeGoalNodeId(edge.source, goalNodeId), normalizeGoalNodeId(edge.target, goalNodeId)),
+      source: normalizeGoalNodeId(edge.source, goalNodeId),
+      target: normalizeGoalNodeId(edge.target, goalNodeId),
+      type: edge.type ?? "smoothstep",
+    }))
+    .filter((edge) =>
+      canConnectMindMapNodes(nodesById.get(edge.source), nodesById.get(edge.target), tasks),
+    )
+    .forEach((edge) => {
+      if (!edgesById.has(edge.id)) {
+        edgesById.set(edge.id, edge);
+      }
+    });
+
   return Array.from(edgesById.values());
 }
 
-function buildDefaultHierarchyEdges(tasks: Task[]): GoalMindMapEdge[] {
+function buildDefaultHierarchyEdges(tasks: Task[], goalNodeId: string): GoalMindMapEdge[] {
   const taskIds = new Set(tasks.map((task) => task.id));
 
   return tasks.flatMap((task) => {
@@ -679,7 +927,7 @@ function buildDefaultHierarchyEdges(tasks: Task[]): GoalMindMapEdge[] {
       }];
     }
 
-    const sourceNodeId = task.parentTaskId ? getTaskNodeId(task.parentTaskId) : GOAL_NODE_ID;
+    const sourceNodeId = task.parentTaskId ? getTaskNodeId(task.parentTaskId) : goalNodeId;
     return [{
       id: getEdgeId(sourceNodeId, taskNodeId),
       source: sourceNodeId,
@@ -706,11 +954,15 @@ function getDefaultNodePosition(index: number, total: number, isGoalNode: boolea
   };
 }
 
-function getHierarchicalNodePositions(nodes: GoalMindMapNode[], tasks: Task[]): Record<string, { x: number; y: number }> {
+function getHierarchicalNodePositions(
+  nodes: GoalMindMapNode[],
+  tasks: Task[],
+  goalNodeId: string,
+): Record<string, { x: number; y: number }> {
   const positions: Record<string, { x: number; y: number }> = {
-    [GOAL_NODE_ID]: { x: 360, y: 80 },
+    [goalNodeId]: { x: 360, y: 80 },
   };
-  const taskNodes = nodes.filter((node) => node.id !== GOAL_NODE_ID);
+  const taskNodes = nodes.filter((node) => node.id !== goalNodeId);
   const tasksById = new Map(tasks.map((task) => [task.id, task]));
   const childrenByParentId = new Map<string, Task[]>();
   const topLevelTasks: Task[] = [];
@@ -761,12 +1013,46 @@ function getTaskNodeId(taskId: string): string {
   return `task-${taskId}`;
 }
 
+function getGoalNodeId(goalId: string): string {
+  return goalId ? `goal:${goalId}` : EMPTY_GOAL_NODE_ID;
+}
+
+function normalizeGoalNodeId(nodeId: string, goalNodeId: string): string {
+  return nodeId === LEGACY_GOAL_NODE_ID || nodeId.startsWith("goal:") ? goalNodeId : nodeId;
+}
+
+function isGoalNodeId(nodeId: string): boolean {
+  return nodeId === LEGACY_GOAL_NODE_ID || nodeId.startsWith("goal:");
+}
+
 function getTaskIdFromNodeId(nodeId: string): string {
   return getTaskIdFromMindMapNodeId(nodeId);
 }
 
 function getEdgeId(source: string, target: string): string {
   return `${source}-${target}`;
+}
+
+function getPersistedManualEdges(
+  currentManualEdges: Array<{ id: string; source: string; target: string; type?: string }>,
+  visibleEdges: GoalMindMapEdge[],
+  hierarchyEdges: GoalMindMapEdge[],
+): Array<{ id: string; source: string; target: string; type?: string }> {
+  const visibleEdgeIds = new Set(visibleEdges.map((edge) => edge.id));
+  const hierarchyEdgeIds = new Set(hierarchyEdges.map((edge) => edge.id));
+  return toStoredEdges(
+    currentManualEdges.filter((edge) => visibleEdgeIds.has(edge.id) && !hierarchyEdgeIds.has(edge.id)),
+  );
+}
+
+function upsertTaskSnapshot(taskSnapshot: Task[], nextTask: Task): Task[] {
+  const existingIndex = taskSnapshot.findIndex((task) => task.id === nextTask.id);
+
+  if (existingIndex === -1) {
+    return [...taskSnapshot, nextTask];
+  }
+
+  return taskSnapshot.map((task) => (task.id === nextTask.id ? nextTask : task));
 }
 
 function getEventClientPosition(event: globalThis.MouseEvent | TouchEvent): { x: number; y: number } | null {

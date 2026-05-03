@@ -18,9 +18,18 @@ import {
 import { Task } from "@/domains/tasks/types";
 import { summarizeTaskSources } from "@/domains/tasks/task.utils";
 import { formatTaskDueDate } from "@/features/tasks/utils/tasks-list-view.utils";
+import {
+  getAllDescendantTasks,
+  getParentTask,
+  getRootTask,
+  getTaskDepth,
+  isSubtask,
+} from "@/features/tasks/utils/taskHierarchy";
 
 interface TaskListRowProps {
+  allTasks?: Task[];
   goalTitle?: string;
+  goalTitlesById?: Record<string, string>;
   isStandalone?: boolean;
   onDelete: (task: Task) => void;
   onEdit: (task: Task) => void;
@@ -29,7 +38,9 @@ interface TaskListRowProps {
 }
 
 export function TaskListRow({
+  allTasks = [task],
   goalTitle,
+  goalTitlesById = {},
   isStandalone = false,
   onDelete,
   onEdit,
@@ -37,6 +48,19 @@ export function TaskListRow({
   task,
 }: TaskListRowProps): JSX.Element {
   const formattedDueDate = formatTaskDueDate(task);
+  const descendants = getAllDescendantTasks(allTasks, task.id);
+  const directChildren = allTasks.filter((item) => item.parentTaskId === task.id);
+  const depth = getTaskDepth(task.id, allTasks);
+  const parentTask = getParentTask(task, allTasks);
+  const rootTask = getRootTask(task, allTasks);
+  const resolvedGoalTitle = goalTitle ?? (task.goalId ? goalTitlesById[task.goalId] : undefined);
+  const childProgress =
+    descendants.length > 0
+      ? {
+          completed: descendants.filter((item) => item.status === "done").length,
+          total: descendants.filter((item) => item.status !== "cancelled").length,
+        }
+      : task.subtaskProgress;
 
   return (
     <article className="goal-task-list__item">
@@ -72,6 +96,7 @@ export function TaskListRow({
               <span className="goal-task-list__title-text">{task.title}</span>
             </strong>
             <div className="goal-task-list__badges">
+              <span className="tasks-list-row__scope-chip">{getHierarchyLabel(task, depth)}</span>
               <span
                 className={`goal-task-list__status-chip goal-task-list__status-chip--${task.status}`}
               >
@@ -89,15 +114,31 @@ export function TaskListRow({
           {task.description ? <p className="goal-task-list__description">{task.description}</p> : null}
 
           <div className="goal-task-list__meta">
-            {goalTitle ? (
+            {resolvedGoalTitle ? (
               <span className="tasks-list-row__scope-chip tasks-list-row__scope-chip--goal">
                 <Target size={14} />
-                Goal: {goalTitle}
+                Goal: {resolvedGoalTitle}
               </span>
             ) : isStandalone ? (
               <span className="tasks-list-row__scope-chip">
                 <Circle size={12} />
                 Standalone
+              </span>
+            ) : null}
+            {isSubtask(task) ? (
+              parentTask ? (
+                <span className="tasks-list-row__scope-chip">
+                  Parent task: {parentTask.title}
+                </span>
+              ) : (
+                <span className="tasks-list-row__scope-chip tasks-list-row__scope-chip--warning">
+                  Missing parent
+                </span>
+              )
+            ) : null}
+            {depth > 1 && rootTask.id !== task.id ? (
+              <span className="tasks-list-row__scope-chip">
+                Root task: {rootTask.title}
               </span>
             ) : null}
             {formattedDueDate ? (
@@ -124,28 +165,33 @@ export function TaskListRow({
                 {source.label}
               </span>
             ))}
-            {task.subtaskProgress.total > 0 ? (
+            {childProgress.total > 0 ? (
               <span className="goal-task-list__meta-chip goal-task-list__meta-chip--success">
                 <ListChecks size={14} />
-                {task.subtaskProgress.completed} / {task.subtaskProgress.total} subtasks
+                {childProgress.completed} / {childProgress.total} subtasks
+              </span>
+            ) : null}
+            {directChildren.length > 0 ? (
+              <span className="goal-task-list__meta-chip">
+                {directChildren.length} direct child{directChildren.length === 1 ? "" : "ren"}
               </span>
             ) : null}
           </div>
 
-          {task.subtaskProgress.total > 0 ? (
+          {childProgress.total > 0 ? (
             <div className="goal-task-list__subtasks">
               <div className="goal-task-list__subtasks-header">
                 <span className="goal-task-list__subtasks-label">
-                  {task.subtaskProgress.completed} / {task.subtaskProgress.total} subtasks
+                  {childProgress.completed} / {childProgress.total} subtasks
                 </span>
                 <span className="goal-task-list__subtasks-value">
-                  {Math.round((task.subtaskProgress.completed / task.subtaskProgress.total) * 100)}%
+                  {Math.round((childProgress.completed / childProgress.total) * 100)}%
                 </span>
               </div>
               <div
                 aria-hidden="true"
                 className={`goal-task-list__subtasks-bar${
-                  task.subtaskProgress.completed === task.subtaskProgress.total
+                  childProgress.completed === childProgress.total
                     ? " goal-task-list__subtasks-bar--complete"
                     : ""
                 }`}
@@ -154,7 +200,7 @@ export function TaskListRow({
                   className="goal-task-list__subtasks-bar-fill"
                   style={{
                     width: `${Math.round(
-                      (task.subtaskProgress.completed / task.subtaskProgress.total) * 100,
+                      (childProgress.completed / childProgress.total) * 100,
                     )}%`,
                   }}
                 />
@@ -177,6 +223,14 @@ export function TaskListRow({
       </button>
     </article>
   );
+}
+
+function getHierarchyLabel(task: Task, depth: number): string {
+  if (!task.parentTaskId) {
+    return "Task";
+  }
+
+  return depth <= 1 ? "Subtask" : "Nested subtask";
 }
 
 function renderTaskStatusIcon(status: Task["status"]): JSX.Element {

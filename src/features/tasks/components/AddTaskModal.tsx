@@ -17,6 +17,8 @@ import {
 import { normalizeTask, normalizeTaskTags } from "@/domains/tasks/task.utils";
 import { TaskSourcesEditor } from "@/features/tasks/components/TaskSourcesEditor";
 import { SubtasksEditor } from "@/features/tasks/components/SubtasksEditor";
+import { TaskTree } from "@/features/tasks/components/TaskTree";
+import { buildTaskTree, getAllDescendantTasks } from "@/features/tasks/utils/taskHierarchy";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -143,6 +145,15 @@ export function TaskModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const goals = useLiveQuery(() => goalsRepository.getAll(), [], []);
+  const allTasks = useLiveQuery(() => tasksRepository.getAll(), [], []);
+  const taskTree = useMemo(
+    () => (mode === "edit" && initialTask ? buildTaskTree(allTasks ?? [], initialTask.id) : null),
+    [allTasks, initialTask, mode],
+  );
+  const descendantTasks = useMemo(
+    () => (mode === "edit" && initialTask ? getAllDescendantTasks(allTasks ?? [], initialTask.id) : []),
+    [allTasks, initialTask, mode],
+  );
 
   const initialFormState = useMemo(
     () =>
@@ -267,7 +278,7 @@ export function TaskModal({
         ? Number(formState.estimatedDurationMinutes)
         : undefined,
       sources: normalizedSources,
-      subtasks: normalizedSubtasks,
+      subtasks: mode === "edit" && initialTask ? initialTask.subtasks : normalizedSubtasks,
     };
 
     try {
@@ -310,6 +321,51 @@ export function TaskModal({
 
   if (!isOpen) {
     return null;
+  }
+
+  async function handleAddNestedSubtask(parentTask: Task): Promise<void> {
+    const title = window.prompt("Subtask title");
+
+    if (!title?.trim()) {
+      return;
+    }
+
+    const subtask = await tasksRepository.add({
+      title: title.trim(),
+      goalId: parentTask.goalId ?? initialTask?.goalId ?? goalId,
+      parentTaskId: parentTask.id,
+      priority: "medium",
+      status: "todo",
+    });
+    await tasksRepository.update({
+      ...parentTask,
+      subtasks: [
+        ...parentTask.subtasks.filter((item) => item.id !== subtask.id),
+        {
+          id: subtask.id,
+          title: subtask.title,
+          description: subtask.description,
+          completed: false,
+        },
+      ],
+    });
+  }
+
+  async function handleEditNestedTask(task: Task): Promise<void> {
+    const title = window.prompt("Task title", task.title);
+
+    if (!title?.trim() || title.trim() === task.title) {
+      return;
+    }
+
+    await tasksRepository.update({
+      ...task,
+      title: title.trim(),
+    });
+  }
+
+  async function handleToggleNestedTask(task: Task): Promise<void> {
+    await tasksRepository.toggleTaskComplete(task.id);
   }
 
   return (
@@ -590,10 +646,55 @@ export function TaskModal({
           </section>
 
           <section className="task-editor-section task-editor-section--surface">
-            <SubtasksEditor
-              onChange={(subtasks) => setFormState((current) => ({ ...current, subtasks }))}
-              subtasks={formState.subtasks}
-            />
+            {mode === "edit" && initialTask ? (
+              <div className="task-editor-section">
+                <div className="task-editor-section__header">
+                  <div>
+                    <h3 className="task-editor-section__title">Subtasks</h3>
+                    <p className="task-editor-section__description">
+                      Break the task into smaller milestones. Progress shows{" "}
+                      {descendantTasks.filter((task) => task.status === "done").length}/{descendantTasks.length}.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      void handleAddNestedSubtask(initialTask);
+                    }}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Add subtask
+                  </Button>
+                </div>
+                {taskTree && taskTree.children.length > 0 ? (
+                  <TaskTree
+                    nodes={taskTree.children}
+                    depth={1}
+                    onAddSubtask={(task) => {
+                      void handleAddNestedSubtask(task);
+                    }}
+                    onEditTask={(task) => {
+                      void handleEditNestedTask(task);
+                    }}
+                    onToggleComplete={(task) => {
+                      void handleToggleNestedTask(task);
+                    }}
+                  />
+                ) : (
+                  <div className="task-editor-empty-state">
+                    <p className="task-editor-empty-state__title">No subtasks yet</p>
+                    <p className="task-editor-empty-state__description">
+                      Add a few crisp next actions now. Ordering can be layered in later without changing this structure.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <SubtasksEditor
+                onChange={(subtasks) => setFormState((current) => ({ ...current, subtasks }))}
+                subtasks={formState.subtasks}
+              />
+            )}
           </section>
 
           {error ? <p className="auth-form__error">{error}</p> : null}

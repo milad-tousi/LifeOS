@@ -170,6 +170,7 @@ export function TaskCalendarView({
         />
 
         <SelectedDayTasksPanel
+          allTasks={tasks}
           date={selectedDate}
           events={selectedDayEvents}
           goalTitlesById={goalTitlesById}

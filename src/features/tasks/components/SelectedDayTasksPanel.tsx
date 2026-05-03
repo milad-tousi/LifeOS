@@ -13,6 +13,7 @@ import {
 } from "@/features/tasks/utils/tasks-calendar-view.utils";
 
 interface SelectedDayTasksPanelProps {
+  allTasks?: Task[];
   date: Date;
   events: CalendarEventOccurrence[];
   goalTitlesById: Record<string, string>;
@@ -27,6 +28,7 @@ interface SelectedDayTasksPanelProps {
 }
 
 export function SelectedDayTasksPanel({
+  allTasks = tasks,
   date,
   events,
   goalTitlesById,
@@ -145,7 +147,9 @@ export function SelectedDayTasksPanel({
                       </span>
                     </div>
                     <TaskListRow
+                      allTasks={allTasks}
                       goalTitle={task.goalId ? goalTitlesById[task.goalId] : undefined}
+                      goalTitlesById={goalTitlesById}
                       isStandalone={!task.goalId}
                       onDelete={onDeleteTask}
                       onEdit={onEditTask}

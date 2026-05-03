@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { TaskBoardColumn } from "@/domains/tasks/board.types";
 import { Task } from "@/domains/tasks/types";
-import { AddBoardColumnCard } from "@/features/tasks/components/AddBoardColumnCard";
 import { TaskCard } from "@/features/tasks/components/TaskCard";
 import { TaskColumn } from "@/features/tasks/components/TaskColumn";
 import { getOrderedBoardColumns, groupTasksByBoardColumn } from "@/domains/tasks/board.utils";
@@ -12,7 +11,6 @@ import { getOrderedBoardColumns, groupTasksByBoardColumn } from "@/domains/tasks
 interface TaskBoardViewProps {
   boardColumns: TaskBoardColumn[];
   goalTitlesById: Record<string, string>;
-  onAddColumn: (title: string) => Promise<void> | void;
   onDeleteColumn: (columnId: string) => Promise<void> | void;
   onDeleteTask: (task: Task) => void;
   onEditTask: (task: Task) => void;
@@ -25,7 +23,6 @@ interface TaskBoardViewProps {
 export function TaskBoardView({
   boardColumns,
   goalTitlesById,
-  onAddColumn,
   onDeleteColumn,
   onDeleteTask,
   onEditTask,
@@ -158,16 +155,18 @@ export function TaskBoardView({
               onDeleteTask={onDeleteTask}
               onEditTask={onEditTask}
               onRenameColumn={onRenameColumn}
+              allTasks={tasks}
               tasks={tasksByColumnId[column.id] ?? []}
             />
           ))}
-          <AddBoardColumnCard onAddColumn={onAddColumn} />
         </div>
       </SortableContext>
 
       <DragOverlay>
         {activeTask ? (
           <TaskCard
+            allTasks={tasks}
+            goalTitlesById={goalTitlesById}
             goalTitle={activeTask.goalId ? goalTitlesById[activeTask.goalId] : undefined}
             onDelete={onDeleteTask}
             onEdit={onEditTask}

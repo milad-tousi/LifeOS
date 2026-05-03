@@ -6,9 +6,10 @@ import {
 export const GOAL_MIND_MAP_STORAGE_KEY = "lifeos:dashboard:goal-mind-map:v1";
 
 const emptyLayout: GoalMindMapLayout = {
-  edges: [],
+  manualEdges: [],
   nodePositions: {},
   selectedGoalId: "",
+  updatedAt: undefined,
 };
 
 export function loadGoalMindMapLayout(): GoalMindMapLayout {
@@ -22,18 +23,29 @@ export function loadGoalMindMapLayout(): GoalMindMapLayout {
       return emptyLayout;
     }
 
-    const parsedValue = JSON.parse(rawValue) as Partial<GoalMindMapLayout>;
+    const parsedValue = JSON.parse(rawValue) as Partial<GoalMindMapLayout> & {
+      edges?: GoalMindMapStoredEdge[];
+    };
+    const storedEdges = Array.isArray(parsedValue.manualEdges)
+      ? parsedValue.manualEdges
+      : Array.isArray(parsedValue.edges)
+        ? parsedValue.edges
+        : [];
 
     return {
-      edges: Array.isArray(parsedValue.edges)
-        ? parsedValue.edges.filter(isStoredEdge)
-        : [],
+      manualEdges: storedEdges.filter(isStoredEdge),
       nodePositions:
         parsedValue.nodePositions && typeof parsedValue.nodePositions === "object"
           ? parsedValue.nodePositions
           : {},
       selectedGoalId:
         typeof parsedValue.selectedGoalId === "string" ? parsedValue.selectedGoalId : "",
+      updatedAt:
+        typeof parsedValue.updatedAt === "string"
+          ? parsedValue.updatedAt
+          : typeof parsedValue.updatedAt === "number"
+            ? new Date(parsedValue.updatedAt).toISOString()
+            : undefined,
     };
   } catch {
     return emptyLayout;
@@ -45,13 +57,20 @@ export function saveGoalMindMapLayout(layout: GoalMindMapLayout): void {
     return;
   }
 
-  window.localStorage.setItem(GOAL_MIND_MAP_STORAGE_KEY, JSON.stringify(layout));
+  window.localStorage.setItem(
+    GOAL_MIND_MAP_STORAGE_KEY,
+    JSON.stringify({
+      ...layout,
+      updatedAt: layout.updatedAt ?? new Date().toISOString(),
+    }),
+  );
 }
 
 export function mergeGoalMindMapLayout(patch: Partial<GoalMindMapLayout>): GoalMindMapLayout {
   const nextLayout = {
     ...loadGoalMindMapLayout(),
     ...patch,
+    updatedAt: new Date().toISOString(),
   };
   saveGoalMindMapLayout(nextLayout);
   return nextLayout;

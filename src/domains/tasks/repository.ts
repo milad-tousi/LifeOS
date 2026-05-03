@@ -1,7 +1,7 @@
 import { db, ensureDatabaseReady } from "@/db/dexie";
 import { getDefaultBoardColumnIdForStatus } from "@/domains/tasks/board.utils";
 import { createTaskModel } from "@/domains/tasks/models";
-import { CreateTaskInput, Task } from "@/domains/tasks/types";
+import { CreateTaskInput, Task, TaskSubtask } from "@/domains/tasks/types";
 import { computeGoalProgress } from "@/domains/goals/goal-progress";
 import { normalizeTask, sortTasksByOrder } from "@/domains/tasks/task.utils";
 import { createLogger } from "@/utils/logger";
@@ -16,7 +16,10 @@ async function syncGoalStatus(goalId: string): Promise<void> {
   }
 
   const tasks = await db.tasks.where("goalId").equals(goalId).toArray();
-  const progress = computeGoalProgress(goal, tasks.map(normalizeTask));
+  const progress = computeGoalProgress(
+    goal,
+    hydrateTaskRecordSubtasks(tasks.map(normalizeTask)).filter((task) => !task.parentTaskId),
+  );
   const nextStatus =
     progress.total > 0 && progress.percentage >= 100 ? "completed" : "active";
 
@@ -33,12 +36,12 @@ export const tasksRepository = {
   async getAll(): Promise<Task[]> {
     await ensureDatabaseReady();
     const tasks = await db.tasks.orderBy("createdAt").reverse().toArray();
-    return tasks.map(normalizeTask);
+    return hydrateTaskRecordSubtasks(tasks.map(normalizeTask));
   },
   async getByGoalId(goalId: string): Promise<Task[]> {
     await ensureDatabaseReady();
     const tasks = await db.tasks.where("goalId").equals(goalId).toArray();
-    return sortTasksByOrder(tasks.map(normalizeTask));
+    return sortTasksByOrder(hydrateTaskRecordSubtasks(tasks.map(normalizeTask)));
   },
   async add(input: CreateTaskInput): Promise<Task> {
     await ensureDatabaseReady();
@@ -182,3 +185,44 @@ export const tasksRepository = {
     return nextTasks;
   },
 };
+
+function hydrateTaskRecordSubtasks(tasks: Task[]): Task[] {
+  const childTasksByParentId = new Map<string, Task[]>();
+
+  tasks.forEach((task) => {
+    if (!task.parentTaskId) {
+      return;
+    }
+
+    childTasksByParentId.set(task.parentTaskId, [
+      ...(childTasksByParentId.get(task.parentTaskId) ?? []),
+      task,
+    ]);
+  });
+
+  return tasks.map((task) => {
+    const childTasks = sortTasksByOrder(childTasksByParentId.get(task.id) ?? []);
+    const taskRecordSubtasks = childTasks.map(taskRecordToSubtask);
+    const embeddedSubtasksById = new Map(task.subtasks.map((subtask) => [subtask.id, subtask]));
+
+    taskRecordSubtasks.forEach((subtask) => {
+      embeddedSubtasksById.set(subtask.id, subtask);
+    });
+
+    const subtasks = Array.from(embeddedSubtasksById.values());
+
+    return normalizeTask({
+      ...task,
+      subtasks,
+    });
+  });
+}
+
+function taskRecordToSubtask(task: Task): TaskSubtask {
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    completed: task.status === "done",
+  };
+}
