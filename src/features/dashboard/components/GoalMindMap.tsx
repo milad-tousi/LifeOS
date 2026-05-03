@@ -15,6 +15,7 @@ import ReactFlow, {
   EdgeChange,
   NodeChange,
   OnConnectStartParams,
+  OnEdgeUpdateFunc,
   ReactFlowInstance,
   ReactFlowProvider,
   addEdge,
@@ -108,6 +109,7 @@ function GoalMindMapInner({
   const [connectMode, setConnectMode] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [connectionMessage, setConnectionMessage] = useState("");
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [pendingCreation, setPendingCreation] = useState<PendingCreation>({
     mode: "task",
@@ -143,6 +145,34 @@ function GoalMindMapInner({
 
   const [nodes, setNodes] = useNodesState<GoalMindMapNode["data"]>([]);
   const [edges, setEdges] = useEdgesState([]);
+  const displayedEdges = useMemo(
+    () =>
+      edges.map((edge) =>
+        edge.id === selectedEdgeId
+          ? {
+              ...edge,
+              animated: true,
+              selected: true,
+              style: {
+                ...edge.style,
+                filter: "drop-shadow(0 0 5px rgba(37, 99, 235, 0.55))",
+                stroke: "#2563eb",
+                strokeWidth: 3,
+              },
+            }
+          : {
+              ...edge,
+              selected: false,
+              style: {
+                ...edge.style,
+                filter: undefined,
+                stroke: undefined,
+                strokeWidth: undefined,
+              },
+            },
+      ),
+    [edges, selectedEdgeId],
+  );
 
   const validNodeIds = useMemo(() => {
     const ids = new Set([goalNodeId]);
@@ -273,19 +303,6 @@ function GoalMindMapInner({
   }, [nodes.length, selectedGoalId]);
 
   useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        persistCurrentLayout();
-        refreshMindMap();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [persistCurrentLayout, refreshMindMap]);
-
-  useEffect(() => {
     return () => {
       if (autosaveTimeoutRef.current !== null) {
         window.clearTimeout(autosaveTimeoutRef.current);
@@ -305,60 +322,97 @@ function GoalMindMapInner({
     [edges, schedulePersistCurrentLayout, setNodes],
   );
 
+  const deleteMindMapEdge = useCallback(
+    async (edgeId: string, requireConfirmation = true): Promise<void> => {
+      const edge = edges.find((item) => item.id === edgeId);
+
+      if (!edge) {
+        setSelectedEdgeId(null);
+        return;
+      }
+
+      const sourceNode = nodes.find((node) => node.id === edge.source);
+      const targetTaskId = getTaskIdFromNodeId(edge.target);
+      const isManualEdge = loadGoalMindMapLayout().manualEdges.some((item) => item.id === edge.id);
+      let nextTaskSnapshot = linkedTasks;
+
+      try {
+        setSaveStatus("saving");
+
+        if (isManualEdge) {
+          unlinkVisualEdge(edge.id);
+        } else if (sourceNode && isGoalNodeId(sourceNode.id)) {
+          if (requireConfirmation && !window.confirm("Remove this task from the selected goal?")) {
+            setSaveStatus("saved");
+            return;
+          }
+
+          const removedTask = linkedTasks.find((task) => task.id === targetTaskId);
+          await unlinkTaskFromGoal(targetTaskId);
+          nextTaskSnapshot = removedTask
+            ? removeTaskSubtreeFromSnapshot(linkedTasks, removedTask.id)
+            : linkedTasks.filter((task) => task.id !== targetTaskId);
+        } else if (sourceNode?.data.kind === "task") {
+          if (requireConfirmation && !window.confirm("Remove parent relationship from this subtask?")) {
+            setSaveStatus("saved");
+            return;
+          }
+
+          const updatedTask = await unlinkSubtaskFromParent(targetTaskId);
+          if (updatedTask) {
+            nextTaskSnapshot = upsertTaskSnapshot(linkedTasks, updatedTask);
+          }
+        } else {
+          unlinkVisualEdge(edge.id);
+        }
+
+        const nextEdges = edges.filter((item) => item.id !== edge.id);
+        setEdges(nextEdges);
+        setSelectedEdgeId(null);
+        persistCurrentLayout(nodes, nextEdges);
+        refreshMindMap(nextTaskSnapshot);
+      } catch {
+        setSaveStatus("failed");
+      }
+    },
+    [edges, linkedTasks, nodes, persistCurrentLayout, refreshMindMap, setEdges],
+  );
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if ((event.key === "Delete" || event.key === "Backspace") && selectedEdgeId) {
+        event.preventDefault();
+        void deleteMindMapEdge(selectedEdgeId);
+        return;
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        persistCurrentLayout();
+        refreshMindMap();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [deleteMindMapEdge, persistCurrentLayout, refreshMindMap, selectedEdgeId]);
+
   const handleEdgesChangeAsync = useCallback(
     async (changes: EdgeChange[]): Promise<void> => {
       const removeChanges = changes.filter((change) => change.type === "remove");
-      const blockedRemoveIds = new Set<string>();
-      let nextTaskSnapshot = linkedTasks;
 
       for (const change of removeChanges) {
-        const edge = edges.find((item) => item.id === change.id);
+        await deleteMindMapEdge(change.id);
+      }
 
-        if (!edge) {
-          continue;
-        }
+      const nonRemoveChanges = changes.filter((change) => change.type !== "remove");
 
-        const sourceNode = nodes.find((node) => node.id === edge.source);
-        const targetTaskId = getTaskIdFromNodeId(edge.target);
-        const isManualEdge = loadGoalMindMapLayout().manualEdges.some((item) => item.id === edge.id);
-
-        try {
-          if (isManualEdge) {
-            unlinkVisualEdge(edge.id);
-          } else if (sourceNode && isGoalNodeId(sourceNode.id)) {
-            if (!window.confirm("Remove this task from the goal?")) {
-              blockedRemoveIds.add(edge.id);
-              continue;
-            }
-
-            const updatedTask = await unlinkTaskFromGoal(targetTaskId);
-            if (updatedTask) {
-              nextTaskSnapshot = nextTaskSnapshot.filter((task) => task.id !== updatedTask.id);
-            }
-          } else if (sourceNode?.data.kind === "task") {
-            if (!window.confirm("Remove parent relationship for this subtask?")) {
-              blockedRemoveIds.add(edge.id);
-              continue;
-            }
-
-            const updatedTask = await unlinkSubtaskFromParent(targetTaskId);
-            if (updatedTask) {
-              nextTaskSnapshot = upsertTaskSnapshot(nextTaskSnapshot, updatedTask);
-            }
-          } else {
-            unlinkVisualEdge(edge.id);
-          }
-        } catch {
-          blockedRemoveIds.add(edge.id);
-          setSaveStatus("failed");
-        }
+      if (nonRemoveChanges.length === 0) {
+        return;
       }
 
       setEdges((currentEdges) => {
-        const allowedChanges = changes.filter(
-          (change) => change.type !== "remove" || !blockedRemoveIds.has(change.id),
-        );
-        const nextEdges = applyEdgeChanges(allowedChanges, currentEdges).filter(
+        const nextEdges = applyEdgeChanges(nonRemoveChanges, currentEdges).filter(
           (edge) =>
             validNodeIds.has(edge.source) &&
             validNodeIds.has(edge.target) &&
@@ -371,9 +425,8 @@ function GoalMindMapInner({
         persistCurrentLayout(nodes, nextEdges);
         return nextEdges;
       });
-      refreshMindMap(nextTaskSnapshot);
     },
-    [edges, linkedTasks, nodes, persistCurrentLayout, refreshMindMap, setEdges, validNodeIds],
+    [deleteMindMapEdge, linkedTasks, nodes, persistCurrentLayout, setEdges, validNodeIds],
   );
 
   const handleEdgesChange = useCallback(
@@ -454,6 +507,78 @@ function GoalMindMapInner({
       void handleConnectAsync(connection);
     },
     [handleConnectAsync],
+  );
+
+  const handleReconnect = useCallback<OnEdgeUpdateFunc>(
+    (oldEdge, connection): void => {
+      void (async () => {
+        if (!connection.source || !connection.target || connection.source === connection.target) {
+          showConnectionMessage("This link is not valid.");
+          return;
+        }
+
+        const source = connection.source;
+        const target = connection.target;
+        const sourceNode = nodes.find((node) => node.id === source);
+        const targetNode = nodes.find((node) => node.id === target);
+
+        if (!canConnectMindMapNodes(sourceNode, targetNode, linkedTasks)) {
+          showConnectionMessage("Goals can only connect to top-level tasks.");
+          return;
+        }
+
+        const sourceTaskId = getTaskIdFromNodeId(source);
+        const targetTaskId = getTaskIdFromNodeId(target);
+
+        if (sourceNode?.data.kind === "task" && wouldCreateCycle(sourceTaskId, targetTaskId, tasks)) {
+          showConnectionMessage("This link would create a circular task chain.");
+          return;
+        }
+
+        const nextEdgeId = getEdgeId(source, target);
+        const hasDuplicate = edges.some(
+          (edge) => edge.id !== oldEdge.id && edge.source === source && edge.target === target,
+        );
+
+        if (hasDuplicate) {
+          showConnectionMessage("That link already exists.");
+          return;
+        }
+
+        try {
+          setSaveStatus("saving");
+          let updatedTask: Task | undefined;
+
+          if (sourceNode && isGoalNodeId(sourceNode.id)) {
+            updatedTask = await linkTaskToGoal(targetTaskId, selectedGoalId);
+          } else {
+            updatedTask = await linkSubtaskToParent(targetTaskId, sourceTaskId, selectedGoalId);
+          }
+
+          const nextEdges = [
+            ...edges.filter((edge) => edge.id !== oldEdge.id),
+            {
+              id: nextEdgeId,
+              source,
+              target,
+              type: "smoothstep",
+            },
+          ];
+          setEdges(nextEdges);
+          setSelectedEdgeId(nextEdgeId);
+          persistCurrentLayout(nodes, nextEdges);
+
+          if (updatedTask) {
+            refreshMindMap(upsertTaskSnapshot(linkedTasks, updatedTask));
+          } else {
+            refreshMindMap();
+          }
+        } catch {
+          setSaveStatus("failed");
+        }
+      })();
+    },
+    [edges, linkedTasks, nodes, persistCurrentLayout, refreshMindMap, selectedGoalId, setEdges, showConnectionMessage, tasks],
   );
 
   const handleConnectStart = useCallback(
@@ -704,9 +829,11 @@ function GoalMindMapInner({
         <ReactFlow
           className="dashboard-mind-map__flow"
           connectionMode={ConnectionMode.Loose}
-          deleteKeyCode={["Backspace", "Delete"]}
-          edges={edges}
+          deleteKeyCode={null}
+          edges={displayedEdges}
+          edgesUpdatable
           edgesFocusable
+          elevateEdgesOnSelect
           elementsSelectable
           nodes={nodes}
           nodesConnectable={connectMode}
@@ -716,14 +843,21 @@ function GoalMindMapInner({
           onConnect={connectMode ? handleConnect : undefined}
           onConnectEnd={connectMode ? handleConnectEnd : undefined}
           onConnectStart={connectMode ? handleConnectStart : undefined}
+          onEdgeClick={(event, edge) => {
+            event.stopPropagation();
+            setSelectedEdgeId(edge.id);
+          }}
           onEdgesChange={handleEdgesChange}
           onInit={(instance) => {
             flowRef.current = instance;
           }}
           onNodesChange={handleNodesChange}
           onDoubleClick={handlePaneDoubleClick}
+          onPaneClick={() => setSelectedEdgeId(null)}
+          onReconnect={handleReconnect}
           panOnDrag={[1, 2]}
           proOptions={{ hideAttribution: true }}
+          reconnectRadius={18}
         >
           <Background gap={22} size={1} />
           <Controls position="bottom-right" />
@@ -758,6 +892,22 @@ function GoalMindMapInner({
           ) : null}
           {connectionMessage ? (
             <div className="dashboard-mind-message nodrag nopan">{connectionMessage}</div>
+          ) : null}
+          {selectedEdgeId ? (
+            <div className="dashboard-mind-edge-actions nodrag nopan">
+              <Button
+                onClick={() => {
+                  void deleteMindMapEdge(selectedEdgeId);
+                }}
+                type="button"
+                variant="secondary"
+              >
+                Delete Link
+              </Button>
+              <Button onClick={() => setSelectedEdgeId(null)} type="button" variant="ghost">
+                Cancel
+              </Button>
+            </div>
           ) : null}
         </ReactFlow>
       </div>

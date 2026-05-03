@@ -69,11 +69,13 @@ export async function unlinkTaskFromGoal(taskId: string): Promise<Task | undefin
     return undefined;
   }
 
-  return tasksRepository.update({
+  const updatedTask = await tasksRepository.update({
     ...task,
     goalId: undefined,
     parentTaskId: null,
   });
+  await clearDescendantGoalIds(task.id);
+  return updatedTask;
 }
 
 export async function unlinkSubtaskFromParent(taskId: string): Promise<Task | undefined> {
@@ -138,6 +140,22 @@ async function updateDescendantGoalIds(rootTaskId: string, goalId: string): Prom
         tasksRepository.update({
           ...task,
           goalId,
+        }),
+      ),
+  );
+}
+
+async function clearDescendantGoalIds(rootTaskId: string): Promise<void> {
+  const tasks = await tasksRepository.getAll();
+  const descendants = getAllDescendantTasks(tasks, rootTaskId);
+
+  await Promise.all(
+    descendants
+      .filter((task) => task.goalId)
+      .map((task) =>
+        tasksRepository.update({
+          ...task,
+          goalId: undefined,
         }),
       ),
   );
