@@ -7,12 +7,15 @@ import {
   getGoalTargetSummary,
 } from "@/domains/goals/goal.utils";
 import { Goal } from "@/domains/goals/types";
+import { useI18n } from "@/i18n";
+import { formatAppDate } from "@/i18n/formatters";
 
 interface GoalHeaderProps {
   goal: Goal;
 }
 
 export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
+  const { language } = useI18n();
   const deadlineState = computeGoalDeadlineState(goal);
   const notesPreview = getGoalNotesPreview(goal);
   const targetSummary = getGoalTargetSummary(goal);
@@ -45,7 +48,7 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
         {goal.deadline ? (
           <span className="goal-detail-header__meta-item">
             <CalendarDays size={16} />
-            {goal.deadline}
+            {formatGoalDeadline(goal.deadline, language)}
           </span>
         ) : null}
       </div>
@@ -77,7 +80,7 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
           <span className="goal-detail-header__summary-label">Deadline</span>
           <span className="goal-detail-header__summary-value">
             <CalendarDays size={16} />
-            {deadlineState.formattedDeadline ?? "No deadline"}
+            {goal.deadline ? formatGoalDeadline(goal.deadline, language) : "No deadline"}
           </span>
           <div className="goal-detail-header__deadline-row">
             <span
@@ -121,4 +124,9 @@ function renderDeadlineIcon(
     default:
       return <CalendarDays size={14} />;
   }
+}
+
+function formatGoalDeadline(value: string, language: "en" | "fa"): string {
+  const safeDate = new Date(value);
+  return Number.isNaN(safeDate.getTime()) ? value : formatAppDate(safeDate, language);
 }

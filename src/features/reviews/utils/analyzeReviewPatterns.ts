@@ -3,6 +3,8 @@ import {
   ReviewEntry,
   WeeklyReview,
 } from "@/features/reviews/types/review.types";
+import { Language } from "@/i18n/i18n.types";
+import { formatAppDate } from "@/i18n/formatters";
 
 export type ReviewTrendRange = "7d" | "30d" | "90d";
 export type ReviewTrendDirection = "up" | "down" | "flat" | "insufficient-data";
@@ -14,17 +16,10 @@ export interface ReviewTrendPoint {
   energy: number;
 }
 
-export interface ReflectionInsightItem {
-  id: string;
-  title: string;
-  detail: string;
-  tone: "positive" | "warning" | "neutral";
-}
-
 export interface MonthlyReflectionSummaryData {
   averageEnergy: number | null;
   averageMood: number | null;
-  bestPerformingWeek: string | null;
+  bestPerformingWeek: { end: string; start: string } | null;
   mostCommonBlocker: string | null;
   reviewsCompleted: number;
 }
@@ -34,17 +29,16 @@ export interface ReviewPatternAnalysis {
   averageEnergyTrendDirection: ReviewTrendDirection;
   averageMood: number | null;
   averageMoodTrendDirection: ReviewTrendDirection;
-  bestEnergyDayOfWeek: string | null;
-  bestMoodDayOfWeek: string | null;
+  bestEnergyDayOfWeek: number | null;
+  bestMoodDayOfWeek: number | null;
   dailyReviewStreak: number;
-  insights: ReflectionInsightItem[];
   monthlySummary: MonthlyReflectionSummaryData;
   mostCommonDistraction: string | null;
   mostConsistentReviewDayType: "weekdays" | "weekends" | "balanced" | "insufficient-data";
   mostFrequentBlockerKeyword: string | null;
   reviewsCompletedThisMonth: number;
   weeklyReviewStreak: number;
-  worstMoodDayOfWeek: string | null;
+  worstMoodDayOfWeek: number | null;
 }
 
 const STOP_WORDS = new Set([
@@ -81,8 +75,6 @@ const STOP_WORDS = new Set([
   "would",
 ]);
 
-const WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 export function analyzeReviewPatterns(
   reviews: ReviewEntry[],
   now = new Date(),
@@ -112,7 +104,6 @@ export function analyzeReviewPatterns(
     bestEnergyDayOfWeek: getBestDayOfWeek(dailyReviews, "energy", "best"),
     bestMoodDayOfWeek: getBestDayOfWeek(dailyReviews, "mood", "best"),
     dailyReviewStreak: calculateDailyReviewStreak(dailyReviews, now),
-    insights: [],
     monthlySummary: {
       ...monthlySummary,
       mostCommonBlocker,
@@ -126,15 +117,13 @@ export function analyzeReviewPatterns(
     worstMoodDayOfWeek: getBestDayOfWeek(dailyReviews, "mood", "worst"),
   };
 
-  return {
-    ...analysis,
-    insights: generateInsights(analysis),
-  };
+  return analysis;
 }
 
 export function getReviewTrendPoints(
   reviews: ReviewEntry[],
   range: ReviewTrendRange,
+  language: Language,
   now = new Date(),
 ): ReviewTrendPoint[] {
   const startDate = addDays(startOfDay(now), -(getRangeDayCount(range) - 1));
@@ -146,71 +135,11 @@ export function getReviewTrendPoints(
 
       return {
         date: review.date,
-        label: formatTrendLabel(date, range),
+        label: formatTrendLabel(date, range, language),
         mood: review.mood,
         energy: review.energy,
       };
     });
-}
-
-function generateInsights(analysis: ReviewPatternAnalysis): ReflectionInsightItem[] {
-  const insights: ReflectionInsightItem[] = [];
-
-  if (analysis.mostCommonDistraction) {
-    insights.push({
-      id: "common-distraction",
-      title: "Most common distraction",
-      detail: `Most common distraction this month: ${analysis.mostCommonDistraction}.`,
-      tone: "neutral",
-    });
-  }
-
-  if (analysis.averageMoodTrendDirection !== "insufficient-data") {
-    insights.push({
-      id: "mood-trend",
-      title: "Mood direction",
-      detail: getTrendInsightDetail("mood", analysis.averageMoodTrendDirection),
-      tone: analysis.averageMoodTrendDirection === "up" ? "positive" : analysis.averageMoodTrendDirection === "down" ? "warning" : "neutral",
-    });
-  }
-
-  if (analysis.bestEnergyDayOfWeek) {
-    insights.push({
-      id: "best-energy-day",
-      title: "Best energy day",
-      detail: `${analysis.bestEnergyDayOfWeek}s have your highest average energy.`,
-      tone: "positive",
-    });
-  }
-
-  if (analysis.bestMoodDayOfWeek && analysis.worstMoodDayOfWeek) {
-    insights.push({
-      id: "mood-weekday-pattern",
-      title: "Mood weekday pattern",
-      detail: `${analysis.bestMoodDayOfWeek}s currently score highest for mood; ${analysis.worstMoodDayOfWeek}s score lowest.`,
-      tone: "neutral",
-    });
-  }
-
-  if (analysis.mostFrequentBlockerKeyword) {
-    insights.push({
-      id: "common-blocker",
-      title: "Common blocker",
-      detail: `Most frequent blocker keyword: ${analysis.mostFrequentBlockerKeyword}.`,
-      tone: "warning",
-    });
-  }
-
-  if (analysis.mostConsistentReviewDayType !== "insufficient-data") {
-    insights.push({
-      id: "review-consistency",
-      title: "Review consistency",
-      detail: getConsistencyInsightDetail(analysis.mostConsistentReviewDayType),
-      tone: "positive",
-    });
-  }
-
-  return insights;
 }
 
 function calculateMonthlySummary(
@@ -284,7 +213,7 @@ function getBestDayOfWeek(
   reviews: DailyReview[],
   field: "mood" | "energy",
   direction: "best" | "worst",
-): string | null {
+): number | null {
   const byDay = new Map<number, number[]>();
 
   reviews.forEach((review) => {
@@ -311,11 +240,13 @@ function getBestDayOfWeek(
     direction === "best" ? right.value - left.value : left.value - right.value,
   );
 
-  return WEEKDAY_LABELS[sorted[0].day];
+  return sorted[0].day;
 }
 
-function getBestPerformingWeek(reviews: DailyReview[]): string | null {
-  const byWeek = new Map<string, { label: string; values: number[] }>();
+function getBestPerformingWeek(
+  reviews: DailyReview[],
+): MonthlyReflectionSummaryData["bestPerformingWeek"] {
+  const byWeek = new Map<string, { end: string; start: string; values: number[] }>();
 
   reviews.forEach((review) => {
     const date = parseDateKey(review.date);
@@ -327,7 +258,8 @@ function getBestPerformingWeek(reviews: DailyReview[]): string | null {
     const weekStart = startOfWeek(date);
     const key = toDateKey(weekStart);
     const current = byWeek.get(key) ?? {
-      label: `${formatShortDate(weekStart)} - ${formatShortDate(addDays(weekStart, 6))}`,
+      end: toDateKey(addDays(weekStart, 6)),
+      start: toDateKey(weekStart),
       values: [],
     };
     current.values.push((review.mood + review.energy) / 2);
@@ -335,10 +267,10 @@ function getBestPerformingWeek(reviews: DailyReview[]): string | null {
   });
 
   const bestWeek = Array.from(byWeek.values())
-    .map((week) => ({ label: week.label, score: average(week.values) ?? 0 }))
+    .map((week) => ({ ...week, score: average(week.values) ?? 0 }))
     .sort((left, right) => right.score - left.score)[0];
 
-  return bestWeek?.label ?? null;
+  return bestWeek ? { end: bestWeek.end, start: bestWeek.start } : null;
 }
 
 function getConsistentReviewDayType(reviews: DailyReview[]): ReviewPatternAnalysis["mostConsistentReviewDayType"] {
@@ -411,32 +343,6 @@ function getWeeklyReviews(reviews: ReviewEntry[]): WeeklyReview[] {
   return reviews
     .filter((review): review is WeeklyReview => review.type === "weekly")
     .sort((left, right) => left.weekStart.localeCompare(right.weekStart));
-}
-
-function getTrendInsightDetail(label: "mood" | "energy", direction: ReviewTrendDirection): string {
-  switch (direction) {
-    case "up":
-      return `Your average ${label} is trending up across recent reviews.`;
-    case "down":
-      return `Your average ${label} is trending down across recent reviews.`;
-    case "flat":
-      return `Your average ${label} is stable across recent reviews.`;
-    case "insufficient-data":
-      return `Add more daily reviews to detect your ${label} trend.`;
-  }
-}
-
-function getConsistencyInsightDetail(type: ReviewPatternAnalysis["mostConsistentReviewDayType"]): string {
-  switch (type) {
-    case "weekdays":
-      return "You complete reviews most consistently on weekdays.";
-    case "weekends":
-      return "You complete reviews most consistently on weekends.";
-    case "balanced":
-      return "Your review consistency is balanced across weekdays and weekends.";
-    case "insufficient-data":
-      return "Add more reviews to detect consistency patterns.";
-  }
 }
 
 function average(values: number[]): number | null {
@@ -512,16 +418,21 @@ function toDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function formatTrendLabel(date: Date, range: ReviewTrendRange): string {
-  return new Intl.DateTimeFormat("en-US", {
-    day: "numeric",
-    month: range === "90d" ? "short" : undefined,
-    weekday: range === "7d" ? "short" : undefined,
-  }).format(date);
-}
+function formatTrendLabel(date: Date, range: ReviewTrendRange, language: Language): string {
+  if (range === "7d") {
+    return new Intl.DateTimeFormat(language === "fa" ? "fa-IR" : "en-US", {
+      weekday: "short",
+    }).format(date);
+  }
 
-function formatShortDate(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", { day: "numeric", month: "short" }).format(date);
+  if (range === "90d") {
+    return formatAppDate(date, language);
+  }
+
+  return new Intl.DateTimeFormat(language === "fa" ? "fa-IR" : "en-US", {
+    day: "numeric",
+    month: "short",
+  }).format(date);
 }
 
 function toTitleCase(value: string): string {

@@ -8,9 +8,9 @@ interface ReviewTypeTabsProps {
 }
 
 const reviewTypes: Array<{ labelKey: TranslationKey; value: ReviewType }> = [
-  { labelKey: "reviews.dailyReview", value: "daily" },
-  { labelKey: "reviews.weeklyReview", value: "weekly" },
-  { labelKey: "reviews.monthlyReview", value: "monthly" },
+  { labelKey: "reviews.tabs.daily", value: "daily" },
+  { labelKey: "reviews.tabs.weekly", value: "weekly" },
+  { labelKey: "reviews.tabs.monthly", value: "monthly" },
 ];
 
 export function ReviewTypeTabs({ activeType, onChange }: ReviewTypeTabsProps): JSX.Element {

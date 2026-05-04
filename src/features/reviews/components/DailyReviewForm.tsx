@@ -5,6 +5,7 @@ import {
   ReviewEnergyScore,
   ReviewMoodScore,
 } from "@/features/reviews/types/review.types";
+import { useI18n } from "@/i18n";
 
 interface DailyReviewFormProps {
   isComplete: boolean;
@@ -35,6 +36,7 @@ export function DailyReviewForm({
   isComplete,
   onSubmit,
 }: DailyReviewFormProps): JSX.Element {
+  const { t } = useI18n();
   const [formState, setFormState] = useState<DailyReviewFormState>(defaultState);
   const [error, setError] = useState("");
 
@@ -47,7 +49,7 @@ export function DailyReviewForm({
       !formState.distraction.trim() ||
       !formState.tomorrowFocus.trim()
     ) {
-      setError("Please complete the required reflection fields.");
+      setError(t("reviews.daily.validationError"));
       return;
     }
 
@@ -74,8 +76,8 @@ export function DailyReviewForm({
     return (
       <section className="review-card">
         <div className="review-complete-state">
-          <strong>Daily review complete</strong>
-          <p>You have already captured today. Come back tomorrow for a fresh review.</p>
+          <strong>{t("reviews.daily.completedTitle")}</strong>
+          <p>{t("reviews.daily.completedDescription")}</p>
         </div>
       </section>
     );
@@ -85,26 +87,26 @@ export function DailyReviewForm({
     <section className="review-card">
       <div className="review-card__header">
         <div>
-          <h2>Daily Review</h2>
-          <p>Close the day with a clear read on what worked, what pulled focus, and what comes next.</p>
+          <h2>{t("reviews.daily.title")}</h2>
+          <p>{t("reviews.daily.subtitle")}</p>
         </div>
       </div>
 
       <form className="review-form" onSubmit={handleSubmit}>
         <ReviewTextarea
-          label="What went well today?"
+          label={t("reviews.daily.whatWentWell")}
           onChange={(value) => setFormState((current) => ({ ...current, wentWell: value }))}
           required
           value={formState.wentWell}
         />
         <ReviewTextarea
-          label="What did not go well?"
+          label={t("reviews.daily.whatWentWrong")}
           onChange={(value) => setFormState((current) => ({ ...current, didNotGoWell: value }))}
           required
           value={formState.didNotGoWell}
         />
         <ReviewTextarea
-          label="Biggest distraction/challenge"
+          label={t("reviews.daily.biggestDistraction")}
           onChange={(value) => setFormState((current) => ({ ...current, distraction: value }))}
           required
           value={formState.distraction}
@@ -112,7 +114,7 @@ export function DailyReviewForm({
 
         <div className="review-form__rating-grid">
           <ReviewRating
-            label="Mood"
+            label={t("reviews.daily.mood")}
             max={5}
             onChange={(value) =>
               setFormState((current) => ({ ...current, mood: value as ReviewMoodScore }))
@@ -120,7 +122,7 @@ export function DailyReviewForm({
             value={formState.mood}
           />
           <ReviewRating
-            label="Energy"
+            label={t("reviews.daily.energy")}
             max={5}
             onChange={(value) =>
               setFormState((current) => ({ ...current, energy: value as ReviewEnergyScore }))
@@ -130,13 +132,13 @@ export function DailyReviewForm({
         </div>
 
         <ReviewTextarea
-          label="Main focus for tomorrow"
+          label={t("reviews.daily.mainFocusTomorrow")}
           onChange={(value) => setFormState((current) => ({ ...current, tomorrowFocus: value }))}
           required
           value={formState.tomorrowFocus}
         />
         <ReviewTextarea
-          label="Additional notes"
+          label={t("reviews.daily.additionalNotes")}
           onChange={(value) => setFormState((current) => ({ ...current, notes: value }))}
           value={formState.notes}
         />
@@ -144,7 +146,7 @@ export function DailyReviewForm({
         {error ? <p className="review-form__error">{error}</p> : null}
 
         <div className="review-form__actions">
-          <Button type="submit">Save Daily Review</Button>
+          <Button type="submit">{t("reviews.daily.save")}</Button>
         </div>
       </form>
     </section>

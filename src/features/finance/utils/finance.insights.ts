@@ -2,6 +2,17 @@ import { FinanceCategory, FinanceSummary } from "@/features/finance/types/financ
 import { MonthlyBudgetUsage, getBudgetStatus } from "@/features/finance/utils/finance.budgets";
 import { formatMoney } from "@/features/finance/utils/finance.format";
 
+export interface FinanceLegacyInsight {
+  id:
+    | "add-first-transaction"
+    | "spent-this-month"
+    | "saved-this-month"
+    | "expenses-higher-than-income"
+    | "highest-category"
+    | "close-to-budget";
+  values?: Record<string, string>;
+}
+
 export function getFinanceInsights(params: {
   budgetUsage: MonthlyBudgetUsage[];
   categories: FinanceCategory[];
@@ -9,7 +20,7 @@ export function getFinanceInsights(params: {
   hasTransactions: boolean;
   summary: FinanceSummary;
   topExpenseCategoryId?: string;
-}): string[] {
+}): FinanceLegacyInsight[] {
   const {
     budgetUsage,
     categories,
@@ -20,27 +31,36 @@ export function getFinanceInsights(params: {
   } = params;
 
   if (!hasTransactions) {
-    return ["Add your first transaction to unlock insights."];
+    return [{ id: "add-first-transaction" }];
   }
 
-  const insights: string[] = [];
+  const insights: FinanceLegacyInsight[] = [];
 
   if (summary.monthlyExpenses > 0) {
-    insights.push(`You spent ${formatMoney(summary.monthlyExpenses, currency)} this month.`);
+    insights.push({
+      id: "spent-this-month",
+      values: { amount: formatMoney(summary.monthlyExpenses, currency) },
+    });
   }
 
   if (summary.monthlyIncome > summary.monthlyExpenses) {
-    insights.push(
-      `You saved ${formatMoney(summary.monthlyIncome - summary.monthlyExpenses, currency)} this month.`,
-    );
+    insights.push({
+      id: "saved-this-month",
+      values: {
+        amount: formatMoney(summary.monthlyIncome - summary.monthlyExpenses, currency),
+      },
+    });
   } else if (summary.monthlyExpenses > summary.monthlyIncome) {
-    insights.push("Your expenses are higher than your income this month.");
+    insights.push({ id: "expenses-higher-than-income" });
   }
 
   if (topExpenseCategoryId) {
     const topCategory = categories.find((category) => category.id === topExpenseCategoryId);
     if (topCategory) {
-      insights.push(`Your highest spending category is ${topCategory.name}.`);
+      insights.push({
+        id: "highest-category",
+        values: { category: topCategory.name },
+      });
     }
   }
 
@@ -48,7 +68,10 @@ export function getFinanceInsights(params: {
     (usage) => getBudgetStatus(usage.percentageUsed) === "danger",
   );
   if (dangerBudget) {
-    insights.push(`You are close to or over your ${dangerBudget.category.name} budget.`);
+    insights.push({
+      id: "close-to-budget",
+      values: { category: dangerBudget.category.name },
+    });
   }
 
   return insights;

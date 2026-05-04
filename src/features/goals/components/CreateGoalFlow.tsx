@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -9,6 +9,7 @@ import { CreateGoalStepBasic } from "@/features/goals/components/CreateGoalStepB
 import { CreateGoalStepCategory } from "@/features/goals/components/CreateGoalStepCategory";
 import { CreateGoalStepMeta } from "@/features/goals/components/CreateGoalStepMeta";
 import { CreateGoalStepTasks } from "@/features/goals/components/CreateGoalStepTasks";
+import { useI18n } from "@/i18n";
 import { createId } from "@/lib/id";
 
 const steps = ["basic", "category", "meta", "tasks"] as const;
@@ -27,6 +28,7 @@ function createDraftGoalTask(title = ""): DraftGoalTask {
 
 export function CreateGoalFlow(): JSX.Element {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [currentStep, setCurrentStep] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -43,8 +45,6 @@ export function CreateGoalFlow(): JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentKey = steps[currentStep];
-  const progressText = useMemo(() => `${currentStep + 1} / ${steps.length}`, [currentStep]);
-
   function updateDraftTask(taskId: string, value: string): void {
     setDraftTasks((currentTasks) =>
       currentTasks.map((currentTask) =>
@@ -55,7 +55,7 @@ export function CreateGoalFlow(): JSX.Element {
 
   async function handleNext(): Promise<void> {
     if (currentKey === "basic" && !title.trim()) {
-      setError("A clear title helps this goal stay actionable.");
+      setError(t("goals.createFlow.errors.titleRequired"));
       return;
     }
 
@@ -83,7 +83,7 @@ export function CreateGoalFlow(): JSX.Element {
 
         navigate(`/goals/${goalId}`, { replace: true });
       } catch {
-        setError("Unable to create this goal right now.");
+        setError(t("goals.createFlow.errors.createFailed"));
       } finally {
         setIsSubmitting(false);
       }
@@ -162,7 +162,10 @@ export function CreateGoalFlow(): JSX.Element {
   }
 
   return (
-    <Card title="Create goal" subtitle={`Step ${progressText}`}>
+    <Card
+      title={t("goals.createFlow.cardTitle")}
+      subtitle={t("goals.createFlow.stepIndicator", { current: currentStep + 1, total: steps.length })}
+    >
       <div className="goal-create-flow">
         <div className="goal-create-flow__body" key={currentKey}>
           {renderStep()}
@@ -171,10 +174,14 @@ export function CreateGoalFlow(): JSX.Element {
 
         <div className="goal-create-flow__actions">
           <Button onClick={handleBack} type="button" variant="secondary">
-            Back
+            {t("goals.createFlow.back")}
           </Button>
           <Button disabled={isSubmitting} onClick={() => void handleNext()} type="button">
-            {currentKey === "tasks" ? (isSubmitting ? "Creating..." : "Create goal") : "Next"}
+            {currentKey === "tasks"
+              ? isSubmitting
+                ? t("goals.createFlow.creating")
+                : t("goals.createFlow.submit")
+              : t("goals.createFlow.next")}
           </Button>
         </div>
       </div>

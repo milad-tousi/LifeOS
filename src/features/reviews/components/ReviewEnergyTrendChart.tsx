@@ -13,6 +13,7 @@ import {
   ReviewTrendRange,
 } from "@/features/reviews/utils/analyzeReviewPatterns";
 import { ReviewEntry } from "@/features/reviews/types/review.types";
+import { useI18n } from "@/i18n";
 
 interface ReviewEnergyTrendChartProps {
   range: ReviewTrendRange;
@@ -23,14 +24,15 @@ export function ReviewEnergyTrendChart({
   range,
   reviews,
 }: ReviewEnergyTrendChartProps): JSX.Element {
-  const data = getReviewTrendPoints(reviews, range);
+  const { language, t } = useI18n();
+  const data = getReviewTrendPoints(reviews, range, language);
 
   return (
     <section className="review-card review-analytics-card">
       <div className="review-card__header">
         <div>
-          <h2>Energy Trend</h2>
-          <p>Daily energy scores over the selected window.</p>
+          <h2>{t("reviews.analytics.energyTrend")}</h2>
+          <p>{t("reviews.analytics.energyTrendSubtitle")}</p>
         </div>
       </div>
 
@@ -48,12 +50,12 @@ export function ReviewEnergyTrendChart({
                 axisLine={false}
                 width={36}
               />
-              <Tooltip formatter={(value: number | string) => [`${value}/5`, "Energy"]} />
+              <Tooltip formatter={(value: number | string) => [`${value}/5`, t("reviews.daily.energy")]} />
               <Line
                 animationDuration={450}
                 dataKey="energy"
                 dot={data.length <= 7}
-                name="Energy"
+                name={t("reviews.daily.energy")}
                 stroke="#16a34a"
                 strokeWidth={2.5}
                 type="monotone"
@@ -62,7 +64,7 @@ export function ReviewEnergyTrendChart({
           </ResponsiveContainer>
         </div>
       ) : (
-        <ReviewChartEmptyState description="Save daily reviews with energy scores to reveal the trend." />
+        <ReviewChartEmptyState description={t("reviews.empty.saveMoreDailyReviews")} />
       )}
     </section>
   );

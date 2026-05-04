@@ -8,6 +8,9 @@ import {
   FinanceMerchantRule,
   VoiceAlias,
 } from "@/features/finance/types/finance.types";
+import { getFinanceCategoryDisplayName, getVoiceAliasTargetDisplayName } from "@/features/finance/utils/finance.i18n";
+import { formatAppDate } from "@/i18n/formatters";
+import { useI18n } from "@/i18n";
 import { createId } from "@/lib/id";
 
 interface VoiceAliasesSectionProps {
@@ -41,6 +44,7 @@ export function VoiceAliasesSection({
   onUpdateVoiceAlias,
   voiceAliases,
 }: VoiceAliasesSectionProps): JSX.Element {
+  const { language, t } = useI18n();
   const [editingAliasId, setEditingAliasId] = useState<string | null>(null);
   const [manualForm, setManualForm] = useState<VoiceAliasFormState>(DEFAULT_FORM_STATE);
   const [manualError, setManualError] = useState("");
@@ -81,17 +85,17 @@ export function VoiceAliasesSection({
     const correctedText = manualForm.correctedText.trim();
 
     if (!heardText) {
-      setManualError("Heard text is required.");
+      setManualError(t("finance.voiceAliases.heardRequired"));
       return;
     }
 
     if (!correctedText) {
-      setManualError("Corrected text is required.");
+      setManualError(t("finance.voiceAliases.correctedRequired"));
       return;
     }
 
     if (manualForm.targetType === "category" && !manualForm.categoryId) {
-      setManualError("Choose a category for category aliases.");
+      setManualError(t("finance.voiceAliases.categoryRequired"));
       return;
     }
 
@@ -102,7 +106,7 @@ export function VoiceAliasesSection({
     );
 
     if (hasDuplicate) {
-      setManualError("Duplicate heard text is not allowed.");
+      setManualError(t("finance.voiceAliases.duplicateHeard"));
       return;
     }
 
@@ -137,12 +141,12 @@ export function VoiceAliasesSection({
     const heardText = transcript.trim();
 
     if (!correctedText) {
-      setTrainingError("Correct text is required.");
+      setTrainingError(t("finance.voiceAliases.correctTextRequired"));
       return;
     }
 
     if (!heardText) {
-      setTrainingError("Record a transcript before saving.");
+      setTrainingError(t("finance.voiceAliases.recordTranscriptFirst"));
       return;
     }
 
@@ -151,7 +155,7 @@ export function VoiceAliasesSection({
     );
 
     if (hasDuplicate) {
-      setTrainingError("Duplicate heard text is not allowed.");
+      setTrainingError(t("finance.voiceAliases.duplicateHeard"));
       return;
     }
 
@@ -190,24 +194,20 @@ export function VoiceAliasesSection({
       return dateValue;
     }
 
-    return new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(safeDate);
+    return formatAppDate(safeDate, language);
   }
 
   return (
     <Card
-      subtitle="Teach LifeOS how to correct speech recognition mistakes for merchants, categories, and common words."
-      title="Voice Aliases"
+      subtitle={t("finance.voiceAliases.subtitle")}
+      title={t("finance.voiceAliases.title")}
     >
       <div className="finance-settings-section finance-voice-aliases-shell">
         <div className="finance-voice-alias-grid">
           <div className="finance-voice-alias-panel">
             <div className="finance-voice-alias-panel__header">
-              <strong>Manual Alias</strong>
-              <p>Add a correction directly for text the browser often mishears.</p>
+              <strong>{t("finance.voiceAliases.manualTitle")}</strong>
+              <p>{t("finance.voiceAliases.manualSubtitle")}</p>
             </div>
 
             <form
@@ -215,19 +215,19 @@ export function VoiceAliasesSection({
               onSubmit={handleSubmitManualAlias}
             >
               <label className="auth-form__field finance-voice-alias-panel__field">
-                <span className="auth-form__label">Heard</span>
+                <span className="auth-form__label">{t("finance.voiceAliases.heard")}</span>
                 <input
                   className="auth-form__input"
                   onChange={(event) =>
                     setManualForm((current) => ({ ...current, heardText: event.target.value }))
                   }
-                  placeholder="vomer"
+                  placeholder={t("finance.voiceAliases.heardPlaceholder")}
                   value={manualForm.heardText}
                 />
               </label>
 
               <label className="auth-form__field finance-voice-alias-panel__field">
-                <span className="auth-form__label">Corrected</span>
+                <span className="auth-form__label">{t("finance.voiceAliases.corrected")}</span>
                 <input
                   className="auth-form__input"
                   onChange={(event) =>
@@ -236,13 +236,13 @@ export function VoiceAliasesSection({
                       correctedText: event.target.value,
                     }))
                   }
-                  placeholder="Vomar"
+                  placeholder={t("finance.voiceAliases.correctedPlaceholder")}
                   value={manualForm.correctedText}
                 />
               </label>
 
               <label className="auth-form__field finance-voice-alias-panel__field finance-voice-alias-panel__field--type">
-                <span className="auth-form__label">Target</span>
+                <span className="auth-form__label">{t("finance.voiceAliases.target")}</span>
                 <select
                   className="auth-form__input"
                   onChange={(event) =>
@@ -255,15 +255,15 @@ export function VoiceAliasesSection({
                   }
                   value={manualForm.targetType}
                 >
-                  <option value="merchant">Merchant</option>
-                  <option value="category">Category</option>
-                  <option value="general">General</option>
+                  <option value="merchant">{t("finance.voiceAliases.targetMerchant")}</option>
+                  <option value="category">{t("finance.voiceAliases.targetCategory")}</option>
+                  <option value="general">{t("finance.voiceAliases.targetGeneral")}</option>
                 </select>
               </label>
 
               {manualForm.targetType === "category" ? (
                 <label className="auth-form__field finance-voice-alias-panel__field finance-voice-alias-panel__field--category">
-                  <span className="auth-form__label">Category</span>
+                  <span className="auth-form__label">{t("finance.form.category")}</span>
                   <select
                     className="auth-form__input"
                     onChange={(event) =>
@@ -274,10 +274,10 @@ export function VoiceAliasesSection({
                     }
                     value={manualForm.categoryId}
                   >
-                    <option value="">Select category</option>
+                    <option value="">{t("finance.selectCategory")}</option>
                     {categories.map((category) => (
                       <option key={category.id} value={category.id}>
-                        {category.name}
+                        {getFinanceCategoryDisplayName(category, t)}
                       </option>
                     ))}
                   </select>
@@ -291,11 +291,11 @@ export function VoiceAliasesSection({
                 <div className="finance-settings-inline-actions">
                   {editingAliasId ? (
                     <Button onClick={resetManualForm} type="button" variant="secondary">
-                      Cancel
+                      {t("common.cancel")}
                     </Button>
                   ) : null}
                   <Button type="submit">
-                    {editingAliasId ? "Save Alias" : "Add Alias"}
+                    {editingAliasId ? t("finance.voiceAliases.saveAlias") : t("finance.voiceAliases.addAlias")}
                   </Button>
                 </div>
               </div>
@@ -308,17 +308,17 @@ export function VoiceAliasesSection({
                 <Volume2 size={16} />
               </span>
               <div>
-                <strong>Voice Training</strong>
-                <p>Record a common misheard phrase and save its corrected version.</p>
+                <strong>{t("finance.voiceAliases.trainingTitle")}</strong>
+                <p>{t("finance.voiceAliases.trainingSubtitle")}</p>
               </div>
             </div>
 
             <label className="auth-form__field">
-              <span className="auth-form__label">Correct text</span>
+              <span className="auth-form__label">{t("finance.voiceAliases.correctText")}</span>
               <input
                 className="auth-form__input"
                 onChange={(event) => setTrainingCorrectText(event.target.value)}
-                placeholder="Vomar, Albert Heijn, NS..."
+                placeholder={t("finance.voiceAliases.trainingPlaceholder")}
                 value={trainingCorrectText}
               />
             </label>
@@ -338,24 +338,23 @@ export function VoiceAliasesSection({
                 variant={isListening ? "secondary" : "primary"}
               >
                 {isListening ? <MicOff size={15} /> : <Mic size={15} />}
-                {isListening ? "Stop Recording" : "Record"}
+                {isListening ? t("finance.voiceAliases.stopRecording") : t("finance.voiceAliases.record")}
               </Button>
               <Button onClick={handleSaveTrainingAlias} type="button">
-                Save Alias
+                {t("finance.voiceAliases.saveAlias")}
               </Button>
             </div>
 
             <div className="finance-voice-training-card__preview">
               <span className="finance-transaction-card__chip">
-                {isListening ? "Listening..." : "Transcript"}
+                {isListening ? t("finance.listening") : t("finance.voiceAliases.transcript")}
               </span>
-              <p>{transcript.trim() || "No transcript captured yet."}</p>
+              <p>{transcript.trim() || t("finance.voiceAliases.noTranscript")}</p>
             </div>
 
             {!isSupported ? (
               <p className="text-muted">
-                Voice recording is not supported in this browser. You can still add aliases
-                manually.
+                {t("finance.voiceAliases.voiceNotSupported")}
               </p>
             ) : null}
             {voiceError ? <p className="auth-form__error">{voiceError}</p> : null}
@@ -369,8 +368,8 @@ export function VoiceAliasesSection({
               <span className="finance-empty-inline__icon">
                 <Volume2 size={16} />
               </span>
-              <strong>No voice aliases yet</strong>
-              <p>Add your first correction to improve Quick Capture accuracy.</p>
+              <strong>{t("finance.voiceAliases.emptyTitle")}</strong>
+              <p>{t("finance.voiceAliases.emptySubtitle")}</p>
             </div>
           ) : (
             voiceAliases.map((voiceAlias) => {
@@ -386,11 +385,11 @@ export function VoiceAliasesSection({
                         <strong>{voiceAlias.heardText}</strong>
                         <div className="finance-recurring-card__badges">
                           <span className="finance-transaction-card__chip">
-                            {voiceAlias.targetType}
+                            {getVoiceAliasTargetDisplayName(voiceAlias.targetType, t)}
                           </span>
                           {category ? (
                             <span className="finance-transaction-card__chip finance-transaction-card__chip--category">
-                              {category.name}
+                              {getFinanceCategoryDisplayName(category, t)}
                             </span>
                           ) : null}
                         </div>
@@ -399,7 +398,7 @@ export function VoiceAliasesSection({
                     </div>
                     <div className="finance-recurring-card__meta">
                       <span className="finance-transaction-card__chip">
-                        Created {formatDate(voiceAlias.createdAt)}
+                        {t("finance.voiceAliases.created")} {formatDate(voiceAlias.createdAt)}
                       </span>
                     </div>
                   </div>
@@ -414,7 +413,7 @@ export function VoiceAliasesSection({
                     <button
                       className="finance-settings-row-action finance-settings-row-action--danger"
                       onClick={() => {
-                        if (window.confirm("Are you sure you want to delete this voice alias?")) {
+                        if (window.confirm(t("finance.voiceAliases.deleteConfirm"))) {
                           onDeleteVoiceAlias(voiceAlias.id);
                         }
                       }}

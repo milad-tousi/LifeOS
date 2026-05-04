@@ -3,6 +3,7 @@ import { GoalCardData } from "@/features/goals/hooks/useGoals";
 import { GoalProgress } from "@/features/goals/components/GoalProgress";
 import { renderGoalCategoryIcon } from "@/features/goals/components/goal-visuals";
 import { useI18n } from "@/i18n";
+import { formatAppDate } from "@/i18n/formatters";
 
 interface GoalCardProps {
   data: GoalCardData;
@@ -11,12 +12,16 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JSX.Element {
-  const { t } = useI18n();
+  const { direction, language, t } = useI18n();
   const { goal, habitProgress, linkedHabits, nextPendingTask, overallProgress, progress } = data;
 
   return (
     <button
-      className={isActive ? "goal-card goal-card--active" : "goal-card"}
+      className={[
+        "goal-card",
+        isActive ? "goal-card--active" : "",
+        direction === "rtl" ? "goal-card--rtl" : "",
+      ].join(" ").trim()}
       onClick={onClick}
       type="button"
     >
@@ -81,10 +86,15 @@ export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JS
         {goal.deadline ? (
           <span className="goal-card__deadline">
             <CalendarDays size={15} />
-            {goal.deadline}
+            {formatGoalDeadline(goal.deadline, language)}
           </span>
         ) : null}
       </div>
     </button>
   );
+}
+
+function formatGoalDeadline(value: string, language: "en" | "fa"): string {
+  const safeDate = new Date(value);
+  return Number.isNaN(safeDate.getTime()) ? value : formatAppDate(safeDate, language);
 }

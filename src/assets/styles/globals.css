@@ -3159,6 +3159,11 @@ a:focus-visible {
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
+.goal-card--rtl {
+  direction: rtl;
+  text-align: right;
+}
+
 .goal-card:hover {
   transform: translateY(-2px);
 }
@@ -3212,6 +3217,7 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  width: 100%;
 }
 
 .goal-card__title,
@@ -3233,6 +3239,55 @@ a:focus-visible {
 .goal-card__next-task {
   color: var(--text);
   font-weight: 500;
+}
+
+.goal-card--rtl .goal-card__top,
+.goal-card--rtl .goal-card__footer,
+.goal-card--rtl .goal-card__category,
+.goal-card--rtl .goal-card__deadline {
+  flex-direction: row-reverse;
+}
+
+.goal-card--rtl .goal-card__content,
+.goal-card--rtl .goal-card__footer-copy {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.goal-card--rtl .goal-card__habit-progress-header,
+.goal-card--rtl .goal-card__linked-habits,
+.goal-card--rtl .goal-card__habit-progress p,
+.goal-card--rtl .goal-card__overall-progress {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl .goal-card,
+.rtl .goal-detail-header {
+  text-align: right;
+}
+
+.rtl .goal-card__top,
+.rtl .goal-card__footer,
+.rtl .goal-card__category,
+.rtl .goal-card__deadline,
+.rtl .goal-detail-header__meta,
+.rtl .goal-detail-header__summary-value,
+.rtl .goal-detail-header__summary-notes,
+.rtl .goal-detail-header__deadline-row {
+  flex-direction: row-reverse;
+}
+
+.rtl .goal-card__footer-copy,
+.rtl .goal-card__content,
+.rtl .goal-detail-header__copy,
+.rtl .goal-detail-header__summary-item {
+  align-items: flex-end;
+}
+
+.rtl .goal-card__habit-progress-header,
+.rtl .goal-card__linked-habits {
+  direction: rtl;
 }
 
 .goal-card__habit-progress {
@@ -6647,6 +6702,7 @@ button.dashboard-mind-node {
   align-items: center;
   border-radius: 999px;
   background: rgba(148, 163, 184, 0.32);
+  overflow: hidden;
   transition: background-color 180ms ease;
 }
 
@@ -6655,17 +6711,21 @@ button.dashboard-mind-node {
 }
 
 .finance-toggle__thumb {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 0.22rem;
   width: 1.15rem;
   height: 1.15rem;
-  margin-left: 0.22rem;
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
-  transition: transform 180ms ease;
+  transform: translateY(-50%);
+  transition: inset-inline-start 180ms ease, transform 180ms ease;
 }
 
 .finance-toggle__track--active .finance-toggle__thumb {
-  transform: translateX(1.18rem);
+  inset-inline-start: calc(100% - 1.15rem - 0.22rem);
+  transform: translateY(-50%);
 }
 
 .finance-settings-inline-actions,

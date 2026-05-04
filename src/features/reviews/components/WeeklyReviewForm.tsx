@@ -4,6 +4,7 @@ import {
   WeeklyReviewInput,
   WeeklySelfRating,
 } from "@/features/reviews/types/review.types";
+import { useI18n } from "@/i18n";
 
 interface WeeklyReviewFormProps {
   isComplete: boolean;
@@ -30,6 +31,7 @@ export function WeeklyReviewForm({
   isComplete,
   onSubmit,
 }: WeeklyReviewFormProps): JSX.Element {
+  const { t } = useI18n();
   const [formState, setFormState] = useState<WeeklyReviewFormState>(defaultState);
   const [error, setError] = useState("");
 
@@ -42,7 +44,7 @@ export function WeeklyReviewForm({
       !formState.lessonsLearned.trim() ||
       !formState.nextWeekFocus.trim()
     ) {
-      setError("Please complete the required weekly review fields.");
+      setError(t("reviews.weekly.validationError"));
       return;
     }
 
@@ -61,8 +63,8 @@ export function WeeklyReviewForm({
     return (
       <section className="review-card">
         <div className="review-complete-state">
-          <strong>Weekly review complete</strong>
-          <p>This week is already reviewed. Your next weekly reflection will open next week.</p>
+          <strong>{t("reviews.weekly.completedTitle")}</strong>
+          <p>{t("reviews.weekly.completedDescription")}</p>
         </div>
       </section>
     );
@@ -72,14 +74,14 @@ export function WeeklyReviewForm({
     <section className="review-card">
       <div className="review-card__header">
         <div>
-          <h2>Weekly Review</h2>
-          <p>Pull the week into focus: progress, friction, lessons, and a clean next direction.</p>
+          <h2>{t("reviews.weekly.title")}</h2>
+          <p>{t("reviews.weekly.subtitle")}</p>
         </div>
       </div>
 
       <form className="review-form" onSubmit={handleSubmit}>
         <ReviewTextarea
-          label="Biggest achievement this week"
+          label={t("reviews.weekly.biggestAchievement")}
           onChange={(value) =>
             setFormState((current) => ({ ...current, biggestAchievement: value }))
           }
@@ -87,13 +89,13 @@ export function WeeklyReviewForm({
           value={formState.biggestAchievement}
         />
         <ReviewTextarea
-          label="Main blockers/challenges"
+          label={t("reviews.weekly.mainBlockers")}
           onChange={(value) => setFormState((current) => ({ ...current, blockers: value }))}
           required
           value={formState.blockers}
         />
         <ReviewTextarea
-          label="Lessons learned"
+          label={t("reviews.weekly.lessonsLearned")}
           onChange={(value) =>
             setFormState((current) => ({ ...current, lessonsLearned: value }))
           }
@@ -101,7 +103,7 @@ export function WeeklyReviewForm({
           value={formState.lessonsLearned}
         />
         <ReviewTextarea
-          label="Focus for next week"
+          label={t("reviews.weekly.focusNextWeek")}
           onChange={(value) =>
             setFormState((current) => ({ ...current, nextWeekFocus: value }))
           }
@@ -110,7 +112,7 @@ export function WeeklyReviewForm({
         />
 
         <fieldset className="review-rating review-rating--wide">
-          <legend>Weekly self-rating</legend>
+          <legend>{t("reviews.weekly.selfRating")}</legend>
           <div>
             {Array.from({ length: 10 }, (_, index) => index + 1).map((rating) => (
               <button
@@ -135,7 +137,7 @@ export function WeeklyReviewForm({
         {error ? <p className="review-form__error">{error}</p> : null}
 
         <div className="review-form__actions">
-          <Button type="submit">Save Weekly Review</Button>
+          <Button type="submit">{t("reviews.weekly.save")}</Button>
         </div>
       </form>
     </section>

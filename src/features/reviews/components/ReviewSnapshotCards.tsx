@@ -1,6 +1,8 @@
 import { CheckCircle2, CircleDollarSign, Flag, Repeat2 } from "lucide-react";
 import { FinanceCurrency } from "@/features/finance/types/finance.types";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
+import { formatNumber } from "@/i18n/formatters";
 
 export interface ReviewSnapshot {
   goalProgress: number;
@@ -18,39 +20,40 @@ export function ReviewSnapshotCards({
   currency,
   snapshot,
 }: ReviewSnapshotCardsProps): JSX.Element {
+  const { language, t } = useI18n();
   const cards = [
     {
       icon: CheckCircle2,
-      label: "Tasks Completed",
-      value: String(snapshot.tasksCompleted),
-      detail: "Finished in this period",
+      label: t("reviews.snapshot.tasksCompleted"),
+      value: formatNumber(snapshot.tasksCompleted, language),
+      detail: t("reviews.snapshot.tasksCompletedSubtitle"),
       tone: "blue",
     },
     {
       icon: Repeat2,
-      label: "Habit Completion Rate",
-      value: `${snapshot.habitCompletionRate}%`,
-      detail: "Scheduled habits completed",
+      label: t("reviews.snapshot.habitCompletionRate"),
+      value: `${formatNumber(snapshot.habitCompletionRate, language)}%`,
+      detail: t("reviews.snapshot.habitCompletionRateSubtitle"),
       tone: "green",
     },
     {
       icon: Flag,
-      label: "Goal Progress",
-      value: `${snapshot.goalProgress}%`,
-      detail: "Average active goal progress",
+      label: t("reviews.snapshot.goalProgress"),
+      value: `${formatNumber(snapshot.goalProgress, language)}%`,
+      detail: t("reviews.snapshot.goalProgressSubtitle"),
       tone: "violet",
     },
     {
       icon: CircleDollarSign,
-      label: "Net Finance This Period",
+      label: t("reviews.snapshot.netFinance"),
       value: formatMoney(snapshot.netFinance, currency),
-      detail: "Income minus expenses",
+      detail: t("reviews.snapshot.netFinanceSubtitle"),
       tone: snapshot.netFinance >= 0 ? "green" : "red",
     },
   ] as const;
 
   return (
-    <section className="review-snapshot-grid" aria-label="Progress snapshot">
+    <section className="review-snapshot-grid" aria-label={t("reviews.snapshot.ariaLabel")}>
       {cards.map((card) => {
         const Icon = card.icon;
 

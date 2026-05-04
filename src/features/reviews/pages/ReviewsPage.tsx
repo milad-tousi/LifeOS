@@ -35,13 +35,14 @@ import {
   WeeklyReviewInput,
 } from "@/features/reviews/types/review.types";
 import { useI18n } from "@/i18n";
+import { formatAppDate, formatCalendarMonth, formatWeekRange } from "@/i18n/formatters";
 
 export function ReviewsPage(): JSX.Element {
   const [activeType, setActiveType] = useState<ReviewType>("daily");
   const [reviews, setReviews] = useState<ReviewEntry[]>(() => getReviews());
   const [dailyComplete, setDailyComplete] = useState(() => hasDailyReviewForDate());
   const [weeklyComplete, setWeeklyComplete] = useState(() => hasWeeklyReviewForDate());
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const { tasks } = useTasks();
   const { habits, logs } = useHabits();
   const { goals } = useGoals();
@@ -73,7 +74,7 @@ export function ReviewsPage(): JSX.Element {
       return null;
     } catch (error) {
       refreshReviews();
-      return error instanceof Error ? error.message : "Daily review could not be saved.";
+      return error instanceof Error ? t(error.message) : t("reviews.daily.saveErrorFallback");
     }
   }
 
@@ -84,7 +85,7 @@ export function ReviewsPage(): JSX.Element {
       return null;
     } catch (error) {
       refreshReviews();
-      return error instanceof Error ? error.message : "Weekly review could not be saved.";
+      return error instanceof Error ? t(error.message) : t("reviews.weekly.saveErrorFallback");
     }
   }
 
@@ -99,7 +100,7 @@ export function ReviewsPage(): JSX.Element {
 
       <div className="reviews-page__period">
         <span>{t("reviews.currentReflectionPeriod")}</span>
-        <strong>{snapshotPeriod.label}</strong>
+        <strong>{formatSnapshotPeriod(snapshotPeriod.start, snapshotPeriod.end, activeType, language)}</strong>
       </div>
 
       <ReviewSnapshotCards currency={settings.currency} snapshot={snapshot} />
@@ -224,6 +225,23 @@ function getSnapshotPeriod(type: ReviewType): { end: Date; label: string; start:
   }
 
   return getMonthRange();
+}
+
+function formatSnapshotPeriod(
+  start: Date,
+  end: Date,
+  type: ReviewType,
+  language: "en" | "fa",
+): string {
+  if (type === "daily") {
+    return formatAppDate(start, language);
+  }
+
+  if (type === "weekly") {
+    return formatWeekRange(start, end, language);
+  }
+
+  return formatCalendarMonth(start, language);
 }
 
 function toDateKey(date: Date): string {

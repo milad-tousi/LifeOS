@@ -6,6 +6,7 @@ import { ModalShell } from "@/components/common/ModalShell";
 import { RecurringTransactionsSection } from "@/features/finance/components/RecurringTransactionsSection";
 import { VoiceAliasesSection } from "@/features/finance/components/VoiceAliasesSection";
 import { getFinanceIcon } from "@/features/finance/finance.icons";
+import { getFinanceCategoryDisplayName } from "@/features/finance/utils/finance.i18n";
 import {
   FinanceCategory,
   FinanceCurrency,
@@ -181,7 +182,7 @@ export function FinanceSettingsModal({
 
     const normalizedName = categoryForm.name.trim();
     if (!normalizedName) {
-      setCategoryError("Category name is required.");
+      setCategoryError(t("finance.settings.categoryNameRequired"));
       return;
     }
 
@@ -190,7 +191,7 @@ export function FinanceSettingsModal({
       categoryForm.monthlyBudget &&
       (!Number.isFinite(monthlyBudget) || monthlyBudget <= 0)
     ) {
-      setCategoryError("Monthly budget must be empty or greater than 0.");
+      setCategoryError(t("finance.settings.monthlyBudgetError"));
       return;
     }
 
@@ -201,7 +202,7 @@ export function FinanceSettingsModal({
     );
 
     if (hasDuplicateName) {
-      setCategoryError("Duplicate category names are not allowed.");
+      setCategoryError(t("finance.settings.duplicateCategoryName"));
       return;
     }
 
@@ -228,12 +229,12 @@ export function FinanceSettingsModal({
 
     const normalizedName = merchantRuleForm.name.trim();
     if (!normalizedName) {
-      setMerchantRuleError("Merchant name is required.");
+      setMerchantRuleError(t("finance.settings.merchantNameRequired"));
       return;
     }
 
     if (!merchantRuleForm.categoryId) {
-      setMerchantRuleError("Default category is required.");
+      setMerchantRuleError(t("finance.settings.defaultCategoryRequired"));
       return;
     }
 
@@ -244,7 +245,7 @@ export function FinanceSettingsModal({
     );
 
     if (hasDuplicateRule) {
-      setMerchantRuleError("Duplicate merchant rule names are not allowed.");
+      setMerchantRuleError(t("finance.settings.duplicateMerchantRule"));
       return;
     }
 
@@ -291,7 +292,7 @@ export function FinanceSettingsModal({
 
     if (!didDelete) {
       setDeleteCategoryMessage(
-        "This category is already used by transactions, merchant rules, or recurring rules, so it cannot be deleted.",
+        t("finance.settings.categoryInUseMessage"),
       );
       return;
     }
@@ -349,7 +350,7 @@ export function FinanceSettingsModal({
                   onChange={(event) =>
                     setCategoryForm((current) => ({ ...current, name: event.target.value }))
                   }
-                  placeholder="Category name"
+                  placeholder={t("finance.settings.categoryNamePlaceholder")}
                   value={categoryForm.name}
                 />
               </label>
@@ -385,8 +386,16 @@ export function FinanceSettingsModal({
                 >
                   {CATEGORY_ICON_OPTIONS.map((icon) => (
                     <option key={icon} value={icon}>
-                      {icon[0].toUpperCase()}
-                      {icon.slice(1)}
+                      {getFinanceCategoryDisplayName(
+                        {
+                          id: icon,
+                          name: icon,
+                          type: "expense",
+                          icon,
+                          color: "#000000",
+                        },
+                        t,
+                      )}
                     </option>
                   ))}
                 </select>
@@ -456,7 +465,7 @@ export function FinanceSettingsModal({
                           <CategoryIcon size={16} />
                         </span>
                         <div className="finance-category-badge__copy">
-                          <strong>{category.name}</strong>
+                          <strong>{getFinanceCategoryDisplayName(category, t)}</strong>
                           <span>{getFinanceTypeLabel(category.type, t)}</span>
                         </div>
                       </div>
@@ -502,8 +511,8 @@ export function FinanceSettingsModal({
         </Card>
 
         <Card
-          subtitle={t("finance.merchantRulesDescription")}
-          title={t("finance.merchantRules")}
+          subtitle={t("finance.rules.subtitle")}
+          title={t("finance.rules.title")}
         >
           <div className="finance-settings-section">
             <form
@@ -517,7 +526,7 @@ export function FinanceSettingsModal({
                   onChange={(event) =>
                     setMerchantRuleForm((current) => ({ ...current, name: event.target.value }))
                   }
-                  placeholder="Merchant or title"
+                  placeholder={t("finance.settings.merchantNamePlaceholder")}
                   value={merchantRuleForm.name}
                 />
               </label>
@@ -557,7 +566,7 @@ export function FinanceSettingsModal({
                   <option value="">{t("finance.selectCategory")}</option>
                   {merchantCategories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name}
+                      {getFinanceCategoryDisplayName(category, t)}
                     </option>
                   ))}
                 </select>
@@ -591,7 +600,7 @@ export function FinanceSettingsModal({
                       <p>
                         {merchantRule.defaultType === "income" ? t("finance.income") : t("finance.expense")}
                         {" | "}
-                        {category?.name ?? t("finance.unknownCategory")}
+                        {getFinanceCategoryDisplayName(category, t)}
                       </p>
                     </div>
                     <div className="finance-settings-row-actions">

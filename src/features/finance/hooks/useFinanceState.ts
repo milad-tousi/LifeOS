@@ -18,7 +18,7 @@ import {
   VoiceAlias,
 } from "@/features/finance/types";
 import { MonthlyBudgetUsage, getMonthlyBudgetUsage } from "@/features/finance/utils/finance.budgets";
-import { getFinanceInsights } from "@/features/finance/utils/finance.insights";
+import { FinanceLegacyInsight, getFinanceInsights } from "@/features/finance/utils/finance.insights";
 
 export interface UseFinanceStateResult {
   addCategory: (category: FinanceCategory) => void;
@@ -32,7 +32,7 @@ export interface UseFinanceStateResult {
   deleteCategory: (categoryId: string) => boolean;
   deleteMerchantRule: (merchantRuleId: string) => void;
   deleteRecurringTransaction: (recurringTransactionId: string) => void;
-  insights: string[];
+  insights: FinanceLegacyInsight[];
   isCategoryInUse: (categoryId: string) => boolean;
   merchantRules: FinanceMerchantRule[];
   recurringTransactions: RecurringTransaction[];

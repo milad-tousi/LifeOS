@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { ReviewEntry } from "@/features/reviews/types/review.types";
+import { useI18n } from "@/i18n";
+import { formatAppDate, formatWeekRange } from "@/i18n/formatters";
 
 type HistoryFilter = "all" | "daily" | "weekly";
 
@@ -9,6 +11,7 @@ interface ReviewHistoryProps {
 }
 
 export function ReviewHistory({ reviews }: ReviewHistoryProps): JSX.Element {
+  const { language, t } = useI18n();
   const [filter, setFilter] = useState<HistoryFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const filteredReviews = useMemo(
@@ -20,10 +23,10 @@ export function ReviewHistory({ reviews }: ReviewHistoryProps): JSX.Element {
     <section className="review-card review-history">
       <div className="review-card__header">
         <div>
-          <h2>Review History</h2>
-          <p>Browse previous reflections chronologically and reopen the details when needed.</p>
+          <h2>{t("reviews.history.title")}</h2>
+          <p>{t("reviews.history.subtitle")}</p>
         </div>
-        <div className="review-history__filters" aria-label="Review history filter">
+        <div className="review-history__filters" aria-label={t("reviews.history.filterLabel")}>
           {(["all", "daily", "weekly"] as const).map((option) => (
             <button
               className={`review-history__filter${
@@ -33,7 +36,7 @@ export function ReviewHistory({ reviews }: ReviewHistoryProps): JSX.Element {
               onClick={() => setFilter(option)}
               type="button"
             >
-              {getFilterLabel(option)}
+              {getFilterLabel(option, t)}
             </button>
           ))}
         </div>
@@ -41,8 +44,8 @@ export function ReviewHistory({ reviews }: ReviewHistoryProps): JSX.Element {
 
       {filteredReviews.length === 0 ? (
         <div className="review-empty-state">
-          <strong>No reviews yet</strong>
-          <p>Your saved daily and weekly reflections will appear here.</p>
+          <strong>{t("reviews.history.emptyTitle")}</strong>
+          <p>{t("reviews.history.emptySubtitle")}</p>
         </div>
       ) : (
         <div className="review-history__list">
@@ -57,8 +60,10 @@ export function ReviewHistory({ reviews }: ReviewHistoryProps): JSX.Element {
                   type="button"
                 >
                   <div>
-                    <span>{review.type === "daily" ? "Daily Review" : "Weekly Review"}</span>
-                    <strong>{review.periodLabel}</strong>
+                    <span>
+                      {review.type === "daily" ? t("reviews.tabs.daily") : t("reviews.tabs.weekly")}
+                    </span>
+                    <strong>{formatReviewHistoryPeriodLabel(review, language)}</strong>
                   </div>
                   <ChevronDown
                     className={isExpanded ? "review-history__chevron--open" : ""}
@@ -77,27 +82,31 @@ export function ReviewHistory({ reviews }: ReviewHistoryProps): JSX.Element {
 }
 
 function ReviewHistoryDetails({ review }: { review: ReviewEntry }): JSX.Element {
+  const { t } = useI18n();
+
   if (review.type === "daily") {
     return (
       <div className="review-history__details">
-        <HistoryDetail label="What went well" value={review.wentWell} />
-        <HistoryDetail label="What did not go well" value={review.didNotGoWell} />
-        <HistoryDetail label="Biggest distraction/challenge" value={review.distraction} />
-        <HistoryDetail label="Mood" value={`${review.mood}/5`} />
-        <HistoryDetail label="Energy" value={`${review.energy}/5`} />
-        <HistoryDetail label="Main focus for tomorrow" value={review.tomorrowFocus} />
-        {review.notes ? <HistoryDetail label="Additional notes" value={review.notes} /> : null}
+        <HistoryDetail label={t("reviews.daily.whatWentWell")} value={review.wentWell} />
+        <HistoryDetail label={t("reviews.daily.whatWentWrong")} value={review.didNotGoWell} />
+        <HistoryDetail label={t("reviews.daily.biggestDistraction")} value={review.distraction} />
+        <HistoryDetail label={t("reviews.daily.mood")} value={`${review.mood}/5`} />
+        <HistoryDetail label={t("reviews.daily.energy")} value={`${review.energy}/5`} />
+        <HistoryDetail label={t("reviews.daily.mainFocusTomorrow")} value={review.tomorrowFocus} />
+        {review.notes ? (
+          <HistoryDetail label={t("reviews.daily.additionalNotes")} value={review.notes} />
+        ) : null}
       </div>
     );
   }
 
   return (
     <div className="review-history__details">
-      <HistoryDetail label="Biggest achievement" value={review.biggestAchievement} />
-      <HistoryDetail label="Main blockers/challenges" value={review.blockers} />
-      <HistoryDetail label="Lessons learned" value={review.lessonsLearned} />
-      <HistoryDetail label="Focus for next week" value={review.nextWeekFocus} />
-      <HistoryDetail label="Weekly self-rating" value={`${review.selfRating}/10`} />
+      <HistoryDetail label={t("reviews.weekly.biggestAchievement")} value={review.biggestAchievement} />
+      <HistoryDetail label={t("reviews.weekly.mainBlockers")} value={review.blockers} />
+      <HistoryDetail label={t("reviews.weekly.lessonsLearned")} value={review.lessonsLearned} />
+      <HistoryDetail label={t("reviews.weekly.focusNextWeek")} value={review.nextWeekFocus} />
+      <HistoryDetail label={t("reviews.weekly.selfRating")} value={`${review.selfRating}/10`} />
     </div>
   );
 }
@@ -117,13 +126,29 @@ function HistoryDetail({
   );
 }
 
-function getFilterLabel(filter: HistoryFilter): string {
+function getFilterLabel(
+  filter: HistoryFilter,
+  t: (key: string, values?: Record<string, string | number>) => string,
+): string {
   switch (filter) {
     case "all":
-      return "All";
+      return t("reviews.tabs.all");
     case "daily":
-      return "Daily";
+      return t("reviews.tabs.daily");
     case "weekly":
-      return "Weekly";
+      return t("reviews.tabs.weekly");
   }
+}
+
+function formatReviewHistoryPeriodLabel(review: ReviewEntry, language: "en" | "fa"): string {
+  if (review.type === "daily") {
+    return formatAppDate(review.date, language);
+  }
+
+  return formatWeekRange(parseDateKey(review.weekStart), parseDateKey(review.weekEnd), language);
+}
+
+function parseDateKey(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, (month || 1) - 1, day || 1);
 }

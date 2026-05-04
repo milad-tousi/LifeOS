@@ -1,52 +1,59 @@
 import { BarChart3, BatteryCharging, CalendarCheck2, Flame, Smile, TrendingUp } from "lucide-react";
 import { ReviewPatternAnalysis } from "@/features/reviews/utils/analyzeReviewPatterns";
+import { useI18n } from "@/i18n";
+import { formatNumber } from "@/i18n/formatters";
 
 interface ReviewStatsCardsProps {
   analysis: ReviewPatternAnalysis;
 }
 
 export function ReviewStatsCards({ analysis }: ReviewStatsCardsProps): JSX.Element {
+  const { language, t } = useI18n();
   const cards = [
     {
       icon: Flame,
-      label: "Daily Review Streak",
-      value: `${analysis.dailyReviewStreak}d`,
-      detail: "Consecutive daily reviews",
+      label: t("reviews.metrics.dailyStreak"),
+      value: t("reviews.metrics.dailyStreakValue", {
+        count: formatNumber(analysis.dailyReviewStreak, language),
+      }),
+      detail: t("reviews.metrics.dailyStreakSubtitle"),
       tone: "orange",
     },
     {
       icon: CalendarCheck2,
-      label: "Weekly Review Streak",
-      value: `${analysis.weeklyReviewStreak}w`,
-      detail: "Consecutive weekly reviews",
+      label: t("reviews.metrics.weeklyStreak"),
+      value: t("reviews.metrics.weeklyStreakValue", {
+        count: formatNumber(analysis.weeklyReviewStreak, language),
+      }),
+      detail: t("reviews.metrics.weeklyStreakSubtitle"),
       tone: "blue",
     },
     {
       icon: Smile,
-      label: "Average Mood",
-      value: formatScore(analysis.averageMood),
-      detail: "Across daily reviews",
+      label: t("reviews.metrics.averageMood"),
+      value: formatScore(analysis.averageMood, language, t),
+      detail: t("reviews.metrics.averageMoodSubtitle"),
       tone: "violet",
     },
     {
       icon: BatteryCharging,
-      label: "Average Energy",
-      value: formatScore(analysis.averageEnergy),
-      detail: "Across daily reviews",
+      label: t("reviews.metrics.averageEnergy"),
+      value: formatScore(analysis.averageEnergy, language, t),
+      detail: t("reviews.metrics.averageEnergySubtitle"),
       tone: "green",
     },
     {
       icon: BarChart3,
-      label: "Reviews This Month",
-      value: String(analysis.reviewsCompletedThisMonth),
-      detail: "Daily and weekly entries",
+      label: t("reviews.metrics.reviewsThisMonth"),
+      value: formatNumber(analysis.reviewsCompletedThisMonth, language),
+      detail: t("reviews.metrics.reviewsThisMonthSubtitle"),
       tone: "blue",
     },
     {
       icon: TrendingUp,
-      label: "Mood Direction",
-      value: formatTrend(analysis.averageMoodTrendDirection),
-      detail: "Recent review trend",
+      label: t("reviews.metrics.moodDirection"),
+      value: formatTrend(analysis.averageMoodTrendDirection, t),
+      detail: t("reviews.metrics.moodDirectionSubtitle"),
       tone: analysis.averageMoodTrendDirection === "up" ? "green" : analysis.averageMoodTrendDirection === "down" ? "red" : "blue",
     },
   ] as const;
@@ -73,19 +80,26 @@ export function ReviewStatsCards({ analysis }: ReviewStatsCardsProps): JSX.Eleme
   );
 }
 
-function formatScore(value: number | null): string {
-  return value === null ? "No data" : `${value.toFixed(1)}/5`;
+function formatScore(
+  value: number | null,
+  language: "en" | "fa",
+  t: (key: string, values?: Record<string, string | number>) => string,
+): string {
+  return value === null ? t("reviews.empty.noData") : `${formatNumber(value, language)}/5`;
 }
 
-function formatTrend(value: ReviewPatternAnalysis["averageMoodTrendDirection"]): string {
+function formatTrend(
+  value: ReviewPatternAnalysis["averageMoodTrendDirection"],
+  t: (key: string, values?: Record<string, string | number>) => string,
+): string {
   switch (value) {
     case "up":
-      return "Improving";
+      return t("reviews.trend.up");
     case "down":
-      return "Declining";
+      return t("reviews.trend.down");
     case "flat":
-      return "Stable";
+      return t("reviews.trend.flat");
     case "insufficient-data":
-      return "No trend";
+      return t("reviews.empty.noTrend");
   }
 }

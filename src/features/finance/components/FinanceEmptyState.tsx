@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/common/EmptyState";
+import { useI18n } from "@/i18n";
 
 interface FinanceEmptyStateProps {
   actionLabel?: string;
@@ -9,15 +10,17 @@ interface FinanceEmptyStateProps {
 
 export function FinanceEmptyState({
   actionLabel,
-  description = "Add your first income or expense to start building your finance history.",
+  description,
   onAction,
-  title = "No transactions yet",
+  title,
 }: FinanceEmptyStateProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <EmptyState
       actionLabel={actionLabel}
-      title={title}
-      description={description}
+      title={title ?? t("finance.noTransactionsYet")}
+      description={description ?? t("finance.noTransactionsDescription")}
       onAction={onAction}
     />
   );

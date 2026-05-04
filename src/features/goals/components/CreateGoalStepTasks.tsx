@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { useI18n } from "@/i18n";
 
 interface DraftGoalTask {
   id: string;
@@ -19,11 +20,13 @@ export function CreateGoalStepTasks({
   onChangeDraftTask,
   onRemoveDraftTask,
 }: CreateGoalStepTasksProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <section className="goal-create-step">
-      <h3 className="goal-create-step__title">Break it into the first steps</h3>
+      <h3 className="goal-create-step__title">{t("goals.createFlow.tasks.title")}</h3>
       <p className="goal-create-step__hint">
-        Three tasks is a strong start, but you can continue with fewer if you want.
+        {t("goals.createFlow.tasks.subtitle")}
       </p>
 
       <div className="goal-draft-task-list">
@@ -32,11 +35,11 @@ export function CreateGoalStepTasks({
             <input
               className="auth-form__input"
               onChange={(event) => onChangeDraftTask(task.id, event.target.value)}
-              placeholder={`Task ${index + 1}`}
+              placeholder={t("goals.createFlow.tasks.taskPlaceholder", { index: index + 1 })}
               value={task.title}
             />
             <button
-              aria-label={`Remove task ${index + 1}`}
+              aria-label={t("goals.createFlow.tasks.removeTaskAria", { index: index + 1 })}
               className="icon-button"
               onClick={() => onRemoveDraftTask(task.id)}
               type="button"
@@ -48,7 +51,7 @@ export function CreateGoalStepTasks({
       </div>
 
       <Button onClick={onAddDraftTask} type="button" variant="secondary">
-        Add another task
+        {t("goals.createFlow.tasks.addAnotherTask")}
       </Button>
     </section>
   );

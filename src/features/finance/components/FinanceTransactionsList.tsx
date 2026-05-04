@@ -7,7 +7,10 @@ import {
   FinanceCurrency,
   FinanceTransaction,
 } from "@/features/finance/types/finance.types";
+import { getFinanceCategoryDisplayName, getFinanceTypeDisplayName } from "@/features/finance/utils/finance.i18n";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { formatAppDate } from "@/i18n/formatters";
+import { useI18n } from "@/i18n";
 
 interface FinanceTransactionsListProps {
   categories: FinanceCategory[];
@@ -22,16 +25,22 @@ interface FinanceTransactionsListProps {
 export function FinanceTransactionsList({
   categories,
   currency,
-  emptyDescription = "Add your first income or expense to start building your finance history.",
-  emptyTitle = "No transactions yet",
+  emptyDescription,
+  emptyTitle,
   isEmbedded = false,
   maxItems,
   transactions,
 }: FinanceTransactionsListProps): JSX.Element {
+  const { language, t } = useI18n();
   const visibleTransactions = maxItems ? transactions.slice(0, maxItems) : transactions;
 
   if (transactions.length === 0) {
-    return <FinanceEmptyState description={emptyDescription} title={emptyTitle} />;
+    return (
+      <FinanceEmptyState
+        description={emptyDescription ?? t("finance.noTransactionsDescription")}
+        title={emptyTitle ?? t("finance.noTransactionsYet")}
+      />
+    );
   }
 
   return (
@@ -48,16 +57,16 @@ export function FinanceTransactionsList({
                   className={`finance-transaction-card__type finance-transaction-card__type--${transaction.type}`}
                 >
                   {transaction.type === "income" ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                  {transaction.type === "income" ? "Income" : "Expense"}
+                  {getFinanceTypeDisplayName(transaction.type, t)}
                 </span>
                 {transaction.recurringId ? (
                   <span className="finance-transaction-card__chip finance-transaction-card__chip--recurring">
-                    Recurring
+                    {t("finance.recurring.badge")}
                   </span>
                 ) : null}
                 {transaction.appliedSmartRuleName ? (
                   <span className="finance-transaction-card__chip">
-                    Rule: {transaction.appliedSmartRuleName}
+                    {t("finance.rulePrefix")} {transaction.appliedSmartRuleName}
                   </span>
                 ) : null}
                 <strong className="finance-transaction-card__merchant">
@@ -81,9 +90,9 @@ export function FinanceTransactionsList({
                 }}
               >
                 <CategoryIcon size={13} />
-                {category?.name ?? "Unknown category"}
+                {getFinanceCategoryDisplayName(category, t)}
               </span>
-              <span className="finance-transaction-card__chip">{formatDate(transaction.date)}</span>
+              <span className="finance-transaction-card__chip">{formatDate(transaction.date, language)}</span>
             </div>
 
             {transaction.note ? (
@@ -96,16 +105,12 @@ export function FinanceTransactionsList({
   );
 }
 
-function formatDate(dateValue: string): string {
+function formatDate(dateValue: string, language: "en" | "fa"): string {
   const safeDate = new Date(`${dateValue}T12:00:00`);
 
   if (Number.isNaN(safeDate.getTime())) {
     return dateValue;
   }
 
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(safeDate);
+  return formatAppDate(safeDate, language);
 }

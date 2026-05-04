@@ -12,6 +12,7 @@ import {
   ReviewTrendRange,
 } from "@/features/reviews/utils/analyzeReviewPatterns";
 import { ReviewEntry } from "@/features/reviews/types/review.types";
+import { useI18n } from "@/i18n";
 
 interface ReviewMoodTrendChartProps {
   range: ReviewTrendRange;
@@ -22,14 +23,15 @@ export function ReviewMoodTrendChart({
   range,
   reviews,
 }: ReviewMoodTrendChartProps): JSX.Element {
-  const data = getReviewTrendPoints(reviews, range);
+  const { language, t } = useI18n();
+  const data = getReviewTrendPoints(reviews, range, language);
 
   return (
     <section className="review-card review-analytics-card">
       <div className="review-card__header">
         <div>
-          <h2>Mood Trend</h2>
-          <p>Daily mood scores over the selected window.</p>
+          <h2>{t("reviews.analytics.moodTrend")}</h2>
+          <p>{t("reviews.analytics.moodTrendSubtitle")}</p>
         </div>
       </div>
 
@@ -47,12 +49,12 @@ export function ReviewMoodTrendChart({
                 axisLine={false}
                 width={36}
               />
-              <Tooltip formatter={(value: number | string) => [`${value}/5`, "Mood"]} />
+              <Tooltip formatter={(value: number | string) => [`${value}/5`, t("reviews.daily.mood")]} />
               <Line
                 animationDuration={450}
                 dataKey="mood"
                 dot={data.length <= 7}
-                name="Mood"
+                name={t("reviews.daily.mood")}
                 stroke="#2563eb"
                 strokeWidth={2.5}
                 type="monotone"
@@ -61,16 +63,18 @@ export function ReviewMoodTrendChart({
           </ResponsiveContainer>
         </div>
       ) : (
-        <ReviewChartEmptyState description="Save daily reviews with mood scores to reveal the trend." />
+        <ReviewChartEmptyState description={t("reviews.empty.saveMoreMoodReviews")} />
       )}
     </section>
   );
 }
 
 export function ReviewChartEmptyState({ description }: { description: string }): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <div className="review-empty-state review-empty-state--chart">
-      <strong>Not enough review data yet</strong>
+      <strong>{t("reviews.empty.notEnoughData")}</strong>
       <p>{description}</p>
     </div>
   );

@@ -1,5 +1,6 @@
 import { GoalCategory } from "@/domains/goals/types";
 import { renderGoalCategoryIcon } from "@/features/goals/components/goal-visuals";
+import { useI18n } from "@/i18n";
 
 interface CreateGoalStepCategoryProps {
   category: GoalCategory;
@@ -12,9 +13,11 @@ export function CreateGoalStepCategory({
   category,
   onChange,
 }: CreateGoalStepCategoryProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <section className="goal-create-step">
-      <h3 className="goal-create-step__title">Choose a category</h3>
+      <h3 className="goal-create-step__title">{t("goals.createFlow.category.title")}</h3>
       <div className="goal-category-grid">
         {categories.map((item) => (
           <button
@@ -26,7 +29,7 @@ export function CreateGoalStepCategory({
             type="button"
           >
             <span className="goal-category-option__icon">{renderGoalCategoryIcon(item)}</span>
-            <span>{item}</span>
+            <span>{t(`goals.categories.${item}`)}</span>
           </button>
         ))}
       </div>

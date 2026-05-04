@@ -2,8 +2,11 @@ import { useState } from "react";
 import { PencilLine, RotateCw, Repeat, Trash2 } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { FinanceCategory, FinanceCurrency, FinanceMerchantRule, RecurringTransaction } from "@/features/finance/types/finance.types";
+import { getFinanceCategoryDisplayName, getFinanceTypeDisplayName, getRecurringRepeatDisplayName } from "@/features/finance/utils/finance.i18n";
 import { formatMoney } from "@/features/finance/utils/finance.format";
 import { RecurringTransactionForm } from "@/features/finance/components/RecurringTransactionForm";
+import { formatAppDate } from "@/i18n/formatters";
+import { useI18n } from "@/i18n";
 import { createId } from "@/lib/id";
 
 interface RecurringTransactionsSectionProps {
@@ -25,11 +28,17 @@ export function RecurringTransactionsSection({
   onUpdateRecurringTransaction,
   recurringTransactions,
 }: RecurringTransactionsSectionProps): JSX.Element {
+  const { language, t } = useI18n();
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
   const editingRule = recurringTransactions.find((rule) => rule.id === editingRuleId) ?? null;
 
   function getCategoryName(categoryId: string): string {
-    return categories.find((category) => category.id === categoryId)?.name ?? "Unknown category";
+    return (
+      getFinanceCategoryDisplayName(
+        categories.find((category) => category.id === categoryId),
+        t,
+      )
+    );
   }
 
   function formatRuleDate(dateValue: string): string {
@@ -39,22 +48,18 @@ export function RecurringTransactionsSection({
       return dateValue;
     }
 
-    return new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(safeDate);
+    return formatAppDate(safeDate, language);
   }
 
   return (
     <Card
-      subtitle="Create recurring rules for predictable income and expenses. Generated transactions stay editable on their own."
-      title="Recurring Transactions"
+      subtitle={t("finance.recurring.subtitle")}
+      title={t("finance.recurring.title")}
     >
       <div className="finance-settings-section">
         <RecurringTransactionForm
           categories={categories}
-          initialValue={editingRule}
+          initialValue={editingRule ?? undefined}
           merchantRules={merchantRules}
           onCancel={editingRule ? () => setEditingRuleId(null) : undefined}
           onSubmit={(value) => {
@@ -81,11 +86,8 @@ export function RecurringTransactionsSection({
             <span className="finance-empty-inline__icon">
               <Repeat size={16} />
             </span>
-            <strong>No recurring rules yet</strong>
-            <p>
-              Create your first recurring rule for salary, rent, subscriptions, or
-              other predictable activity.
-            </p>
+            <strong>{t("finance.recurring.emptyTitle")}</strong>
+            <p>{t("finance.recurring.emptySubtitle")}</p>
           </div>
         ) : (
           <div className="finance-recurring-list">
@@ -99,7 +101,7 @@ export function RecurringTransactionsSection({
                         <span
                           className={`finance-transaction-card__type finance-transaction-card__type--${rule.type}`}
                         >
-                          {rule.type === "income" ? "Income" : "Expense"}
+                          {getFinanceTypeDisplayName(rule.type, t)}
                         </span>
                         <span className="finance-transaction-card__chip finance-transaction-card__chip--category">
                           {getCategoryName(rule.categoryId)}
@@ -111,7 +113,7 @@ export function RecurringTransactionsSection({
                               : "finance-budget-card__status--warning"
                           }`}
                         >
-                          {rule.isActive ? "Active" : "Paused"}
+                          {rule.isActive ? t("finance.recurring.active") : t("finance.recurring.paused")}
                         </span>
                       </div>
                     </div>
@@ -123,13 +125,13 @@ export function RecurringTransactionsSection({
                     </strong>
                   </div>
                   <div className="finance-recurring-card__meta">
-                    <span className="finance-transaction-card__chip">{rule.repeat}</span>
+                    <span className="finance-transaction-card__chip">{getRecurringRepeatDisplayName(rule.repeat, t)}</span>
                     <span className="finance-transaction-card__chip">
-                      Starts {formatRuleDate(rule.startDate)}
+                      {t("finance.recurring.starts")} {formatRuleDate(rule.startDate)}
                     </span>
                     {rule.endDate ? (
                       <span className="finance-transaction-card__chip">
-                        Ends {formatRuleDate(rule.endDate)}
+                        {t("finance.recurring.ends")} {formatRuleDate(rule.endDate)}
                       </span>
                     ) : null}
                   </div>

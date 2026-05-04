@@ -11,7 +11,7 @@ export interface I18nContextValue {
   direction: Direction;
   language: Language;
   setLanguage: (language: Language) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, values?: Record<string, string | number>) => string;
 }
 
 export type I18nProviderProps = PropsWithChildren;

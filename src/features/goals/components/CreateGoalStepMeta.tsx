@@ -1,4 +1,5 @@
 import { GoalPace, GoalPriority } from "@/domains/goals/types";
+import { useI18n } from "@/i18n";
 
 interface CreateGoalStepMetaProps {
   deadline?: string;
@@ -13,12 +14,14 @@ export function CreateGoalStepMeta({
   pace,
   priority,
 }: CreateGoalStepMetaProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <section className="goal-create-step">
-      <h3 className="goal-create-step__title">Set the pace and timing</h3>
+      <h3 className="goal-create-step__title">{t("goals.createFlow.meta.title")}</h3>
 
       <div className="auth-form__field">
-        <span className="auth-form__label">Pace</span>
+        <span className="auth-form__label">{t("goals.createFlow.meta.pace")}</span>
         <div className="onboarding-choice-grid onboarding-choice-grid--triple">
           {(["gentle", "balanced", "ambitious"] as GoalPace[]).map((value) => (
             <button
@@ -27,14 +30,14 @@ export function CreateGoalStepMeta({
               onClick={() => onChange({ pace: value })}
               type="button"
             >
-              {value}
+              {t(`goals.paces.${value}`)}
             </button>
           ))}
         </div>
       </div>
 
       <div className="auth-form__field">
-        <span className="auth-form__label">Priority</span>
+        <span className="auth-form__label">{t("goals.createFlow.meta.priority")}</span>
         <div className="onboarding-choice-grid onboarding-choice-grid--triple">
           {(["low", "medium", "high"] as GoalPriority[]).map((value) => (
             <button
@@ -45,7 +48,7 @@ export function CreateGoalStepMeta({
               onClick={() => onChange({ priority: value })}
               type="button"
             >
-              {value}
+              {t(`goals.priorities.${value}`)}
             </button>
           ))}
         </div>
@@ -53,7 +56,7 @@ export function CreateGoalStepMeta({
 
       <div className="auth-form__field">
         <label className="auth-form__label" htmlFor="goal-deadline">
-          Deadline
+          {t("goals.createFlow.meta.deadline")}
         </label>
         <input
           className="auth-form__input onboarding-input--compact"

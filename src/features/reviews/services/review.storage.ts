@@ -25,7 +25,7 @@ export function createDailyReview(input: DailyReviewInput, date = new Date()): D
   const dateKey = toDateKey(date);
 
   if (reviews.some((review) => review.type === "daily" && review.periodKey === dateKey)) {
-    throw new Error("Daily review already exists for today.");
+    throw new Error("reviews.daily.alreadyExists");
   }
 
   const timestamp = new Date().toISOString();
@@ -55,7 +55,7 @@ export function createWeeklyReview(input: WeeklyReviewInput, date = new Date()):
   const week = getWeekRange(date);
 
   if (reviews.some((review) => review.type === "weekly" && review.periodKey === week.key)) {
-    throw new Error("Weekly review already exists for this week.");
+    throw new Error("reviews.weekly.alreadyExists");
   }
 
   const timestamp = new Date().toISOString();

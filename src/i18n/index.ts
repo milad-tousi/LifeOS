@@ -55,7 +55,8 @@ export function I18nProvider({ children }: I18nProviderProps): JSX.Element {
       direction: getDirection(language),
       language,
       setLanguage: setLanguageState,
-      t: (key: TranslationKey) => dictionary[key] ?? en[key] ?? key,
+      t: (key: TranslationKey, values?: Record<string, string | number>) =>
+        interpolate(dictionary[key] ?? en[key] ?? key, values),
     };
   }, [language]);
 
@@ -74,4 +75,18 @@ export function useI18n(): I18nContextValue {
 
 function isLanguage(value: string | null): value is Language {
   return value === "en" || value === "fa";
+}
+
+function interpolate(
+  template: string,
+  values?: Record<string, string | number>,
+): string {
+  if (!values) {
+    return template;
+  }
+
+  return Object.entries(values).reduce(
+    (result, [name, value]) => result.replaceAll(`{${name}}`, String(value)),
+    template,
+  );
 }

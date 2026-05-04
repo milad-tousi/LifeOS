@@ -54,6 +54,7 @@ export interface FinanceInsightItem {
   value: string;
   detail: string;
   tone: "positive" | "warning" | "neutral";
+  detailValues?: Record<string, string>;
 }
 
 export interface FinanceAnalyticsDashboard {
@@ -357,6 +358,10 @@ function calculateSmartInsights(dashboard: FinanceAnalyticsDashboard): FinanceIn
       value: topCategory.name,
       detail: `${topCategory.name} accounts for ${formatPercent(topCategory.percentage)} of expenses this period.`,
       tone: topCategory.percentage >= 40 ? "warning" : "neutral",
+      detailValues: {
+        category: topCategory.name,
+        percent: formatPercent(topCategory.percentage),
+      },
     });
   }
 
@@ -369,6 +374,7 @@ function calculateSmartInsights(dashboard: FinanceAnalyticsDashboard): FinanceIn
         ? "Income exceeded expenses in the selected period."
         : "Expenses exceeded income in the selected period.",
     tone: dashboard.netSavings >= 0 ? "positive" : "warning",
+    detailValues: {},
   });
 
   if (dashboard.totalIncome > 0) {
@@ -383,6 +389,7 @@ function calculateSmartInsights(dashboard: FinanceAnalyticsDashboard): FinanceIn
           : dashboard.savingsRate < 0
             ? "warning"
             : "neutral",
+      detailValues: {},
     });
   }
 
@@ -392,6 +399,7 @@ function calculateSmartInsights(dashboard: FinanceAnalyticsDashboard): FinanceIn
     value: formatSignedAmount(dashboard.averageDailySpending),
     detail: "Daily expense pace based on the selected period.",
     tone: "neutral",
+    detailValues: {},
   });
 
   if (topBudget) {
@@ -404,6 +412,16 @@ function calculateSmartInsights(dashboard: FinanceAnalyticsDashboard): FinanceIn
           ? `${topBudget.categoryName} still has ${formatSignedAmount(topBudget.remainingAmount)} remaining.`
           : `${topBudget.categoryName} is over budget by ${formatSignedAmount(Math.abs(topBudget.remainingAmount))}.`,
       tone: topBudget.status === "over" ? "warning" : topBudget.status === "warning" ? "warning" : "positive",
+      detailValues:
+        topBudget.remainingAmount >= 0
+          ? {
+              category: topBudget.categoryName,
+              amount: formatSignedAmount(topBudget.remainingAmount),
+            }
+          : {
+              category: topBudget.categoryName,
+              amount: formatSignedAmount(Math.abs(topBudget.remainingAmount)),
+            },
     });
   }
 
@@ -421,6 +439,14 @@ function calculateSmartInsights(dashboard: FinanceAnalyticsDashboard): FinanceIn
             .join(", ")
         : "Configured budgets are below their limits for this period.",
     tone: dashboard.budgetWarnings.length > 0 ? "warning" : "positive",
+    detailValues:
+      dashboard.budgetWarnings.length > 0
+        ? {
+            warnings: dashboard.budgetWarnings
+              .map((warning) => `${warning.categoryName} by ${formatSignedAmount(warning.amountOver)}`)
+              .join(", "),
+          }
+        : {},
   });
 
   return insights.slice(0, Math.max(3, Math.min(insights.length, 6)));
