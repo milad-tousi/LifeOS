@@ -6,6 +6,7 @@ import {
   FinanceTransaction,
   SmartRule,
 } from "@/features/finance/types/finance.types";
+import { useI18n } from "@/i18n";
 
 interface EditTransactionModalProps {
   categories: FinanceCategory[];
@@ -26,17 +27,19 @@ export function EditTransactionModal({
   smartRules,
   transaction,
 }: EditTransactionModalProps): JSX.Element | null {
+  const { t } = useI18n();
+
   if (!isOpen || !transaction) {
     return null;
   }
 
   return (
     <ModalShell
-      description="Update the selected transaction and save your changes to local storage."
+      description={t("finance.editTransactionDescription")}
       isOpen={isOpen}
       onRequestClose={onClose}
       size="wide"
-      title="Edit Transaction"
+      title={t("finance.editTransaction")}
     >
       <div className="finance-form-shell">
         <TransactionForm

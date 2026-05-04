@@ -1,23 +1,26 @@
 import { FinanceAnalyticsPeriod } from "@/features/finance/utils/calculateFinanceAnalytics";
+import { useI18n } from "@/i18n";
 
 interface FinancePeriodFilterProps {
   onChange: (period: FinanceAnalyticsPeriod) => void;
   period: FinanceAnalyticsPeriod;
 }
 
-const periodOptions: Array<{ label: string; value: FinanceAnalyticsPeriod }> = [
-  { label: "Weekly", value: "weekly" },
-  { label: "Monthly", value: "monthly" },
-  { label: "Yearly", value: "yearly" },
-  { label: "All Time", value: "all-time" },
+const periodOptions: Array<{ labelKey: string; value: FinanceAnalyticsPeriod }> = [
+  { labelKey: "finance.periodWeekly", value: "weekly" },
+  { labelKey: "finance.periodMonthly", value: "monthly" },
+  { labelKey: "finance.periodYearly", value: "yearly" },
+  { labelKey: "finance.periodAllTime", value: "all-time" },
 ];
 
 export function FinancePeriodFilter({
   onChange,
   period,
 }: FinancePeriodFilterProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
-    <div className="finance-range-toggle" aria-label="Analytics period">
+    <div className="finance-range-toggle" aria-label={t("finance.analyticsPeriod")}>
       {periodOptions.map((option) => (
         <button
           className={`finance-range-toggle__item${
@@ -27,7 +30,7 @@ export function FinancePeriodFilter({
           onClick={() => onChange(option.value)}
           type="button"
         >
-          {option.label}
+          {t(option.labelKey)}
         </button>
       ))}
     </div>

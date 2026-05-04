@@ -2,6 +2,7 @@ import { CheckSquare, Flag, PiggyBank, Repeat2, ScrollText } from "lucide-react"
 import { DashboardSummary } from "@/features/dashboard/types/dashboard.types";
 import { FinanceCurrency } from "@/features/finance/types/finance.types";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
 
 interface DashboardSummaryCardsProps {
   currency: FinanceCurrency;
@@ -12,56 +13,58 @@ export function DashboardSummaryCards({
   currency,
   summary,
 }: DashboardSummaryCardsProps): JSX.Element {
+  const { language, t } = useI18n();
+  const numberFormatter = new Intl.NumberFormat(language === "fa" ? "fa-IR" : "en-US");
   const cards = [
     {
       icon: CheckSquare,
-      label: "Tasks",
-      value: String(summary.tasks.total),
+      label: t("tasks.title"),
+      value: numberFormatter.format(summary.tasks.total),
       details: [
-        `${summary.tasks.dueToday} due today`,
-        `${summary.tasks.overdue} overdue`,
-        `${summary.tasks.completedThisWeek} completed this week`,
+        `${numberFormatter.format(summary.tasks.dueToday)} ${t("dashboard.dueToday")}`,
+        `${numberFormatter.format(summary.tasks.overdue)} ${t("dashboard.overdue")}`,
+        `${numberFormatter.format(summary.tasks.completedThisWeek)} ${t("dashboard.completedThisWeek")}`,
       ],
     },
     {
       icon: Repeat2,
-      label: "Habits",
-      value: `${summary.habits.todayCompletionRate}%`,
+      label: t("habits.title"),
+      value: `${numberFormatter.format(summary.habits.todayCompletionRate)}%`,
       details: [
-        `${summary.habits.activeHabits} active habits`,
-        `${summary.habits.scheduledToday} scheduled today`,
-        `${summary.habits.completedToday} completed today`,
+        `${numberFormatter.format(summary.habits.activeHabits)} ${t("dashboard.activeHabits")}`,
+        `${numberFormatter.format(summary.habits.scheduledToday)} ${t("dashboard.scheduledToday")}`,
+        `${numberFormatter.format(summary.habits.completedToday)} ${t("dashboard.completedToday")}`,
       ],
     },
     {
       icon: Flag,
-      label: "Goals",
-      value: `${summary.goals.averageProgress}%`,
+      label: t("goals.title"),
+      value: `${numberFormatter.format(summary.goals.averageProgress)}%`,
       details: [
-        `${summary.goals.activeGoals} active goals`,
-        `${summary.goals.needingAttention} need attention`,
+        `${numberFormatter.format(summary.goals.activeGoals)} ${t("dashboard.activeGoals")}`,
+        `${numberFormatter.format(summary.goals.needingAttention)} ${t("dashboard.needAttention")}`,
         summary.goals.recentlyUpdatedGoal
-          ? `Recent: ${summary.goals.recentlyUpdatedGoal}`
-          : "No recent goal updates",
+          ? `${t("dashboard.recent")}: ${summary.goals.recentlyUpdatedGoal}`
+          : t("dashboard.noRecentGoalUpdates"),
       ],
     },
     {
       icon: PiggyBank,
-      label: "Finance",
+      label: t("finance.title"),
       value: formatMoney(summary.finance.netSavingsThisMonth, currency),
       details: [
-        `${formatMoney(summary.finance.incomeThisMonth, currency)} income`,
-        `${formatMoney(summary.finance.expensesThisMonth, currency)} expenses`,
-        `${summary.finance.budgetWarnings} budget warnings`,
+        `${formatMoney(summary.finance.incomeThisMonth, currency)} ${t("dashboard.income")}`,
+        `${formatMoney(summary.finance.expensesThisMonth, currency)} ${t("dashboard.expenses")}`,
+        `${numberFormatter.format(summary.finance.budgetWarnings)} ${t("dashboard.budgetWarnings")}`,
       ],
     },
     {
       icon: ScrollText,
-      label: "Reviews",
-      value: `${summary.reviews.reviewStreak}d streak`,
+      label: t("reviews.title"),
+      value: `${numberFormatter.format(summary.reviews.reviewStreak)} ${t("dashboard.reviewStreak")}`,
       details: [
-        summary.reviews.dailyReviewCompleted ? "Daily review complete" : "Daily review open",
-        summary.reviews.weeklyReviewCompleted ? "Weekly review complete" : "Weekly review open",
+        summary.reviews.dailyReviewCompleted ? t("dashboard.dailyReviewComplete") : t("dashboard.dailyReviewOpen"),
+        summary.reviews.weeklyReviewCompleted ? t("dashboard.weeklyReviewComplete") : t("dashboard.weeklyReviewOpen"),
       ],
     },
   ] as const;

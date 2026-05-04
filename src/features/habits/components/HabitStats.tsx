@@ -1,23 +1,26 @@
 import { Award, CheckCircle2, ListChecks, TrendingUp } from "lucide-react";
 import { TodayProgress } from "@/features/habits/services/habits.storage";
+import { useI18n } from "@/i18n";
 
 interface HabitStatsProps {
   progress: TodayProgress;
 }
 
 const statItems = [
-  { key: "progress", label: "Today Progress", icon: TrendingUp },
-  { key: "active", label: "Active Habits", icon: ListChecks },
-  { key: "completed", label: "Completed Today", icon: CheckCircle2 },
-  { key: "streak", label: "Current Best Streak", icon: Award },
+  { key: "progress", labelKey: "habits.todayProgress", icon: TrendingUp },
+  { key: "active", labelKey: "habits.activeHabits", icon: ListChecks },
+  { key: "completed", labelKey: "habits.completedToday", icon: CheckCircle2 },
+  { key: "streak", labelKey: "habits.currentBestStreak", icon: Award },
 ] as const;
 
 export function HabitStats({ progress }: HabitStatsProps): JSX.Element {
+  const { language, t } = useI18n();
+  const numberFormatter = new Intl.NumberFormat(language === "fa" ? "fa-IR" : "en-US");
   const values = {
-    progress: `${progress.completionPercent}%`,
-    active: progress.activeHabits.toString(),
-    completed: progress.completedToday.toString(),
-    streak: `${progress.currentBestStreak}d`,
+    progress: `${numberFormatter.format(progress.completionPercent)}%`,
+    active: numberFormatter.format(progress.activeHabits),
+    completed: numberFormatter.format(progress.completedToday),
+    streak: `${numberFormatter.format(progress.currentBestStreak)}d`,
   };
 
   return (
@@ -31,11 +34,11 @@ export function HabitStats({ progress }: HabitStatsProps): JSX.Element {
               <Icon size={18} />
             </div>
             <div>
-              <p className="habit-stat-card__label">{item.label}</p>
+              <p className="habit-stat-card__label">{t(item.labelKey)}</p>
               <strong className="habit-stat-card__value">{values[item.key]}</strong>
               {item.key === "progress" ? (
                 <span className="habit-stat-card__detail">
-                  {progress.completedToday} of {progress.activeHabits} habits completed
+                  {numberFormatter.format(progress.completedToday)} {t("habits.ofHabitsCompleted").replace("{total}", numberFormatter.format(progress.activeHabits))}
                 </span>
               ) : null}
             </div>

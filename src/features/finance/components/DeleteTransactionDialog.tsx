@@ -1,4 +1,5 @@
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { useI18n } from "@/i18n";
 
 interface DeleteTransactionDialogProps {
   isOpen: boolean;
@@ -11,14 +12,16 @@ export function DeleteTransactionDialog({
   onCancel,
   onConfirm,
 }: DeleteTransactionDialogProps): JSX.Element | null {
+  const { t } = useI18n();
+
   return (
     <ConfirmDialog
-      confirmLabel="Delete Transaction"
-      description="Are you sure you want to delete this transaction?"
+      confirmLabel={t("finance.deleteTransaction")}
+      description={t("finance.deleteTransactionDescription")}
       isOpen={isOpen}
       onCancel={onCancel}
       onConfirm={onConfirm}
-      title="Delete Transaction"
+      title={t("finance.deleteTransaction")}
       tone="danger"
     />
   );

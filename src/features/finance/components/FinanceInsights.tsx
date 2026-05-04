@@ -2,6 +2,7 @@ import { Card } from "@/components/common/Card";
 import { FinanceCurrency } from "@/features/finance/types/finance.types";
 import { FinanceInsightItem } from "@/features/finance/utils/calculateFinanceAnalytics";
 import { getCurrencySymbol } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
 
 interface FinanceInsightsProps {
   currency?: FinanceCurrency;
@@ -14,13 +15,15 @@ export function FinanceInsights({
   currency,
   insights = [],
 }: FinanceInsightsProps): JSX.Element {
+  const { t } = useI18n();
+
   if (analyticsInsights) {
     return (
       <section className="finance-dashboard-card finance-dashboard-card--wide">
         <div className="finance-dashboard-card__header">
           <div>
-            <h3>Smart Insights</h3>
-            <p>Deterministic local insights from your transaction and budget data.</p>
+            <h3>{t("finance.smartInsights")}</h3>
+            <p>{t("finance.smartInsightsDescription")}</p>
           </div>
         </div>
         {analyticsInsights.length > 0 ? (
@@ -30,20 +33,20 @@ export function FinanceInsights({
                 className={`finance-smart-insight finance-smart-insight--${insight.tone}`}
                 key={insight.id}
               >
-                <span>{insight.title}</span>
+                <span>{getInsightTitle(insight, t)}</span>
                 <strong>
                   {insight.id === "average-daily-spending" && currency
                     ? `${getCurrencySymbol(currency)}${insight.value}`
                     : insight.value}
                 </strong>
-                <p>{insight.detail}</p>
+                <p>{getInsightDetail(insight, t)}</p>
               </article>
             ))}
           </div>
         ) : (
           <div className="finance-chart-empty">
-            <strong>No insights yet</strong>
-            <p>Add transactions and budgets to generate finance insights.</p>
+            <strong>{t("finance.noInsights")}</strong>
+            <p>{t("finance.noInsightsDescription")}</p>
           </div>
         )}
       </section>
@@ -52,8 +55,8 @@ export function FinanceInsights({
 
   return (
     <Card
-      subtitle="Deterministic local insights based on your current finance activity."
-      title="Insights"
+      subtitle={t("finance.insightsDescription")}
+      title={t("finance.insights")}
     >
       <div className="finance-insights-list">
         {insights.map((insight) => (
@@ -64,4 +67,16 @@ export function FinanceInsights({
       </div>
     </Card>
   );
+}
+
+function getInsightTitle(insight: FinanceInsightItem, t: (key: string) => string): string {
+  const key = `finance.insight.${insight.id}.title`;
+  const translated = t(key);
+  return translated === key ? insight.title : translated;
+}
+
+function getInsightDetail(insight: FinanceInsightItem, t: (key: string) => string): string {
+  const key = `finance.insight.${insight.id}.detail`;
+  const translated = t(key);
+  return translated === key ? insight.detail : translated;
 }

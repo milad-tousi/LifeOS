@@ -4,6 +4,9 @@ import { getFinanceIcon } from "@/features/finance/finance.icons";
 import { FinanceCategory, FinanceCurrency, FinanceTransaction } from "@/features/finance/types/finance.types";
 import { getTransactionCategory } from "@/features/finance/utils/finance.filters";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { getFinanceCategoryDisplayName, getFinanceTypeDisplayName } from "@/features/finance/utils/finance.i18n";
+import { formatAppDate } from "@/i18n/formatters";
+import { useI18n } from "@/i18n";
 
 interface TransactionListProps {
   categories: FinanceCategory[];
@@ -24,22 +27,24 @@ export function TransactionList({
   onEdit,
   transactions,
 }: TransactionListProps): JSX.Element {
+  const { language, t } = useI18n();
+
   if (transactions.length === 0) {
     if (hasActiveFilters) {
       return (
         <FinanceEmptyState
-          actionLabel="Clear filters"
-          description="Try adjusting your search or clearing filters."
+          actionLabel={t("finance.clearFilters")}
+          description={t("finance.noMatchingTransactionsDescription")}
           onAction={onClearFilters}
-          title="No matching transactions"
+          title={t("finance.noMatchingTransactions")}
         />
       );
     }
 
     return (
       <FinanceEmptyState
-        description="Add your first income or expense to start tracking your finances."
-        title="No transactions yet"
+        description={t("finance.noTransactionsDescription")}
+        title={t("finance.noTransactionsYet")}
       />
     );
   }
@@ -57,16 +62,16 @@ export function TransactionList({
                 <span
                   className={`finance-transaction-card__type finance-transaction-card__type--${transaction.type}`}
                 >
-                  {transaction.type === "income" ? "Income" : "Expense"}
+                  {getFinanceTypeDisplayName(transaction.type, t)}
                 </span>
                 {transaction.recurringId ? (
                   <span className="finance-transaction-card__chip finance-transaction-card__chip--recurring">
-                    Recurring
+                    {t("finance.recurring")}
                   </span>
                 ) : null}
                 {transaction.appliedSmartRuleName ? (
                   <span className="finance-transaction-card__chip">
-                    Rule: {transaction.appliedSmartRuleName}
+                    {t("finance.rulePrefix")} {transaction.appliedSmartRuleName}
                   </span>
                 ) : null}
                 <strong className="finance-transaction-card__merchant">{transaction.merchant}</strong>
@@ -84,7 +89,7 @@ export function TransactionList({
                 </strong>
                 <div className="finance-transaction-card__actions">
                   <button
-                    aria-label={`Edit ${transaction.merchant}`}
+                    aria-label={`${t("common.edit")} ${transaction.merchant}`}
                     className="icon-button finance-transaction-card__action"
                     onClick={() => onEdit(transaction)}
                     type="button"
@@ -92,7 +97,7 @@ export function TransactionList({
                     <Pencil size={16} />
                   </button>
                   <button
-                    aria-label={`Delete ${transaction.merchant}`}
+                    aria-label={`${t("common.delete")} ${transaction.merchant}`}
                     className="icon-button finance-transaction-card__action"
                     onClick={() => onDelete(transaction)}
                     type="button"
@@ -112,9 +117,9 @@ export function TransactionList({
                 }}
               >
                 <CategoryIcon size={13} />
-                {category?.name ?? "Unknown category"}
+                {getFinanceCategoryDisplayName(category, t)}
               </span>
-              <span className="finance-transaction-card__chip">{formatDate(transaction.date)}</span>
+              <span className="finance-transaction-card__chip">{formatDate(transaction.date, language)}</span>
             </div>
           </article>
         );
@@ -123,16 +128,12 @@ export function TransactionList({
   );
 }
 
-function formatDate(dateValue: string): string {
+function formatDate(dateValue: string, language: "en" | "fa"): string {
   const safeDate = new Date(`${dateValue}T12:00:00`);
 
   if (Number.isNaN(safeDate.getTime())) {
     return dateValue;
   }
 
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(safeDate);
+  return formatAppDate(safeDate, language);
 }

@@ -23,6 +23,7 @@ import {
   searchTransactions,
   sortTransactions,
 } from "@/features/finance/utils/finance.filters";
+import { useI18n } from "@/i18n";
 
 interface FinanceTransactionsTabProps {
   categories: FinanceCategory[];
@@ -101,6 +102,7 @@ export function FinanceTransactionsTab({
   transactions,
   voiceAliases,
 }: FinanceTransactionsTabProps): JSX.Element {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FinanceTransactionFilters>(DEFAULT_FILTERS);
   const [sortOption, setSortOption] = useState<FinanceTransactionSortOption>("newest");
@@ -176,8 +178,8 @@ export function FinanceTransactionsTab({
       />
 
       <Card
-        subtitle="Search, filter, sort, and manage your finance history without leaving this tab."
-        title="Transactions"
+        subtitle={t("finance.transactionsDescription")}
+        title={t("finance.transactions")}
       >
         <div className="finance-transaction-manager">
           <TransactionFilters
@@ -193,7 +195,7 @@ export function FinanceTransactionsTab({
 
           {hasInvalidAmountRange ? (
             <p className="auth-form__error">
-              Minimum amount is higher than maximum amount, so that range is ignored safely.
+              {t("finance.invalidAmountRange")}
             </p>
           ) : null}
 

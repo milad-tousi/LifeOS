@@ -2,6 +2,7 @@ import { CalendarDays } from "lucide-react";
 import { GoalCardData } from "@/features/goals/hooks/useGoals";
 import { GoalProgress } from "@/features/goals/components/GoalProgress";
 import { renderGoalCategoryIcon } from "@/features/goals/components/goal-visuals";
+import { useI18n } from "@/i18n";
 
 interface GoalCardProps {
   data: GoalCardData;
@@ -10,6 +11,7 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JSX.Element {
+  const { t } = useI18n();
   const { goal, habitProgress, linkedHabits, nextPendingTask, overallProgress, progress } = data;
 
   return (
@@ -29,7 +31,7 @@ export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JS
       <div className="goal-card__content">
         <h3 className="goal-card__title">{goal.title}</h3>
         <p className="goal-card__description">
-          {goal.description || "Task-led progress keeps this goal grounded in real steps."}
+          {goal.description || t("goals.defaultDescription")}
         </p>
       </div>
 
@@ -42,16 +44,16 @@ export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JS
 
       <div className="goal-card__habit-progress">
         <div className="goal-card__habit-progress-header">
-          <span>Habit Progress</span>
+          <span>{t("goals.habitProgress")}</span>
           <strong>{habitProgress.completionRate}%</strong>
         </div>
         <div className="goal-card__habit-progress-track">
           <span style={{ width: `${habitProgress.completionRate}%` }} />
         </div>
         <p>
-          {habitProgress.linkedHabitCount} linked habits ·{" "}
+          {habitProgress.linkedHabitCount} {t("goals.linkedHabits")} ·{" "}
           {Math.round(habitProgress.completedScheduledDays)} of{" "}
-          {habitProgress.totalScheduledDays} scheduled days
+          {habitProgress.totalScheduledDays} {t("goals.scheduledDays")}
         </p>
         {linkedHabits.length > 0 ? (
           <div className="goal-card__linked-habits">
@@ -63,16 +65,16 @@ export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JS
       </div>
 
       <div className="goal-card__overall-progress">
-        <span>Overall Progress</span>
+        <span>{t("goals.overallProgress")}</span>
         <strong>{overallProgress}%</strong>
       </div>
 
       <div className="goal-card__footer">
         <div className="goal-card__footer-copy">
           {nextPendingTask ? (
-            <span className="goal-card__next-task">Next: {nextPendingTask.title}</span>
+            <span className="goal-card__next-task">{t("goals.next")}: {nextPendingTask.title}</span>
           ) : (
-            <span className="goal-card__next-task">No steps yet</span>
+            <span className="goal-card__next-task">{t("goals.noStepsYet")}</span>
           )}
         </div>
 

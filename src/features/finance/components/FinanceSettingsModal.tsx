@@ -15,6 +15,7 @@ import {
   VoiceAlias,
 } from "@/features/finance/types/finance.types";
 import { createId } from "@/lib/id";
+import { useI18n } from "@/i18n";
 
 interface FinanceSettingsModalProps {
   categories: FinanceCategory[];
@@ -116,6 +117,7 @@ export function FinanceSettingsModal({
   settings,
   voiceAliases,
 }: FinanceSettingsModalProps): JSX.Element | null {
+  const { t } = useI18n();
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryForm, setCategoryForm] = useState<CategoryFormState>(DEFAULT_CATEGORY_FORM);
   const [categoryError, setCategoryError] = useState("");
@@ -303,20 +305,20 @@ export function FinanceSettingsModal({
 
   return (
     <ModalShell
-      description="Manage categories, currency, merchant rules, and recurring rules without leaving the Finance page."
+      description={t("finance.settingsDescription")}
       isOpen={isOpen}
       onRequestClose={onClose}
       size="wide"
-      title="Finance Settings"
+      title={t("finance.financeSettings")}
     >
       <div className="finance-settings-modal">
         <Card
-          subtitle="Changing currency updates the overview, transactions, analytics, and recurring summaries immediately."
-          title="Currency Settings"
+          subtitle={t("finance.currencySettingsDescription")}
+          title={t("finance.currencySettings")}
         >
           <div className="finance-settings-section">
             <label className="auth-form__field finance-settings-currency-field">
-              <span className="auth-form__label">Currency</span>
+              <span className="auth-form__label">{t("finance.currency")}</span>
               <select
                 className="auth-form__input"
                 onChange={(event) =>
@@ -335,13 +337,13 @@ export function FinanceSettingsModal({
         </Card>
 
         <Card
-          subtitle="Add, edit, and organize transaction categories with color, icon, and optional monthly budgets."
-          title="Category Management"
+          subtitle={t("finance.categoryManagementDescription")}
+          title={t("finance.categoryManagement")}
         >
           <div className="finance-settings-section">
             <form className="finance-settings-form" onSubmit={handleCategorySubmit}>
               <label className="auth-form__field">
-                <span className="auth-form__label">Name</span>
+                <span className="auth-form__label">{t("finance.name")}</span>
                 <input
                   className="auth-form__input"
                   onChange={(event) =>
@@ -353,7 +355,7 @@ export function FinanceSettingsModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Type</span>
+                <span className="auth-form__label">{t("finance.type")}</span>
                 <select
                   className="auth-form__input"
                   onChange={(event) =>
@@ -366,15 +368,14 @@ export function FinanceSettingsModal({
                 >
                   {CATEGORY_TYPE_OPTIONS.map((categoryType) => (
                     <option key={categoryType} value={categoryType}>
-                      {categoryType[0].toUpperCase()}
-                      {categoryType.slice(1)}
+                      {getFinanceTypeLabel(categoryType, t)}
                     </option>
                   ))}
                 </select>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Icon</span>
+                <span className="auth-form__label">{t("finance.icon")}</span>
                 <select
                   className="auth-form__input"
                   onChange={(event) =>
@@ -392,7 +393,7 @@ export function FinanceSettingsModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Color</span>
+                <span className="auth-form__label">{t("finance.color")}</span>
                 <input
                   className="auth-form__input finance-settings-form__color"
                   onChange={(event) =>
@@ -404,7 +405,7 @@ export function FinanceSettingsModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Monthly budget</span>
+                <span className="auth-form__label">{t("finance.monthlyBudget")}</span>
                 <input
                   className="auth-form__input"
                   inputMode="decimal"
@@ -415,7 +416,7 @@ export function FinanceSettingsModal({
                       monthlyBudget: event.target.value,
                     }))
                   }
-                  placeholder="Optional"
+                  placeholder={t("finance.optional")}
                   step="0.01"
                   value={categoryForm.monthlyBudget}
                 />
@@ -426,11 +427,11 @@ export function FinanceSettingsModal({
                 <div className="finance-settings-inline-actions">
                   {editingCategoryId ? (
                     <Button onClick={resetCategoryForm} type="button" variant="secondary">
-                      Cancel
+                      {t("common.cancel")}
                     </Button>
                   ) : null}
                   <Button type="submit">
-                    {editingCategoryId ? "Save Category" : "Add Category"}
+                    {editingCategoryId ? t("finance.saveCategory") : t("finance.addCategory")}
                   </Button>
                 </div>
               </div>
@@ -456,7 +457,7 @@ export function FinanceSettingsModal({
                         </span>
                         <div className="finance-category-badge__copy">
                           <strong>{category.name}</strong>
-                          <span>{category.type}</span>
+                          <span>{getFinanceTypeLabel(category.type, t)}</span>
                         </div>
                       </div>
                       <div className="finance-settings-row-actions">
@@ -484,13 +485,13 @@ export function FinanceSettingsModal({
                       />
                       <span>
                         {typeof category.monthlyBudget === "number"
-                          ? `Budget ${category.monthlyBudget}`
-                          : "No monthly budget"}
+                          ? `${t("finance.budget")} ${category.monthlyBudget}`
+                          : t("finance.noMonthlyBudget")}
                       </span>
                       {isCategoryInUse(category.id) ? (
-                        <span className="finance-category-card__usage">Used in finance</span>
+                        <span className="finance-category-card__usage">{t("finance.usedInFinance")}</span>
                       ) : (
-                        <span>Safe to remove</span>
+                        <span>{t("finance.safeToRemove")}</span>
                       )}
                     </div>
                   </article>
@@ -501,8 +502,8 @@ export function FinanceSettingsModal({
         </Card>
 
         <Card
-          subtitle="Merchant rules can prefill the transaction form and recurring rules while still allowing manual changes afterward."
-          title="Merchant Rules"
+          subtitle={t("finance.merchantRulesDescription")}
+          title={t("finance.merchantRules")}
         >
           <div className="finance-settings-section">
             <form
@@ -510,7 +511,7 @@ export function FinanceSettingsModal({
               onSubmit={handleMerchantRuleSubmit}
             >
               <label className="auth-form__field">
-                <span className="auth-form__label">Merchant name</span>
+                <span className="auth-form__label">{t("finance.merchantName")}</span>
                 <input
                   className="auth-form__input"
                   onChange={(event) =>
@@ -522,7 +523,7 @@ export function FinanceSettingsModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Default type</span>
+                <span className="auth-form__label">{t("finance.defaultType")}</span>
                 <select
                   className="auth-form__input"
                   onChange={(event) =>
@@ -536,13 +537,13 @@ export function FinanceSettingsModal({
                   }
                   value={merchantRuleForm.defaultType}
                 >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
+                  <option value="expense">{t("finance.expense")}</option>
+                  <option value="income">{t("finance.income")}</option>
                 </select>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Default category</span>
+                <span className="auth-form__label">{t("finance.defaultCategory")}</span>
                 <select
                   className="auth-form__input"
                   onChange={(event) =>
@@ -553,7 +554,7 @@ export function FinanceSettingsModal({
                   }
                   value={merchantRuleForm.categoryId}
                 >
-                  <option value="">Select category</option>
+                  <option value="">{t("finance.selectCategory")}</option>
                   {merchantCategories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -567,11 +568,11 @@ export function FinanceSettingsModal({
                 <div className="finance-settings-inline-actions">
                   {editingMerchantRuleId ? (
                     <Button onClick={resetMerchantRuleForm} type="button" variant="secondary">
-                      Cancel
+                      {t("common.cancel")}
                     </Button>
                   ) : null}
                   <Button type="submit">
-                    {editingMerchantRuleId ? "Save Rule" : "Add Rule"}
+                    {editingMerchantRuleId ? t("finance.saveRule") : t("finance.addRule")}
                   </Button>
                 </div>
               </div>
@@ -588,9 +589,9 @@ export function FinanceSettingsModal({
                     <div>
                       <strong>{merchantRule.name}</strong>
                       <p>
-                        {merchantRule.defaultType === "income" ? "Income" : "Expense"}
+                        {merchantRule.defaultType === "income" ? t("finance.income") : t("finance.expense")}
                         {" | "}
-                        {category?.name ?? "Unknown category"}
+                        {category?.name ?? t("finance.unknownCategory")}
                       </p>
                     </div>
                     <div className="finance-settings-row-actions">
@@ -632,9 +633,24 @@ export function FinanceSettingsModal({
           onAddVoiceAlias={onAddVoiceAlias}
           onDeleteVoiceAlias={onDeleteVoiceAlias}
           onUpdateVoiceAlias={onUpdateVoiceAlias}
-          voiceAliases={voiceAliases}
-        />
-      </div>
-    </ModalShell>
-  );
+        voiceAliases={voiceAliases}
+      />
+    </div>
+  </ModalShell>
+);
+}
+
+function getFinanceTypeLabel(
+  type: FinanceCategory["type"],
+  t: ReturnType<typeof useI18n>["t"],
+): string {
+  switch (type) {
+    case "income":
+      return t("finance.income");
+    case "both":
+      return t("finance.both");
+    case "expense":
+    default:
+      return t("finance.expense");
+  }
 }

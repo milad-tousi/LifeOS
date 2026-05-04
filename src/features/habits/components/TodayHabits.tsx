@@ -7,6 +7,7 @@ import {
   getHabitCurrentPeriodKey,
   getHabitLogPeriodKey,
 } from "@/features/habits/utils/habit.utils";
+import { useI18n } from "@/i18n";
 
 interface TodayHabitsProps {
   categories: HabitCategory[];
@@ -28,20 +29,22 @@ function HabitEmptyCallout({
   hasAnyHabits: boolean;
   onCreateHabit: () => void;
 }): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <div className="habit-empty">
       <div className="habit-empty__icon" aria-hidden="true">
         <span />
       </div>
-      <h3>{hasAnyHabits ? "No habits scheduled for today" : "Start building your habits"}</h3>
+      <h3>{hasAnyHabits ? t("habits.noScheduledToday") : t("habits.startBuilding")}</h3>
       <p>
         {hasAnyHabits
-          ? "Your routines will appear here on their active days."
-          : "Small daily actions lead to big results."}
+          ? t("habits.noScheduledTodayDescription")
+          : t("habits.smallActions")}
       </p>
       {!hasAnyHabits ? (
         <Button className="habit-empty__button" onClick={onCreateHabit}>
-          Create your first habit
+          {t("habits.createFirstHabit")}
         </Button>
       ) : null}
     </div>
@@ -60,11 +63,13 @@ export function TodayHabits({
   onOpenHabit,
   onUpdateLog,
 }: TodayHabitsProps): JSX.Element {
+  const { t } = useI18n();
+
   if (habits.length === 0) {
     return (
       <section className="habit-panel">
         <header className="habit-panel__header">
-          <h2>Today's Habits</h2>
+          <h2>{t("habits.todayHabits")}</h2>
         </header>
         <HabitEmptyCallout hasAnyHabits={hasAnyHabits} onCreateHabit={onCreateHabit} />
       </section>
@@ -74,7 +79,7 @@ export function TodayHabits({
   return (
     <section className="habit-panel">
       <header className="habit-panel__header">
-        <h2>Today's Habits</h2>
+        <h2>{t("habits.todayHabits")}</h2>
       </header>
       <div className="today-habits-list">
         {habits.map((habit) => {

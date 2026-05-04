@@ -15,6 +15,7 @@ import {
   calculateFinanceAnalytics,
 } from "@/features/finance/utils/calculateFinanceAnalytics";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
 
 interface FinanceAnalyticsDashboardProps {
   categories: FinanceCategory[];
@@ -27,6 +28,7 @@ export function FinanceAnalyticsDashboard({
   currency,
   transactions,
 }: FinanceAnalyticsDashboardProps): JSX.Element {
+  const { t } = useI18n();
   const [period, setPeriod] = useState<FinanceAnalyticsPeriod>("monthly");
   const analytics = useMemo(
     () =>
@@ -43,26 +45,23 @@ export function FinanceAnalyticsDashboard({
     <div className="finance-analytics-dashboard">
       <section className="finance-analytics-hero">
         <div>
-          <span className="finance-analytics-hero__eyebrow">Analytics</span>
-          <h2>Financial Dashboard</h2>
-          <p>
-            Explore cashflow, spending categories, budget usage, and smart insights from
-            your real transaction history.
-          </p>
+          <span className="finance-analytics-hero__eyebrow">{t("finance.analytics")}</span>
+          <h2>{t("finance.financialDashboard")}</h2>
+          <p>{t("finance.financialDashboardDescription")}</p>
         </div>
         <div className="finance-analytics-hero__side">
           <FinancePeriodFilter onChange={setPeriod} period={period} />
           <div className="finance-analytics-hero__stats">
             <div>
-              <span>Total income</span>
+              <span>{t("finance.totalIncome")}</span>
               <strong>{formatMoney(analytics.totalIncome, currency)}</strong>
             </div>
             <div>
-              <span>Total expenses</span>
+              <span>{t("finance.totalExpenses")}</span>
               <strong>{formatMoney(analytics.totalExpenses, currency)}</strong>
             </div>
             <div>
-              <span>Net savings</span>
+              <span>{t("finance.netSavings")}</span>
               <strong>{formatMoney(analytics.netSavings, currency)}</strong>
             </div>
           </div>
@@ -72,11 +71,8 @@ export function FinanceAnalyticsDashboard({
       {!hasTransactions ? (
         <section className="finance-dashboard-card finance-dashboard-card--wide">
           <div className="finance-chart-empty finance-chart-empty--roomy">
-            <strong>No analytics data yet</strong>
-            <p>
-              Add income and expense transactions to unlock charts, category breakdowns,
-              budgets, and smart insights.
-            </p>
+            <strong>{t("finance.noAnalyticsData")}</strong>
+            <p>{t("finance.noAnalyticsDataDescription")}</p>
           </div>
         </section>
       ) : null}

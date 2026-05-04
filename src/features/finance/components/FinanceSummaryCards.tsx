@@ -2,6 +2,7 @@ import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { FinanceCurrency, FinanceSummary } from "@/features/finance/types/finance.types";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
 
 interface FinanceSummaryCardsProps {
   currency: FinanceCurrency;
@@ -12,21 +13,22 @@ export function FinanceSummaryCards({
   currency,
   summary,
 }: FinanceSummaryCardsProps): JSX.Element {
+  const { t } = useI18n();
   const items = [
     {
-      title: "Total Balance",
+      title: t("finance.totalBalance"),
       value: formatMoney(summary.totalBalance, currency),
       tone: "balance",
       icon: <Wallet size={18} />,
     },
     {
-      title: "Monthly Income",
+      title: t("finance.monthlyIncome"),
       value: formatMoney(summary.monthlyIncome, currency),
       tone: "income",
       icon: <ArrowUpRight size={18} />,
     },
     {
-      title: "Monthly Expenses",
+      title: t("finance.monthlyExpenses"),
       value: formatMoney(summary.monthlyExpenses, currency),
       tone: "expense",
       icon: <ArrowDownRight size={18} />,

@@ -3,6 +3,7 @@ import { ChartEmptyState } from "@/features/finance/components/FinanceTrendChart
 import { FinanceCurrency } from "@/features/finance/types/finance.types";
 import { ExpenseBreakdownPoint } from "@/features/finance/utils/calculateFinanceAnalytics";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
 
 interface ExpenseBreakdownChartProps {
   currency: FinanceCurrency;
@@ -13,14 +14,15 @@ export function ExpenseBreakdownChart({
   currency,
   data,
 }: ExpenseBreakdownChartProps): JSX.Element {
+  const { t } = useI18n();
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <section className="finance-dashboard-card">
       <div className="finance-dashboard-card__header">
         <div>
-          <h3>Expense Breakdown</h3>
-          <p>Category share for the selected period.</p>
+          <h3>{t("finance.expenseBreakdown")}</h3>
+          <p>{t("finance.expenseBreakdownDescription")}</p>
         </div>
       </div>
 
@@ -41,13 +43,11 @@ export function ExpenseBreakdownChart({
                     <Cell fill={item.color} key={item.categoryId} />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(value: number | string) => formatMoney(Number(value), currency)}
-                />
+                <Tooltip formatter={(value: unknown) => formatMoney(Number(value ?? 0), currency)} />
               </PieChart>
             </ResponsiveContainer>
             <div className="finance-breakdown__center">
-              <span>Total</span>
+              <span>{t("finance.total")}</span>
               <strong>{formatMoney(total, currency)}</strong>
             </div>
           </div>
@@ -58,7 +58,7 @@ export function ExpenseBreakdownChart({
                 <span className="finance-breakdown__swatch" style={{ backgroundColor: item.color }} />
                 <div>
                   <strong>{item.name}</strong>
-                  <span>{Math.round(item.percentage)}% of expenses</span>
+                  <span>{t("finance.percentOfExpenses").replace("{value}", String(Math.round(item.percentage)))}</span>
                 </div>
                 <b>{formatMoney(item.value, currency)}</b>
               </div>
@@ -66,7 +66,7 @@ export function ExpenseBreakdownChart({
           </div>
         </div>
       ) : (
-        <ChartEmptyState description="Expense categories will appear after you add transactions." />
+        <ChartEmptyState description={t("finance.expenseBreakdownEmpty")} />
       )}
     </section>
   );

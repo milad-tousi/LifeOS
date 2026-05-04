@@ -6,6 +6,7 @@ import { Habit, HabitFrequency, HabitType } from "@/domains/habits/types";
 import { HabitCategory } from "@/features/habits/services/habit-categories.storage";
 import { CreateHabitInput } from "@/features/habits/services/habits.storage";
 import { getTodayDateKey } from "@/features/habits/utils/habit.utils";
+import { useI18n } from "@/i18n";
 
 interface CreateHabitModalProps {
   categories: HabitCategory[];
@@ -93,6 +94,7 @@ export function CreateHabitModal({
   onOpenSettings,
   onSaveHabit,
 }: CreateHabitModalProps): JSX.Element {
+  const { t } = useI18n();
   const [formState, setFormState] = useState<HabitFormState>(() => createInitialFormState());
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -228,44 +230,44 @@ export function CreateHabitModal({
     <ModalShell
       isOpen={isOpen}
       onRequestClose={onClose}
-      title={isEditing ? "Edit Habit" : "New Habit"}
+      title={isEditing ? t("habits.editHabit") : t("habits.newHabit")}
       description={
         isEditing
-          ? "Update this routine while keeping its tracking history."
-          : "Set up a lightweight routine you can track today."
+          ? t("habits.modalEditDescription")
+          : t("habits.modalCreateDescription")
       }
       footer={
         <>
           <Button variant="secondary" type="button" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" form="create-habit-form">
-            {isEditing ? "Save Changes" : "Create Habit"}
+            {isEditing ? t("habits.saveChanges") : t("habits.createHabit")}
           </Button>
         </>
       }
     >
       <form className="habit-form" id="create-habit-form" onSubmit={handleSubmit}>
         <label className="habit-form__field">
-          <span>Title</span>
+          <span>{t("habits.titleLabel")}</span>
           <input
             value={formState.title}
             onChange={(event) => updateField("title", event.target.value)}
             placeholder="Morning walk"
             required
           />
-          <small>Name the action you want to repeat.</small>
+          <small>{t("habits.titleHelp")}</small>
         </label>
 
         <label className="habit-form__field">
-          <span>Description</span>
+          <span>{t("habits.descriptionLabel")}</span>
           <textarea
             value={formState.description}
             onChange={(event) => updateField("description", event.target.value)}
             placeholder="A short note about this routine"
             rows={3}
           />
-          <small>Optional context for why this habit matters.</small>
+          <small>{t("habits.descriptionHelp")}</small>
         </label>
 
         <div
@@ -274,21 +276,21 @@ export function CreateHabitModal({
           }
         >
           <label className="habit-form__field">
-            <span>Type</span>
+            <span>{t("habits.type")}</span>
             <select
               value={formState.type}
               onChange={(event) => handleTypeChange(event.target.value as HabitType)}
             >
-              <option value="binary">Binary</option>
-              <option value="count">Count</option>
-              <option value="duration">Duration</option>
+              <option value="binary">{t("habits.binary")}</option>
+              <option value="count">{t("habits.count")}</option>
+              <option value="duration">{t("habits.duration")}</option>
             </select>
-            <small>Choose how this habit should be measured.</small>
+            <small>{t("habits.typeHelp")}</small>
           </label>
 
           {formState.type !== "binary" ? (
             <label className="habit-form__field">
-              <span>Target</span>
+              <span>{t("habits.target")}</span>
               <input
                 min={1}
                 type="number"
@@ -304,14 +306,14 @@ export function CreateHabitModal({
           ) : null}
         </div>
 
-        <section className="habit-form__section" aria-label="Schedule">
+        <section className="habit-form__section" aria-label={t("habits.schedule")}>
           <div className="habit-form__section-header">
-            <h3>Schedule</h3>
-            <p>Choose when this routine should appear in Today's Habits.</p>
+            <h3>{t("habits.schedule")}</h3>
+            <p>{t("habits.scheduleHelp")}</p>
           </div>
           <div className="habit-form__grid">
             <label className="habit-form__field">
-              <span>Start date</span>
+              <span>{t("habits.startDate")}</span>
               <input
                 type="date"
                 value={formState.startDate}
@@ -321,34 +323,34 @@ export function CreateHabitModal({
             </label>
 
             <label className="habit-form__field">
-              <span>End date</span>
+              <span>{t("habits.endDate")}</span>
               <input
                 type="date"
                 value={formState.endDate}
                 onChange={(event) => updateField("endDate", event.target.value)}
               />
-              <small>Optional. Leave empty to keep this habit ongoing.</small>
+              <small>{t("habits.endDateHelp")}</small>
             </label>
           </div>
 
           <label className="habit-form__field">
-            <span>Frequency</span>
+            <span>{t("habits.frequency")}</span>
             <select
               value={formState.frequency}
               onChange={(event) => updateField("frequency", event.target.value as HabitFrequency)}
             >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="custom">Custom days</option>
+              <option value="daily">{t("habits.daily")}</option>
+              <option value="weekly">{t("habits.weekly")}</option>
+              <option value="custom">{t("habits.customDays")}</option>
             </select>
             {formState.frequency === "weekly" ? (
-              <small>This habit repeats weekly on the start date weekday.</small>
+              <small>{t("habits.weeklyHelp")}</small>
             ) : null}
           </label>
 
           {formState.frequency === "custom" ? (
             <fieldset className="habit-form__days">
-              <legend>Custom days</legend>
+              <legend>{t("habits.customDays")}</legend>
               <div>
                 {weekDays.map((day) => (
                   <button
@@ -373,7 +375,7 @@ export function CreateHabitModal({
           <div className="habit-form__grid habit-form__grid--single">
             {formState.type === "count" ? (
               <label className="habit-form__field">
-                <span>Unit</span>
+                <span>{t("habits.unit")}</span>
                 <input
                   value={formState.unit}
                   onChange={(event) => updateField("unit", event.target.value)}
@@ -385,7 +387,7 @@ export function CreateHabitModal({
 
             {formState.type === "duration" ? (
               <label className="habit-form__field">
-                <span>Unit</span>
+                <span>{t("habits.unit")}</span>
                 <select
                   value={formState.unit || "minutes"}
                   onChange={(event) => updateField("unit", event.target.value)}
@@ -400,21 +402,21 @@ export function CreateHabitModal({
         ) : null}
 
         <label className="habit-form__field">
-          <span>Category</span>
+          <span>{t("habits.category")}</span>
           <select
             value={formState.category}
             onChange={(event) => handleCategorySelect(event.target.value)}
           >
-            <option value="">Uncategorized</option>
+            <option value="">{t("habits.uncategorized")}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
-            <option value={ADD_CATEGORY_OPTION}>Add new category</option>
-            <option value={MANAGE_CATEGORIES_OPTION}>Manage categories</option>
+            <option value={ADD_CATEGORY_OPTION}>{t("habits.addNewCategory")}</option>
+            <option value={MANAGE_CATEGORIES_OPTION}>{t("habits.manageCategories")}</option>
           </select>
-          <small>Categories can be edited in Habit Settings.</small>
+          <small>{t("habits.categoryHelp")}</small>
         </label>
 
         {isAddingCategory ? (
@@ -425,19 +427,19 @@ export function CreateHabitModal({
               placeholder="New category name"
             />
             <Button type="button" onClick={handleAddCategory}>
-              Add
+              {t("common.add")}
             </Button>
           </div>
         ) : null}
 
         <label className="habit-form__field">
-          <span>Linked Goal</span>
+          <span>{t("habits.linkedGoal")}</span>
           <select
             value={formState.goalId}
             onChange={(event) => updateField("goalId", event.target.value)}
             disabled={goals.length === 0}
           >
-            <option value="">None</option>
+            <option value="">{t("habits.noLinkedGoal")}</option>
             {goals.map((goal) => (
               <option key={goal.id} value={goal.id}>
                 {goal.title}
@@ -446,8 +448,8 @@ export function CreateHabitModal({
           </select>
           <small>
             {goals.length === 0
-              ? "Create a goal first to link habits."
-              : "Habit progress will contribute to the linked goal."}
+              ? t("habits.createGoalFirst")
+              : t("habits.goalHelp")}
           </small>
         </label>
 
@@ -457,18 +459,18 @@ export function CreateHabitModal({
             type="checkbox"
             onChange={(event) => updateField("reminderEnabled", event.target.checked)}
           />
-          <span>Reminder enabled</span>
+          <span>{t("habits.reminderEnabled")}</span>
         </label>
 
         {formState.reminderEnabled ? (
           <label className="habit-form__field">
-            <span>Reminder time</span>
+            <span>{t("habits.reminderTime")}</span>
             <input
               type="time"
               value={formState.reminderTime}
               onChange={(event) => updateField("reminderTime", event.target.value)}
             />
-            <small>Stored only as a preference for now.</small>
+            <small>{t("habits.reminderHelp")}</small>
           </label>
         ) : null}
 

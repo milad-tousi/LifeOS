@@ -2,10 +2,12 @@ import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { FinanceCategory } from "@/features/finance/types/finance.types";
+import { getFinanceCategoryDisplayName, getFinanceTypeDisplayName } from "@/features/finance/utils/finance.i18n";
 import {
   FinanceTransactionFilters,
   FinanceTransactionSortOption,
 } from "@/features/finance/utils/finance.filters";
+import { useI18n } from "@/i18n";
 
 interface TransactionFiltersProps {
   categories: FinanceCategory[];
@@ -28,6 +30,7 @@ export function TransactionFilters({
   sortOption,
   onSortChange,
 }: TransactionFiltersProps): JSX.Element {
+  const { t } = useI18n();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const activeFilterCount = [
@@ -47,10 +50,12 @@ export function TransactionFilters({
         <div className="finance-filter-panel__title-wrap">
           <div className="finance-filter-panel__title-row">
             <SlidersHorizontal size={16} />
-            <span className="finance-filter-panel__title">Filters</span>
+            <span className="finance-filter-panel__title">{t("finance.filters")}</span>
           </div>
           {activeFilterCount > 0 ? (
-            <span className="finance-filter-panel__badge">{activeFilterCount} active</span>
+            <span className="finance-filter-panel__badge">
+              {t("finance.activeFilters").replace("{count}", String(activeFilterCount))}
+            </span>
           ) : null}
         </div>
 
@@ -59,23 +64,23 @@ export function TransactionFilters({
           type="button"
           variant="ghost"
         >
-          {isExpanded ? "Hide filters" : "Show filters"}
+          {isExpanded ? t("finance.hideFilters") : t("finance.showFilters")}
         </Button>
       </div>
 
       <div className="finance-filter-panel__top">
         <label className="auth-form__field finance-filter-panel__search">
-          <span className="auth-form__label">Search</span>
+          <span className="auth-form__label">{t("common.search")}</span>
           <input
             className="auth-form__input"
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search transactions..."
+            placeholder={t("finance.searchTransactions")}
             value={searchQuery}
           />
         </label>
 
         <label className="auth-form__field finance-filter-panel__sort">
-          <span className="auth-form__label">Sort</span>
+          <span className="auth-form__label">{t("finance.sort")}</span>
           <select
             className="auth-form__input"
             onChange={(event) =>
@@ -83,12 +88,12 @@ export function TransactionFilters({
             }
             value={sortOption}
           >
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="amount-desc">Amount high to low</option>
-            <option value="amount-asc">Amount low to high</option>
-            <option value="merchant-asc">Merchant A-Z</option>
-            <option value="merchant-desc">Merchant Z-A</option>
+            <option value="newest">{t("finance.sortNewest")}</option>
+            <option value="oldest">{t("finance.sortOldest")}</option>
+            <option value="amount-desc">{t("finance.sortAmountDesc")}</option>
+            <option value="amount-asc">{t("finance.sortAmountAsc")}</option>
+            <option value="merchant-asc">{t("finance.sortMerchantAsc")}</option>
+            <option value="merchant-desc">{t("finance.sortMerchantDesc")}</option>
           </select>
         </label>
       </div>
@@ -101,7 +106,7 @@ export function TransactionFilters({
         <div className="finance-filter-panel__advanced-inner">
           <div className="finance-filter-grid">
             <label className="auth-form__field">
-              <span className="auth-form__label">Type</span>
+              <span className="auth-form__label">{t("finance.type")}</span>
               <select
                 className="auth-form__input"
                 onChange={(event) =>
@@ -112,14 +117,14 @@ export function TransactionFilters({
                 }
                 value={filters.type}
               >
-                <option value="all">All</option>
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
+                <option value="all">{getFinanceTypeDisplayName("all", t)}</option>
+                <option value="income">{getFinanceTypeDisplayName("income", t)}</option>
+                <option value="expense">{getFinanceTypeDisplayName("expense", t)}</option>
               </select>
             </label>
 
             <label className="auth-form__field">
-              <span className="auth-form__label">Category</span>
+              <span className="auth-form__label">{t("finance.category")}</span>
               <select
                 className="auth-form__input"
                 onChange={(event) =>
@@ -127,17 +132,17 @@ export function TransactionFilters({
                 }
                 value={filters.categoryId}
               >
-                <option value="">All categories</option>
+                <option value="">{t("finance.allCategories")}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.name}
+                    {getFinanceCategoryDisplayName(category, t)}
                   </option>
                 ))}
               </select>
             </label>
 
             <label className="auth-form__field">
-              <span className="auth-form__label">From date</span>
+              <span className="auth-form__label">{t("finance.fromDate")}</span>
               <input
                 className="auth-form__input"
                 onChange={(event) =>
@@ -149,7 +154,7 @@ export function TransactionFilters({
             </label>
 
             <label className="auth-form__field">
-              <span className="auth-form__label">To date</span>
+              <span className="auth-form__label">{t("finance.toDate")}</span>
               <input
                 className="auth-form__input"
                 onChange={(event) =>
@@ -161,7 +166,7 @@ export function TransactionFilters({
             </label>
 
             <label className="auth-form__field">
-              <span className="auth-form__label">Min amount</span>
+              <span className="auth-form__label">{t("finance.minAmount")}</span>
               <input
                 className="auth-form__input"
                 inputMode="decimal"
@@ -176,7 +181,7 @@ export function TransactionFilters({
             </label>
 
             <label className="auth-form__field">
-              <span className="auth-form__label">Max amount</span>
+              <span className="auth-form__label">{t("finance.maxAmount")}</span>
               <input
                 className="auth-form__input"
                 inputMode="decimal"
@@ -198,40 +203,40 @@ export function TransactionFilters({
                 type="button"
                 variant={filters.quickDate === "this-month" ? "primary" : "secondary"}
               >
-                This month
+                {t("finance.thisMonth")}
               </Button>
               <Button
                 onClick={() => onChangeFilters({ ...filters, quickDate: "last-month" })}
                 type="button"
                 variant={filters.quickDate === "last-month" ? "primary" : "secondary"}
               >
-                Last month
+                {t("finance.lastMonth")}
               </Button>
               <Button
                 onClick={() => onChangeFilters({ ...filters, quickDate: "last-30-days" })}
                 type="button"
                 variant={filters.quickDate === "last-30-days" ? "primary" : "secondary"}
               >
-                Last 30 days
+                {t("finance.last30Days")}
               </Button>
               <Button
                 onClick={() => onChangeFilters({ ...filters, quickDate: "this-year" })}
                 type="button"
                 variant={filters.quickDate === "this-year" ? "primary" : "secondary"}
               >
-                This year
+                {t("finance.thisYear")}
               </Button>
               <Button
                 onClick={() => onChangeFilters({ ...filters, quickDate: "all" })}
                 type="button"
                 variant={filters.quickDate === "all" ? "primary" : "secondary"}
               >
-                All time
+                {t("finance.allTime")}
               </Button>
             </div>
 
             <Button onClick={onClearFilters} type="button" variant="ghost">
-              Clear filters
+              {t("finance.clearFilters")}
             </Button>
           </div>
         </div>

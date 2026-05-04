@@ -15,6 +15,8 @@ import {
   SmartRule,
   TransactionType,
 } from "@/features/finance/types/finance.types";
+import { getFinanceCategoryDisplayName, getFinanceTypeDisplayName } from "@/features/finance/utils/finance.i18n";
+import { useI18n } from "@/i18n";
 
 export interface TransactionFormValue {
   amount: number;
@@ -113,6 +115,7 @@ export function TransactionForm({
   onSubmit,
   smartRules,
 }: TransactionFormProps): JSX.Element {
+  const { t } = useI18n();
   const [formState, setFormState] = useState<TransactionFormState>(() =>
     createInitialState(allCategories, initialValue, mode),
   );
@@ -206,7 +209,7 @@ export function TransactionForm({
         appliedSmartRuleId: nextDraft.appliedSmartRuleId,
         appliedSmartRuleName: nextDraft.appliedSmartRuleName,
       }));
-      setMappingHint(`Applied smart rule ${matchedSmartRule.name}.`);
+      setMappingHint(t("finance.appliedSmartRule").replace("{name}", matchedSmartRule.name));
       return;
     }
 
@@ -231,7 +234,7 @@ export function TransactionForm({
       appliedSmartRuleName: undefined,
     }));
 
-    setMappingHint(`Matched merchant rule for ${matchedMerchantRule.name}.`);
+    setMappingHint(t("finance.matchedMerchantRule").replace("{name}", matchedMerchantRule.name));
   }, [
     formState.amount,
     formState.categoryId,
@@ -245,6 +248,7 @@ export function TransactionForm({
     merchantRules,
     mode,
     smartRules,
+    t,
   ]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -254,19 +258,19 @@ export function TransactionForm({
     const nextErrors: TransactionFormErrors = {};
 
     if (!formState.amount.trim() || !Number.isFinite(amount) || amount <= 0) {
-      nextErrors.amount = "Enter an amount greater than 0.";
+      nextErrors.amount = t("finance.amountError");
     }
 
     if (!formState.categoryId) {
-      nextErrors.categoryId = "Choose a category.";
+      nextErrors.categoryId = t("finance.categoryError");
     }
 
     if (!formState.merchant.trim()) {
-      nextErrors.merchant = "Merchant or title is required.";
+      nextErrors.merchant = t("finance.merchantError");
     }
 
     if (!formState.date) {
-      nextErrors.date = "Choose a date.";
+      nextErrors.date = t("finance.dateError");
     }
 
     if (Object.keys(nextErrors).length > 0) {
@@ -289,7 +293,7 @@ export function TransactionForm({
   return (
     <form className="finance-form" onSubmit={handleSubmit}>
       <label className="auth-form__field finance-form__compact finance-form__field">
-        <span className="auth-form__label">Type</span>
+        <span className="auth-form__label">{t("finance.type")}</span>
         <select
           className="auth-form__input"
           onChange={(event) => {
@@ -303,13 +307,13 @@ export function TransactionForm({
           }}
           value={formState.type}
         >
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
+          <option value="expense">{getFinanceTypeDisplayName("expense", t)}</option>
+          <option value="income">{getFinanceTypeDisplayName("income", t)}</option>
         </select>
       </label>
 
       <label className="auth-form__field finance-form__compact finance-form__field">
-        <span className="auth-form__label">Amount</span>
+        <span className="auth-form__label">{t("finance.amount")}</span>
         <input
           className="auth-form__input"
           inputMode="decimal"
@@ -325,7 +329,7 @@ export function TransactionForm({
       </label>
 
       <label className="auth-form__field finance-form__compact finance-form__field">
-        <span className="auth-form__label">Category</span>
+        <span className="auth-form__label">{t("finance.category")}</span>
         <select
           className="auth-form__input"
           onChange={(event) => {
@@ -336,7 +340,7 @@ export function TransactionForm({
         >
           {filteredCategories.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.name}
+              {getFinanceCategoryDisplayName(category, t)}
             </option>
           ))}
         </select>
@@ -344,7 +348,7 @@ export function TransactionForm({
       </label>
 
       <label className="auth-form__field finance-form__compact finance-form__field">
-        <span className="auth-form__label">Date</span>
+        <span className="auth-form__label">{t("finance.date")}</span>
         <input
           className="auth-form__input"
           onChange={(event) =>
@@ -357,49 +361,49 @@ export function TransactionForm({
       </label>
 
       <label className="auth-form__field finance-form__wide finance-form__field">
-        <span className="auth-form__label">Merchant / title</span>
+        <span className="auth-form__label">{t("finance.merchantTitle")}</span>
         <input
           className="auth-form__input"
           onChange={(event) => {
             setHasMerchantBeenEdited(true);
             setFormState((current) => ({ ...current, merchant: event.target.value }));
           }}
-          placeholder="Vomar 30 euro, Salary April, NS train pass..."
+          placeholder={t("finance.merchantPlaceholder")}
           value={formState.merchant}
         />
         {errors.merchant ? <p className="auth-form__error">{errors.merchant}</p> : null}
         {!errors.merchant && mappingHint ? (
           <p className="finance-form__hint">
-            {mappingHint} Manual changes stay in place until a different merchant rule matches.
+            {mappingHint} {t("finance.mappingHintSuffix")}
           </p>
         ) : null}
       </label>
 
       <label className="auth-form__field finance-form__wide finance-form__field">
-        <span className="auth-form__label">Note</span>
+        <span className="auth-form__label">{t("finance.note")}</span>
         <textarea
           className="auth-form__input finance-form__note"
           onChange={(event) => {
             setHasManualNoteOverride(true);
             setFormState((current) => ({ ...current, note: event.target.value }));
           }}
-          placeholder="Optional context, project name, or reminder"
+          placeholder={t("finance.notePlaceholder")}
           value={formState.note}
         />
       </label>
 
       <div className="finance-form__footer">
         <span className="text-muted">
-          {mode === "create" ? "Manual entry only for now." : "Changes save instantly to your local finance history."}
+          {mode === "create" ? t("finance.manualEntryOnly") : t("finance.changesSaveInstantly")}
         </span>
         <div className="finance-form__actions">
           {onCancel ? (
             <button className="button button--secondary" onClick={onCancel} type="button">
-              Cancel
+              {t("common.cancel")}
             </button>
           ) : null}
           <button className="button button--primary" type="submit">
-            {mode === "create" ? "Add Transaction" : "Save Changes"}
+            {mode === "create" ? t("finance.addTransaction") : t("habits.saveChanges")}
           </button>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { getFinanceIcon } from "@/features/finance/finance.icons";
 import { FinanceCurrency } from "@/features/finance/types/finance.types";
 import { MonthlyBudgetUsage, getBudgetStatus } from "@/features/finance/utils/finance.budgets";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { getFinanceCategoryDisplayName } from "@/features/finance/utils/finance.i18n";
+import { useI18n } from "@/i18n";
 
 interface BudgetOverviewProps {
   budgetUsage: MonthlyBudgetUsage[];
@@ -16,17 +18,19 @@ export function BudgetOverview({
   currency,
   onOpenSettings,
 }: BudgetOverviewProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <Card
-      subtitle="Track this month's category budgets so you can see where spending is still comfortable and where it needs attention."
-      title="Budget Overview"
+      subtitle={t("finance.budgetOverviewDescription")}
+      title={t("finance.budgetOverview")}
     >
       {budgetUsage.length === 0 ? (
         <div className="finance-empty-inline">
-          <strong>No budgets configured</strong>
-          <p>Add monthly budgets to your expense categories in Finance Settings.</p>
+          <strong>{t("finance.noBudgetsConfigured")}</strong>
+          <p>{t("finance.noBudgetsDescription")}</p>
           <Button onClick={onOpenSettings} type="button">
-            Open Finance Settings
+            {t("finance.openFinanceSettings")}
           </Button>
         </div>
       ) : (
@@ -49,18 +53,18 @@ export function BudgetOverview({
                       <CategoryIcon size={16} />
                     </span>
                     <div className="finance-category-badge__copy">
-                      <strong>{usage.category.name}</strong>
-                      <span>{Math.round(usage.percentageUsed)}% used</span>
+                      <strong>{getFinanceCategoryDisplayName(usage.category, t)}</strong>
+                      <span>{t("finance.usedPercent").replace("{value}", String(Math.round(usage.percentageUsed)))}</span>
                     </div>
                   </div>
                   <span className={`finance-budget-card__status finance-budget-card__status--${status}`}>
-                    {status}
+                    {t(`finance.budgetStatus.${status}`)}
                   </span>
                 </div>
                 <div className="finance-budget-card__meta">
-                  <span>Spent {formatMoney(usage.spentAmount, currency)}</span>
-                  <span>Budget {formatMoney(usage.budgetAmount, currency)}</span>
-                  <span>Remaining {formatMoney(usage.remainingAmount, currency)}</span>
+                  <span>{t("finance.spent")} {formatMoney(usage.spentAmount, currency)}</span>
+                  <span>{t("finance.budget")} {formatMoney(usage.budgetAmount, currency)}</span>
+                  <span>{t("finance.remaining")} {formatMoney(usage.remainingAmount, currency)}</span>
                 </div>
                 <div className="finance-budget-card__progress">
                   <div

@@ -11,6 +11,7 @@ import {
 import { FinanceCurrency } from "@/features/finance/types/finance.types";
 import { FinanceTrendPoint } from "@/features/finance/utils/calculateFinanceAnalytics";
 import { formatMoney } from "@/features/finance/utils/finance.format";
+import { useI18n } from "@/i18n";
 
 interface FinanceTrendChartProps {
   currency: FinanceCurrency;
@@ -21,6 +22,7 @@ export function FinanceTrendChart({
   currency,
   data,
 }: FinanceTrendChartProps): JSX.Element {
+  const { t } = useI18n();
   const hasData = data.some((item) => item.income > 0 || item.expenses > 0);
   const showDots = data.length <= 1;
 
@@ -28,8 +30,8 @@ export function FinanceTrendChart({
     <section className="finance-dashboard-card finance-dashboard-card--wide">
       <div className="finance-dashboard-card__header">
         <div>
-          <h3>Income vs Expense Trend</h3>
-          <p>Income, expenses, and net cashflow over time.</p>
+          <h3>{t("finance.incomeExpenseTrend")}</h3>
+          <p>{t("finance.incomeExpenseTrendDescription")}</p>
         </div>
       </div>
 
@@ -46,16 +48,16 @@ export function FinanceTrendChart({
                 width={72}
               />
               <Tooltip
-                formatter={(value: number | string, name: string) => [
-                  formatMoney(Number(value), currency),
-                  getSeriesLabel(name),
+                formatter={(value: unknown, name: unknown) => [
+                  formatMoney(Number(value ?? 0), currency),
+                  getSeriesLabel(String(name), t),
                 ]}
               />
               <Legend />
               <Line
                 dataKey="income"
                 dot={showDots}
-                name="Income"
+                name={t("finance.income")}
                 stroke="#16a34a"
                 strokeWidth={2.5}
                 type="monotone"
@@ -63,7 +65,7 @@ export function FinanceTrendChart({
               <Line
                 dataKey="expenses"
                 dot={showDots}
-                name="Expenses"
+                name={t("finance.expenses")}
                 stroke="#ef4444"
                 strokeWidth={2.5}
                 type="monotone"
@@ -71,7 +73,7 @@ export function FinanceTrendChart({
               <Line
                 dataKey="netCashflow"
                 dot={showDots}
-                name="Net cashflow"
+                name={t("finance.netCashflow")}
                 stroke="#2563eb"
                 strokeWidth={2.5}
                 type="monotone"
@@ -80,27 +82,37 @@ export function FinanceTrendChart({
           </ResponsiveContainer>
         </div>
       ) : (
-        <ChartEmptyState description="Add income and expense transactions to see trend lines." />
+        <ChartEmptyState description={t("finance.trendEmpty")} />
       )}
     </section>
   );
 }
 
 export function ChartEmptyState({ description }: { description: string }): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <div className="finance-chart-empty">
-      <strong>No chart data yet</strong>
+      <strong>{t("finance.noChartData")}</strong>
       <p>{description}</p>
     </div>
   );
 }
 
-function getSeriesLabel(name: string): string {
+function getSeriesLabel(name: string, t: (key: string) => string): string {
   if (name === "netCashflow") {
-    return "Net cashflow";
+    return t("finance.netCashflow");
   }
 
-  return name.charAt(0).toUpperCase() + name.slice(1);
+  if (name === "income") {
+    return t("finance.income");
+  }
+
+  if (name === "expenses") {
+    return t("finance.expenses");
+  }
+
+  return name;
 }
 
 function compactMoney(value: number, currency: FinanceCurrency): string {
