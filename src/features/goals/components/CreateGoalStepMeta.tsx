@@ -1,4 +1,5 @@
 import { GoalPace, GoalPriority } from "@/domains/goals/types";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import { useI18n } from "@/i18n";
 
 interface CreateGoalStepMetaProps {
@@ -58,11 +59,10 @@ export function CreateGoalStepMeta({
         <label className="auth-form__label" htmlFor="goal-deadline">
           {t("goals.createFlow.meta.deadline")}
         </label>
-        <input
+        <LocalizedDateInput
           className="auth-form__input onboarding-input--compact"
           id="goal-deadline"
-          onChange={(event) => onChange({ deadline: event.target.value || undefined })}
-          type="date"
+          onChange={(nextValue) => onChange({ deadline: nextValue || undefined })}
           value={deadline ?? ""}
         />
       </div>

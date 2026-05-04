@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Clock3, Flag, ListTodo, Tags, Target, X } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import { ModalShell } from "@/components/common/ModalShell";
 import { goalsRepository } from "@/domains/goals/repository";
 import { tasksRepository } from "@/domains/tasks/repository";
@@ -607,12 +608,11 @@ export function TaskModal({
 
               <label className="auth-form__field">
                 <span className="auth-form__label">Due date</span>
-                <input
+                <LocalizedDateInput
                   className="auth-form__input"
-                  onChange={(event) =>
-                    setFormState((current) => ({ ...current, dueDate: event.target.value }))
+                  onChange={(nextValue) =>
+                    setFormState((current) => ({ ...current, dueDate: nextValue }))
                   }
-                  type="date"
                   value={formState.dueDate}
                 />
               </label>

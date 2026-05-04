@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import { ModalShell } from "@/components/common/ModalShell";
 import { Goal } from "@/domains/goals/types";
 import { Habit, HabitFrequency, HabitType } from "@/domains/habits/types";
@@ -314,20 +315,19 @@ export function CreateHabitModal({
           <div className="habit-form__grid">
             <label className="habit-form__field">
               <span>{t("habits.startDate")}</span>
-              <input
-                type="date"
-                value={formState.startDate}
-                onChange={(event) => updateField("startDate", event.target.value)}
+              <LocalizedDateInput
+                onChange={(nextValue) => updateField("startDate", nextValue)}
                 required
+                value={formState.startDate}
               />
             </label>
 
             <label className="habit-form__field">
               <span>{t("habits.endDate")}</span>
-              <input
-                type="date"
+              <LocalizedDateInput
+                min={formState.startDate || undefined}
+                onChange={(nextValue) => updateField("endDate", nextValue)}
                 value={formState.endDate}
-                onChange={(event) => updateField("endDate", event.target.value)}
               />
               <small>{t("habits.endDateHelp")}</small>
             </label>

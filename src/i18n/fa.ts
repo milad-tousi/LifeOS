@@ -33,6 +33,8 @@ export const fa: Translations = {
   "common.dueDate": "تاریخ سررسید",
   "common.loading": "در حال بارگذاری...",
   "common.today": "امروز",
+  "common.clear": "پاک کردن",
+  "common.selectDate": "انتخاب تاریخ",
   "common.more": "بیشتر",
   "common.light": "روشن",
   "common.dark": "تیره",

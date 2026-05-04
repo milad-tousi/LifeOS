@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/common/Button";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import { FinanceCategory } from "@/features/finance/types/finance.types";
 import { getFinanceCategoryDisplayName, getFinanceTypeDisplayName } from "@/features/finance/utils/finance.i18n";
 import {
@@ -143,24 +144,24 @@ export function TransactionFilters({
 
             <label className="auth-form__field">
               <span className="auth-form__label">{t("finance.fromDate")}</span>
-              <input
+              <LocalizedDateInput
                 className="auth-form__input"
-                onChange={(event) =>
-                  onChangeFilters({ ...filters, fromDate: event.target.value, quickDate: "all" })
+                max={filters.toDate || undefined}
+                onChange={(nextValue) =>
+                  onChangeFilters({ ...filters, fromDate: nextValue, quickDate: "all" })
                 }
-                type="date"
                 value={filters.fromDate}
               />
             </label>
 
             <label className="auth-form__field">
               <span className="auth-form__label">{t("finance.toDate")}</span>
-              <input
+              <LocalizedDateInput
                 className="auth-form__input"
-                onChange={(event) =>
-                  onChangeFilters({ ...filters, toDate: event.target.value, quickDate: "all" })
+                min={filters.fromDate || undefined}
+                onChange={(nextValue) =>
+                  onChangeFilters({ ...filters, toDate: nextValue, quickDate: "all" })
                 }
-                type="date"
                 value={filters.toDate}
               />
             </label>

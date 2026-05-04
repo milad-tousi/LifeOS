@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import {
   findMerchantRuleMatch,
   getCategoriesForType,
@@ -292,12 +293,11 @@ export function RecurringTransactionForm({
 
         <label className="auth-form__field finance-recurring-form__field finance-recurring-form__field--start-date">
           <span className="auth-form__label">{t("finance.form.startDate")}</span>
-          <input
+          <LocalizedDateInput
             className="auth-form__input finance-recurring-form__input finance-recurring-form__date"
-            onChange={(event) =>
-              setFormState((current) => ({ ...current, startDate: event.target.value }))
+            onChange={(nextValue) =>
+              setFormState((current) => ({ ...current, startDate: nextValue }))
             }
-            type="date"
             value={formState.startDate}
           />
           {errors.startDate ? <p className="auth-form__error">{errors.startDate}</p> : null}
@@ -305,12 +305,12 @@ export function RecurringTransactionForm({
 
         <label className="auth-form__field finance-recurring-form__field finance-recurring-form__field--end-date">
           <span className="auth-form__label">{t("finance.form.endDate")}</span>
-          <input
+          <LocalizedDateInput
             className="auth-form__input finance-recurring-form__input finance-recurring-form__date"
-            onChange={(event) =>
-              setFormState((current) => ({ ...current, endDate: event.target.value }))
+            min={formState.startDate || undefined}
+            onChange={(nextValue) =>
+              setFormState((current) => ({ ...current, endDate: nextValue }))
             }
-            type="date"
             value={formState.endDate}
           />
           {errors.endDate ? <p className="auth-form__error">{errors.endDate}</p> : null}

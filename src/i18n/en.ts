@@ -33,6 +33,8 @@ export const en: Translations = {
   "common.dueDate": "Due date",
   "common.loading": "Loading...",
   "common.today": "Today",
+  "common.clear": "Clear",
+  "common.selectDate": "Select date",
   "common.more": "more",
   "common.light": "Light",
   "common.dark": "Dark",

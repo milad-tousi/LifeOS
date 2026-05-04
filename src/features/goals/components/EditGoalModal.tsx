@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Flag, Gauge, ListTodo, NotebookText, Tag, Target } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import { ModalShell } from "@/components/common/ModalShell";
 import { goalsRepository } from "@/domains/goals/repository";
 import {
@@ -321,14 +322,13 @@ export function EditGoalModal({
                 <span className="auth-form__label">Target date</span>
                 <div className="task-select-wrap">
                   <CalendarDays size={16} />
-                  <input
+                  <LocalizedDateInput
                     className="auth-form__input"
                     onChange={(event) =>
                       setFormState((current) =>
-                        current ? { ...current, deadline: event.target.value } : current,
+                        current ? { ...current, deadline: event } : current,
                       )
                     }
-                    type="date"
                     value={formState.deadline}
                   />
                 </div>

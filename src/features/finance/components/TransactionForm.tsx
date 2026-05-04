@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import {
   findMerchantRuleMatch,
   getCategoriesForType,
@@ -349,12 +350,11 @@ export function TransactionForm({
 
       <label className="auth-form__field finance-form__compact finance-form__field">
         <span className="auth-form__label">{t("finance.date")}</span>
-        <input
+        <LocalizedDateInput
           className="auth-form__input"
-          onChange={(event) =>
-            setFormState((current) => ({ ...current, date: event.target.value }))
+          onChange={(nextValue) =>
+            setFormState((current) => ({ ...current, date: nextValue }))
           }
-          type="date"
           value={formState.date}
         />
         {errors.date ? <p className="auth-form__error">{errors.date}</p> : null}

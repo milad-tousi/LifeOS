@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/common/Button";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import { ModalShell } from "@/components/common/ModalShell";
 import { TaskPriority, TaskStatus } from "@/domains/tasks/types";
 import {
@@ -103,7 +104,7 @@ export function CreateMindMapTaskModal({
         </label>
         <label>
           <span>Due date</span>
-          <input onChange={(event) => setDueDate(event.target.value)} type="date" value={dueDate} />
+          <LocalizedDateInput onChange={setDueDate} value={dueDate} />
         </label>
         {error ? <p className="dashboard-modal-form__error">{error}</p> : null}
       </form>

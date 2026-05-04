@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { LocalizedDateInput } from "@/components/common/LocalizedDateInput";
 import { ModalShell } from "@/components/common/ModalShell";
 import { calendarEventsRepository } from "@/domains/calendar/repository";
 import {
@@ -275,25 +276,23 @@ export function EventModal({
 
               <label className="auth-form__field">
                 <span className="auth-form__label">Start date</span>
-                <input
+                <LocalizedDateInput
                   className="auth-form__input"
-                  onChange={(inputEvent) =>
-                    setFormState((current) => ({ ...current, startDate: inputEvent.target.value }))
+                  onChange={(nextValue) =>
+                    setFormState((current) => ({ ...current, startDate: nextValue }))
                   }
-                  type="date"
                   value={formState.startDate}
                 />
               </label>
 
               <label className="auth-form__field">
                 <span className="auth-form__label">End date</span>
-                <input
+                <LocalizedDateInput
                   className="auth-form__input"
                   min={formState.startDate || undefined}
-                  onChange={(inputEvent) =>
-                    setFormState((current) => ({ ...current, endDate: inputEvent.target.value }))
+                  onChange={(nextValue) =>
+                    setFormState((current) => ({ ...current, endDate: nextValue }))
                   }
-                  type="date"
                   value={formState.endDate}
                 />
               </label>
@@ -419,16 +418,15 @@ export function EventModal({
               {formState.frequency !== "none" && formState.recurrenceEndMode === "until" ? (
                 <label className="auth-form__field">
                   <span className="auth-form__label">Repeat until</span>
-                  <input
+                  <LocalizedDateInput
                     className="auth-form__input"
                     min={formState.startDate || undefined}
-                    onChange={(inputEvent) =>
+                    onChange={(nextValue) =>
                       setFormState((current) => ({
                         ...current,
-                        recurrenceUntil: inputEvent.target.value,
+                        recurrenceUntil: nextValue,
                       }))
                     }
-                    type="date"
                     value={formState.recurrenceUntil}
                   />
                 </label>
