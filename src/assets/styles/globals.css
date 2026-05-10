@@ -8100,6 +8100,21 @@ button.dashboard-mind-node {
   gap: 1rem;
 }
 
+.goal-create-step__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.goal-create-step__copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .goal-category-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -8137,10 +8152,79 @@ button.dashboard-mind-node {
   gap: 0.75rem;
 }
 
+.goal-create-step__ai-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 999px;
+  background: rgba(239, 246, 255, 0.92);
+  color: #1d4ed8;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.goal-create-step__ai-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(219, 234, 254, 0.96);
+}
+
+.goal-create-step__ai-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.goal-create-step__ai-spinner {
+  animation: goal-create-spin 900ms linear infinite;
+}
+
 .goal-draft-task-list__item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.6rem;
+}
+
+.goal-draft-task-list__item--generated {
+  animation: goal-draft-task-appear 320ms ease;
+}
+
+.rtl .goal-create-step__header {
+  direction: rtl;
+}
+
+.rtl .goal-create-step__ai-action {
+  align-self: flex-start;
+}
+
+@keyframes goal-create-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes goal-draft-task-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .localized-date-input {
@@ -8589,6 +8673,11 @@ button.dashboard-mind-node {
   }
 
   .goal-task-list__topline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .goal-create-step__header {
     flex-direction: column;
     align-items: stretch;
   }

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { goalsRepository } from "@/domains/goals/repository";
 import { GoalCategory, GoalPace, GoalPriority } from "@/domains/goals/types";
 import { tasksRepository } from "@/domains/tasks/repository";
+import { GoalTaskGenerationError, generateGoalTasks } from "@/features/goals/ai/generateGoalTasks";
 import { CreateGoalStepBasic } from "@/features/goals/components/CreateGoalStepBasic";
 import { CreateGoalStepCategory } from "@/features/goals/components/CreateGoalStepCategory";
 import { CreateGoalStepMeta } from "@/features/goals/components/CreateGoalStepMeta";
@@ -28,7 +29,7 @@ function createDraftGoalTask(title = ""): DraftGoalTask {
 
 export function CreateGoalFlow(): JSX.Element {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const [currentStep, setCurrentStep] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -42,15 +43,78 @@ export function CreateGoalFlow(): JSX.Element {
     createDraftGoalTask(),
   ]);
   const [error, setError] = useState("");
+  const [generationError, setGenerationError] = useState("");
+  const [generatedTaskIds, setGeneratedTaskIds] = useState<string[]>([]);
+  const [autoFocusTaskId, setAutoFocusTaskId] = useState<string | null>(null);
+  const [isGeneratingTasks, setIsGeneratingTasks] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentKey = steps[currentStep];
+
+  useEffect(() => {
+    if (generatedTaskIds.length === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setGeneratedTaskIds([]);
+    }, 1400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [generatedTaskIds]);
+
+  useEffect(() => {
+    if (!autoFocusTaskId) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setAutoFocusTaskId(null);
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [autoFocusTaskId]);
+
   function updateDraftTask(taskId: string, value: string): void {
     setDraftTasks((currentTasks) =>
       currentTasks.map((currentTask) =>
         currentTask.id === taskId ? { ...currentTask, title: value } : currentTask,
       ),
     );
+  }
+
+  async function handleGenerateTasks(): Promise<void> {
+    setError("");
+    setGenerationError("");
+    setIsGeneratingTasks(true);
+
+    try {
+      const suggestions = await generateGoalTasks({
+        category,
+        deadline,
+        description,
+        language,
+        pace,
+        priority,
+        title,
+      });
+
+      setDraftTasks((currentTasks) => {
+        const result = mergeGeneratedTasksIntoDraft(currentTasks, suggestions);
+        setGeneratedTaskIds(result.generatedTaskIds);
+        setAutoFocusTaskId(result.generatedTaskIds[0] ?? null);
+        if (result.generatedTaskIds.length === 0) {
+          setGenerationError(t("goals.createFlow.tasks.aiErrors.empty"));
+        }
+        return result.tasks;
+      });
+    } catch (error) {
+      setGeneratedTaskIds([]);
+      setAutoFocusTaskId(null);
+      setGenerationError(getGoalTaskGenerationErrorMessage(error, t));
+    } finally {
+      setIsGeneratingTasks(false);
+    }
   }
 
   async function handleNext(): Promise<void> {
@@ -144,11 +208,16 @@ export function CreateGoalFlow(): JSX.Element {
       case "tasks":
         return (
           <CreateGoalStepTasks
+            autoFocusTaskId={autoFocusTaskId}
             draftTasks={draftTasks}
+            generatedTaskIds={generatedTaskIds}
+            generationError={generationError}
+            isGenerating={isGeneratingTasks}
             onAddDraftTask={() =>
               setDraftTasks((currentTasks) => [...currentTasks, createDraftGoalTask()])
             }
             onChangeDraftTask={updateDraftTask}
+            onGenerateWithAi={() => void handleGenerateTasks()}
             onRemoveDraftTask={(taskId) =>
               setDraftTasks((currentTasks) =>
                 currentTasks.length > 1
@@ -163,8 +232,8 @@ export function CreateGoalFlow(): JSX.Element {
 
   return (
     <Card
-      title={t("goals.createFlow.cardTitle")}
       subtitle={t("goals.createFlow.stepIndicator", { current: currentStep + 1, total: steps.length })}
+      title={t("goals.createFlow.cardTitle")}
     >
       <div className="goal-create-flow">
         <div className="goal-create-flow__body" key={currentKey}>
@@ -187,4 +256,94 @@ export function CreateGoalFlow(): JSX.Element {
       </div>
     </Card>
   );
+}
+
+function mergeGeneratedTasksIntoDraft(
+  currentTasks: DraftGoalTask[],
+  suggestions: string[],
+): { generatedTaskIds: string[]; tasks: DraftGoalTask[] } {
+  const uniqueSuggestions = dedupeTasks(suggestions);
+  const existingFilledTitles = new Set(
+    currentTasks.map((task) => normalizeTaskTitle(task.title)).filter(Boolean),
+  );
+  const emptyTaskIds = currentTasks.filter((task) => !task.title.trim()).map((task) => task.id);
+  const nextSuggestions = uniqueSuggestions.filter(
+    (taskTitle) => !existingFilledTitles.has(normalizeTaskTitle(taskTitle)),
+  );
+
+  if (nextSuggestions.length === 0) {
+    return {
+      generatedTaskIds: [],
+      tasks: currentTasks.filter((task) => task.title.trim()),
+    };
+  }
+
+  const generatedTaskIds: string[] = [];
+  const updatesById = new Map<string, string>();
+  const tasksToAppend: DraftGoalTask[] = [];
+
+  nextSuggestions.forEach((taskTitle, index) => {
+    const emptyTaskId = emptyTaskIds[index];
+
+    if (emptyTaskId) {
+      updatesById.set(emptyTaskId, taskTitle);
+      generatedTaskIds.push(emptyTaskId);
+      return;
+    }
+
+    const nextTask = createDraftGoalTask(taskTitle);
+    tasksToAppend.push(nextTask);
+    generatedTaskIds.push(nextTask.id);
+  });
+
+  const nextTasks = currentTasks
+    .map((task) =>
+      updatesById.has(task.id) ? { ...task, title: updatesById.get(task.id) ?? task.title } : task,
+    )
+    .filter((task) => task.title.trim());
+
+  return {
+    generatedTaskIds,
+    tasks: [...nextTasks, ...tasksToAppend],
+  };
+}
+
+function dedupeTasks(tasks: string[]): string[] {
+  const seen = new Set<string>();
+
+  return tasks.filter((task) => {
+    const normalized = normalizeTaskTitle(task);
+
+    if (!normalized || seen.has(normalized)) {
+      return false;
+    }
+
+    seen.add(normalized);
+    return true;
+  });
+}
+
+function normalizeTaskTitle(value: string): string {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+}
+
+function getGoalTaskGenerationErrorMessage(
+  error: unknown,
+  t: (key: string) => string,
+): string {
+  if (error instanceof GoalTaskGenerationError) {
+    switch (error.code) {
+      case "ai-disabled":
+        return t("goals.createFlow.tasks.aiErrors.disabled");
+      case "ai-incomplete":
+        return t("goals.createFlow.tasks.aiErrors.incomplete");
+      case "ai-empty":
+        return t("goals.createFlow.tasks.aiErrors.empty");
+      case "ai-request-failed":
+      default:
+        return t("goals.createFlow.tasks.aiErrors.failed");
+    }
+  }
+
+  return t("goals.createFlow.tasks.aiErrors.failed");
 }

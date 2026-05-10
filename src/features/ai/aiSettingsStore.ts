@@ -12,13 +12,36 @@ export const AI_PROVIDER_OPTIONS: AiProvider[] = [
   "custom",
 ];
 
+export const AI_PROVIDER_DEFAULTS: Record<AiProvider, Pick<AiSettings, "baseUrl" | "model">> = {
+  openai: {
+    baseUrl: "https://api.openai.com/v1",
+    model: "gpt-4.1-mini",
+  },
+  claude: {
+    baseUrl: "https://api.anthropic.com/v1",
+    model: "claude-3-5-haiku-latest",
+  },
+  gemini: {
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+    model: "gemini-2.0-flash",
+  },
+  ollama: {
+    baseUrl: "http://localhost:11434",
+    model: "llama3.1",
+  },
+  custom: {
+    baseUrl: "",
+    model: "",
+  },
+};
+
 export function createDefaultAiSettings(): AiSettings {
   return {
     enabled: false,
     provider: "openai",
-    baseUrl: "",
+    baseUrl: AI_PROVIDER_DEFAULTS.openai.baseUrl,
     apiKey: "",
-    model: "",
+    model: AI_PROVIDER_DEFAULTS.openai.model,
     lastTestStatus: null,
     updatedAt: new Date().toISOString(),
   };

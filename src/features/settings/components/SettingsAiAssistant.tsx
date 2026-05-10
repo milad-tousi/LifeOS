@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import {
+  AI_PROVIDER_DEFAULTS,
   AI_PROVIDER_OPTIONS,
   saveAiSettings,
   useAiSettings,
@@ -49,20 +50,8 @@ export function SettingsAiAssistant(): JSX.Element {
     return t(`settings.ai.providers.${provider}`);
   }
 
-  function getBaseUrlPlaceholder(provider: AiProvider): string {
-    if (provider === "ollama") {
-      return "http://localhost:11434";
-    }
-
-    return "https://api.openai.com/v1";
-  }
-
-  function getModelPlaceholder(provider: AiProvider): string {
-    if (provider === "ollama") {
-      return "llama3.2";
-    }
-
-    return "gpt-4.1-mini";
+  function getProviderHelperText(provider: AiProvider): string {
+    return t(`settings.ai.providerHint.${provider}`);
   }
 
   function updateFormState(patch: Partial<AiSettings>): void {
@@ -92,6 +81,18 @@ export function SettingsAiAssistant(): JSX.Element {
 
     void saveAiSettings(nextState).catch(() => {
       setPersistError(t("common.saveFailed"));
+    });
+  }
+
+  function handleProviderChange(nextProvider: AiProvider): void {
+    const defaults = AI_PROVIDER_DEFAULTS[nextProvider];
+
+    updateFormState({
+      apiKey: formState.apiKey ?? "",
+      baseUrl: defaults.baseUrl,
+      lastTestStatus: null,
+      model: defaults.model,
+      provider: nextProvider,
     });
   }
 
@@ -161,7 +162,7 @@ export function SettingsAiAssistant(): JSX.Element {
           <span className="auth-form__label">{t("settings.ai.provider")}</span>
           <select
             className="auth-form__input"
-            onChange={(event) => updateFormState({ provider: event.target.value as AiProvider })}
+            onChange={(event) => handleProviderChange(event.target.value as AiProvider)}
             value={formState.provider}
           >
             {AI_PROVIDER_OPTIONS.map((provider) => (
@@ -177,7 +178,7 @@ export function SettingsAiAssistant(): JSX.Element {
           <input
             className="auth-form__input"
             onChange={(event) => updateFormState({ model: event.target.value })}
-            placeholder={getModelPlaceholder(formState.provider)}
+            placeholder={AI_PROVIDER_DEFAULTS[formState.provider].model}
             value={formState.model}
           />
         </label>
@@ -187,14 +188,10 @@ export function SettingsAiAssistant(): JSX.Element {
           <input
             className="auth-form__input"
             onChange={(event) => updateFormState({ baseUrl: event.target.value })}
-            placeholder={getBaseUrlPlaceholder(formState.provider)}
+            placeholder={AI_PROVIDER_DEFAULTS[formState.provider].baseUrl}
             value={formState.baseUrl}
           />
-          <span className="settings-ai__hint">
-            {formState.provider === "ollama"
-              ? t("settings.ai.providerHint.ollama")
-              : t("settings.ai.providerHint.openaiCompatible")}
-          </span>
+          <span className="settings-ai__hint">{getProviderHelperText(formState.provider)}</span>
         </label>
 
         <label className="auth-form__field settings-ai__field--full">
