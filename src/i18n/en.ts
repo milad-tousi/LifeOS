@@ -401,6 +401,8 @@ export const en: Translations = {
   "habits.titleHelp": "Name the action you want to repeat.",
   "habits.descriptionLabel": "Description",
   "habits.descriptionHelp": "Optional context for why this habit matters.",
+  "habits.placeholders.title": "Morning walk",
+  "habits.placeholders.description": "A short note about this routine",
   "habits.type": "Type",
   "habits.binary": "Binary",
   "habits.count": "Count",

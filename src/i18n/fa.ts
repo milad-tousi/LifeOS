@@ -401,6 +401,8 @@ export const fa: Translations = {
   "habits.titleHelp": "نام کاری را که می‌خواهید تکرار کنید وارد کنید.",
   "habits.descriptionLabel": "توضیح",
   "habits.descriptionHelp": "زمینه اختیاری برای اینکه چرا این عادت مهم است.",
+  "habits.placeholders.title": "پیاده‌روی صبحگاهی",
+  "habits.placeholders.description": "یک یادداشت کوتاه درباره این عادت",
   "habits.type": "نوع",
   "habits.binary": "دودویی",
   "habits.count": "تعداد",

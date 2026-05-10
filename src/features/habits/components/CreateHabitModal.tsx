@@ -254,7 +254,7 @@ export function CreateHabitModal({
           <input
             value={formState.title}
             onChange={(event) => updateField("title", event.target.value)}
-            placeholder="Morning walk"
+            placeholder={t("habits.placeholders.title")}
             required
           />
           <small>{t("habits.titleHelp")}</small>
@@ -265,7 +265,7 @@ export function CreateHabitModal({
           <textarea
             value={formState.description}
             onChange={(event) => updateField("description", event.target.value)}
-            placeholder="A short note about this routine"
+            placeholder={t("habits.placeholders.description")}
             rows={3}
           />
           <small>{t("habits.descriptionHelp")}</small>
