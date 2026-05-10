@@ -66,7 +66,7 @@ export function NotificationPanel({
 
             {earlier.length > 0 && (
               <section className="notif-panel__section">
-                <p className="notif-panel__section-label">{t("notifications.earlierSection")}</p>
+                <p className="notif-panel__section-label">{t("notifications.readSection")}</p>
                 {earlier.map((n) => (
                   <NotificationItem
                     key={n.id}

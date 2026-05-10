@@ -4,6 +4,18 @@
   box-sizing: border-box;
 }
 
+:root {
+  --z-base-page: 0;
+  --z-layout-chrome: 20;
+  --z-dropdown: 1000;
+  --z-autocomplete: 1100;
+  --z-notifications: 1200;
+  --z-modal-backdrop: 2000;
+  --z-modal-content: 2100;
+  --z-modal-popover: 2200;
+  --z-toast: 3000;
+}
+
 @font-face {
   font-family: "IRANSansWeb";
   src:
@@ -1501,6 +1513,8 @@ button {
 }
 
 .topbar {
+  position: relative;
+  z-index: var(--z-layout-chrome);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1790,7 +1804,7 @@ button {
 .modal-shell-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: var(--z-modal-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1806,6 +1820,8 @@ button {
 }
 
 .modal-shell {
+  position: relative;
+  z-index: var(--z-modal-content);
   display: flex;
   min-height: 0;
   flex-direction: column;
@@ -3224,7 +3240,7 @@ a:focus-visible {
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 29;
+  z-index: calc(var(--z-layout-chrome) + 9);
   border: 0;
   background: rgba(15, 23, 42, 0.28);
 }
@@ -3242,7 +3258,7 @@ a:focus-visible {
 .sidebar--mobile {
   position: fixed;
   inset: 0 auto 0 0;
-  z-index: 30;
+  z-index: calc(var(--z-layout-chrome) + 10);
   width: min(84vw, 280px);
   padding: 1rem;
 }
@@ -3365,7 +3381,7 @@ a:focus-visible {
   left: 50%;
   right: auto;
   bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
-  z-index: 20;
+  z-index: var(--z-layout-chrome);
   transform: translateX(-50%);
   width: min(calc(100% - 1rem), 480px);
   border: 1px solid var(--border);
@@ -9794,17 +9810,15 @@ button.dashboard-mind-node {
 /* ── Notification Panel Wrapper ──────────────────────────────────────────── */
 
 .notif-panel-wrap {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 600;
+  position: fixed;
+  z-index: var(--z-notifications);
   width: 360px;
   max-width: calc(100vw - 2rem);
 }
 
+.notif-panel-wrap--rtl,
 .rtl .notif-panel-wrap {
-  right: auto;
-  left: 0;
+  direction: rtl;
 }
 
 /* ── Notification Panel ──────────────────────────────────────────────────── */
@@ -9833,6 +9847,7 @@ button.dashboard-mind-node {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text-primary);
+  margin: 0;
 }
 
 .notif-panel__mark-all {
@@ -9892,6 +9907,11 @@ button.dashboard-mind-node {
   color: var(--color-text-muted);
   padding: 0.25rem 1rem 0.25rem;
   margin: 0;
+}
+
+.rtl .notif-panel,
+.notif-panel-wrap--rtl .notif-panel {
+  text-align: right;
 }
 
 /* ── Notification Item ───────────────────────────────────────────────────── */
@@ -10036,12 +10056,6 @@ button.dashboard-mind-node {
 @media (max-width: 640px) {
   .notif-panel-wrap {
     width: calc(100vw - 1rem);
-    right: -0.5rem;
-  }
-
-  .rtl .notif-panel-wrap {
-    right: auto;
-    left: -0.5rem;
   }
 }
 
@@ -10239,16 +10253,15 @@ button.dashboard-mind-node {
 /* Suggestions dropdown */
 
 .ev-location__suggestions {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 500;
+  position: fixed;
+  z-index: var(--z-modal-popover);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md, 8px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  overflow: hidden;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: min(18rem, calc(100vh - 3rem));
 }
 
 .ev-location__suggestions--rtl {
@@ -10305,6 +10318,7 @@ button.dashboard-mind-node {
   overflow: hidden;
   border: 1px solid var(--color-border);
   position: relative;
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .ev-location__map {
@@ -10329,12 +10343,14 @@ button.dashboard-mind-node {
 }
 
 .ev-location__map-error {
-  height: 100px;
+  min-height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
   color: var(--color-text-muted);
+  text-align: center;
+  padding: 1rem;
 }
 
 /* Selected summary row */

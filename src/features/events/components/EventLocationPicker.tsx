@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Component, ErrorInfo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, ErrorInfo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MapPin, ExternalLink, Loader, X, Navigation } from "lucide-react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import type { LatLngExpression, LeafletMouseEvent } from "leaflet";
@@ -31,9 +33,54 @@ function MapClickHandler({
 function MapViewUpdater({ center }: { center: LatLngExpression }): null {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, map.getZoom(), { animate: true });
+    try {
+      map.setView(center, map.getZoom(), { animate: true });
+    } catch {
+      map.setView(DEFAULT_CENTER, map.getZoom(), { animate: false });
+    }
   }, [map, center]);
   return null;
+}
+
+function MapSizeInvalidator({ active }: { active: boolean }): null {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!active) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      map.invalidateSize();
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [active, map]);
+
+  return null;
+}
+
+class MapRenderBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(_error: Error, _info: ErrorInfo): void {}
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -45,7 +92,7 @@ interface EventLocationPickerProps {
 
 type SearchState = "idle" | "loading" | "done" | "error";
 
-const DEFAULT_CENTER: LatLngExpression = [52.3676, 4.9041]; // Amsterdam fallback
+const DEFAULT_CENTER: LatLngExpression = [52.3508, 5.2647];
 const DEBOUNCE_MS = 400;
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -69,8 +116,14 @@ export function EventLocationPicker({
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputWrapRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const didMountRef = useRef(false);
+  const [suggestionsStyle, setSuggestionsStyle] = useState<{
+    left: number;
+    top: number;
+    width: number;
+  } | null>(null);
 
   // Sync query when value.locationText changes externally
   useEffect(() => {
@@ -81,11 +134,27 @@ export function EventLocationPicker({
     setQuery(value.locationText ?? "");
   }, [value.locationText]);
 
+  useEffect(() => {
+    if (showMap) {
+      setMapError(false);
+    }
+  }, [showMap, value.locationLat, value.locationLng]);
+
   // Derived map center
-  const mapCenter: LatLngExpression =
-    value.locationLat != null && value.locationLng != null
-      ? [value.locationLat, value.locationLng]
-      : DEFAULT_CENTER;
+  const hasValidCoordinates =
+    Number.isFinite(value.locationLat) &&
+    Number.isFinite(value.locationLng) &&
+    Math.abs(value.locationLat ?? 0) <= 90 &&
+    Math.abs(value.locationLng ?? 0) <= 180;
+
+  const mapCenter: LatLngExpression = hasValidCoordinates
+    ? [value.locationLat as number, value.locationLng as number]
+    : DEFAULT_CENTER;
+
+  const portalTarget = useMemo(
+    () => (typeof document === "undefined" ? null : document.body),
+    [],
+  );
 
   // ── Autocomplete ────────────────────────────────────────────────────────────
 
@@ -148,9 +217,43 @@ export function EventLocationPicker({
     });
   }
 
+  useEffect(() => {
+    if (!showSuggestions) {
+      return;
+    }
+
+    function updateSuggestionsPosition(): void {
+      const inputWrap = inputWrapRef.current;
+
+      if (!inputWrap) {
+        return;
+      }
+
+      const rect = inputWrap.getBoundingClientRect();
+      setSuggestionsStyle({
+        left: rect.left,
+        top: rect.bottom + 4,
+        width: rect.width,
+      });
+    }
+
+    updateSuggestionsPosition();
+    window.addEventListener("resize", updateSuggestionsPosition);
+    window.addEventListener("scroll", updateSuggestionsPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updateSuggestionsPosition);
+      window.removeEventListener("scroll", updateSuggestionsPosition, true);
+    };
+  }, [showSuggestions]);
+
   // ── Map click ───────────────────────────────────────────────────────────────
 
   async function handleMapPick(lat: number, lng: number): Promise<void> {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return;
+    }
+
     setIsReverseGeocoding(true);
     onChange({ ...value, locationLat: lat, locationLng: lng, locationProvider: "osm" });
     try {
@@ -237,7 +340,7 @@ export function EventLocationPicker({
       </div>
 
       {/* Input + autocomplete */}
-      <div className="ev-location__input-wrap">
+      <div className="ev-location__input-wrap" ref={inputWrapRef}>
         <input
           ref={inputRef}
           autoComplete="off"
@@ -281,75 +384,94 @@ export function EventLocationPicker({
         </div>
 
         {/* Suggestions dropdown */}
-        {showSuggestions && (
-          <div
-            ref={suggestionsRef}
-            className={`ev-location__suggestions${isRtl ? " ev-location__suggestions--rtl" : ""}`}
-            role="listbox"
-          >
-            {searchState === "loading" && (
-              <div className="ev-location__sugg-status">{t("calendar.modal.location.searching")}</div>
-            )}
-            {searchState === "error" && (
-              <div className="ev-location__sugg-status ev-location__sugg-status--error">
-                {t("calendar.modal.location.addressNotFound")}
-              </div>
-            )}
-            {searchState === "done" && suggestions.length === 0 && (
-              <div className="ev-location__sugg-status">{t("calendar.modal.location.noResults")}</div>
-            )}
-            {suggestions.map((s) => (
-              <button
-                className="ev-location__sugg-item"
-                key={s.placeId}
-                onClick={() => handleSuggestionSelect(s)}
-                role="option"
-                type="button"
-              >
-                <MapPin size={12} className="ev-location__sugg-icon" />
-                <span className="ev-location__sugg-text">{s.shortLabel}</span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {showSuggestions && portalTarget && suggestionsStyle
+        ? createPortal(
+            <div
+              ref={suggestionsRef}
+              className={`ev-location__suggestions${isRtl ? " ev-location__suggestions--rtl" : ""}`}
+              role="listbox"
+              style={{
+                left: `${suggestionsStyle.left}px`,
+                top: `${suggestionsStyle.top}px`,
+                width: `${suggestionsStyle.width}px`,
+              }}
+            >
+              {searchState === "loading" && (
+                <div className="ev-location__sugg-status">{t("calendar.modal.location.searching")}</div>
+              )}
+              {searchState === "error" && (
+                <div className="ev-location__sugg-status ev-location__sugg-status--error">
+                  {t("calendar.modal.location.addressNotFound")}
+                </div>
+              )}
+              {searchState === "done" && suggestions.length === 0 && (
+                <div className="ev-location__sugg-status">{t("calendar.modal.location.noResults")}</div>
+              )}
+              {suggestions.map((s) => (
+                <button
+                  className="ev-location__sugg-item"
+                  key={s.placeId}
+                  onClick={() => handleSuggestionSelect(s)}
+                  role="option"
+                  type="button"
+                >
+                  <MapPin size={12} className="ev-location__sugg-icon" />
+                  <span className="ev-location__sugg-text">{s.shortLabel}</span>
+                </button>
+              ))}
+            </div>,
+            portalTarget,
+          )
+        : null}
 
       {/* Embedded map */}
       {showMap && (
         <div className="ev-location__map-wrap">
-          {mapError ? (
-            <div className="ev-location__map-error">{t("calendar.modal.location.mapLoadError")}</div>
-          ) : (
-            <>
-              <MapContainer
-                center={mapCenter}
-                className="ev-location__map"
-                scrollWheelZoom={false}
-                zoom={value.locationLat != null ? 14 : 10}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  eventHandlers={{ tileerror: () => setMapError(true) }}
-                />
-                <MapViewUpdater center={mapCenter} />
-                <MapClickHandler onPick={(lat, lng) => void handleMapPick(lat, lng)} />
-                {value.locationLat != null && value.locationLng != null && (
-                  <Marker position={[value.locationLat, value.locationLng]} />
-                )}
-              </MapContainer>
-              <p className="ev-location__map-hint">{t("calendar.modal.location.clickHint")}</p>
-            </>
-          )}
+          <MapRenderBoundary
+            fallback={
+              <div className="ev-location__map-error">
+                {t("calendar.modal.location.mapLoadError")}
+              </div>
+            }
+          >
+            {mapError ? (
+              <div className="ev-location__map-error">{t("calendar.modal.location.mapLoadError")}</div>
+            ) : (
+              <>
+                <MapContainer
+                  center={mapCenter}
+                  className="ev-location__map"
+                  scrollWheelZoom={false}
+                  whenReady={() => setMapError(false)}
+                  zoom={hasValidCoordinates ? 14 : 10}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    eventHandlers={{ tileerror: () => setMapError(true) }}
+                  />
+                  <MapViewUpdater center={mapCenter} />
+                  <MapSizeInvalidator active={showMap} />
+                  <MapClickHandler onPick={(lat, lng) => void handleMapPick(lat, lng)} />
+                  {hasValidCoordinates && (
+                    <Marker position={[value.locationLat as number, value.locationLng as number]} />
+                  )}
+                </MapContainer>
+                <p className="ev-location__map-hint">{t("calendar.modal.location.clickHint")}</p>
+              </>
+            )}
+          </MapRenderBoundary>
         </div>
       )}
 
       {/* Selected location summary + Google Maps button */}
-      {(value.locationLat != null || value.locationText?.trim()) && (
+      {(hasValidCoordinates || value.locationText?.trim()) && (
         <div className={`ev-location__summary${isRtl ? " ev-location__summary--rtl" : ""}`}>
-          {value.locationLat != null && value.locationLng != null && (
+          {hasValidCoordinates && (
             <span className="ev-location__coords">
-              {value.locationLat.toFixed(4)}, {value.locationLng.toFixed(4)}
+              {(value.locationLat as number).toFixed(4)}, {(value.locationLng as number).toFixed(4)}
             </span>
           )}
           <button

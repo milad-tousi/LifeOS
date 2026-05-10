@@ -13,17 +13,16 @@ const NOTIFICATION_POLL_MS = 60_000;
 
 export function AppShell(): JSX.Element {
   const sidebar = useSidebar();
-  const { direction, t } = useI18n();
+  const { direction, language, t } = useI18n();
 
   // Run notification engine on mount and every 60 seconds
   useEffect(() => {
-    void runNotificationEngine(t);
+    void runNotificationEngine(t, language);
     const interval = setInterval(() => {
-      void runNotificationEngine(t);
+      void runNotificationEngine(t, language);
     }, NOTIFICATION_POLL_MS);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [language, t]);
   const desktopLayoutClass =
     sidebar.isDesktop && sidebar.desktopMode !== "hidden"
       ? `app-shell app-shell--desktop app-shell--${sidebar.desktopMode}`

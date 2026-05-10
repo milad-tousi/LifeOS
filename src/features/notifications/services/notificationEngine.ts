@@ -1,16 +1,15 @@
-import { db, ensureDatabaseReady } from "@/db/dexie";
 import { calendarEventsRepository } from "@/domains/calendar/repository";
 import { CalendarEvent, EventReminder } from "@/domains/calendar/types";
 import { goalsRepository } from "@/domains/goals/repository";
 import { tasksRepository } from "@/domains/tasks/repository";
 import { getHabitLogs, getHabits } from "@/features/habits/services/habits.storage";
-import { getTodayDateKey, isHabitActiveOnDate } from "@/features/habits/utils/habit.utils";
+import { isHabitActiveOnDate } from "@/features/habits/utils/habit.utils";
 import { financeStorage } from "@/features/finance/services/finance.storage";
-import { buildDedupKey, NotificationType } from "@/features/notifications/types";
+import { buildDedupKey } from "@/features/notifications/types";
 import { notificationStore } from "@/features/notifications/services/notificationStore";
 import type { RecurringTransaction } from "@/features/finance/types/finance.types";
-
-// ── Date helpers ──────────────────────────────────────────────────────────────
+import { formatAppDate } from "@/i18n/formatters";
+import type { Language } from "@/i18n/i18n.types";
 
 function todayKey(): string {
   return new Date().toISOString().split("T")[0];
@@ -22,18 +21,13 @@ function tomorrowKey(): string {
   return d.toISOString().split("T")[0];
 }
 
-function isBeforeToday(dateStr: string): boolean {
-  return dateStr < todayKey();
-}
-
-/** Compute next occurrence of a recurring transaction on or after today */
 function getNextOccurrenceDates(rt: RecurringTransaction): string[] {
   const today = todayKey();
   const tomorrow = tomorrowKey();
   const start = rt.startDate;
+
   if (!start) return [];
 
-  // Simple approach: check today and tomorrow against the recurrence pattern
   const results: string[] = [];
   for (const target of [today, tomorrow]) {
     if (matchesRecurrence(rt, target)) {
@@ -49,7 +43,6 @@ function matchesRecurrence(rt: RecurringTransaction, target: string): boolean {
 
   const start = new Date(`${rt.startDate}T12:00:00`);
   const check = new Date(`${target}T12:00:00`);
-
   const diffMs = check.getTime() - start.getTime();
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
@@ -60,14 +53,12 @@ function matchesRecurrence(rt: RecurringTransaction, target: string): boolean {
       return true;
     case "weekly":
       return diffDays % 7 === 0;
-    case "monthly": {
+    case "monthly":
       return (
         start.getDate() === check.getDate() ||
-        // Handle month-end: e.g. 31st falls on 28/29/30
         (start.getDate() > check.getDate() &&
           new Date(check.getFullYear(), check.getMonth() + 1, 0).getDate() === check.getDate())
       );
-    }
     case "yearly":
       return start.getDate() === check.getDate() && start.getMonth() === check.getMonth();
     default:
@@ -75,15 +66,15 @@ function matchesRecurrence(rt: RecurringTransaction, target: string): boolean {
   }
 }
 
-// ── Rule runners ──────────────────────────────────────────────────────────────
-
-async function runTaskRules(t: (key: string, v?: Record<string, string | number>) => string): Promise<void> {
+async function runTaskRules(
+  t: (key: string, v?: Record<string, string | number>) => string,
+  language: Language,
+): Promise<void> {
   const tasks = await tasksRepository.getAll();
   const today = todayKey();
 
   for (const task of tasks) {
     if (task.status === "done" || task.status === "cancelled") {
-      // Auto-dismiss any existing overdue notification
       const key = buildDedupKey("task_overdue", task.id, task.dueDate ?? "");
       await notificationStore.dismissByDedupKey(key);
       continue;
@@ -95,7 +86,9 @@ async function runTaskRules(t: (key: string, v?: Record<string, string | number>
     await notificationStore.upsert({
       type: "task_overdue",
       title: t("notifications.type.taskOverdue"),
-      message: `${task.title} — ${t("notifications.dueOn")} ${task.dueDate}`,
+      message: `${task.title} — ${t("notifications.dueDateWas", {
+        date: formatAppDate(task.dueDate, language),
+      })}`,
       entityType: "task",
       entityId: task.id,
       severity: "critical",
@@ -107,7 +100,10 @@ async function runTaskRules(t: (key: string, v?: Record<string, string | number>
   }
 }
 
-async function runGoalRules(t: (key: string, v?: Record<string, string | number>) => string): Promise<void> {
+async function runGoalRules(
+  t: (key: string, v?: Record<string, string | number>) => string,
+  language: Language,
+): Promise<void> {
   const goals = await goalsRepository.getAll();
   const today = todayKey();
 
@@ -124,7 +120,9 @@ async function runGoalRules(t: (key: string, v?: Record<string, string | number>
     await notificationStore.upsert({
       type: "goal_overdue",
       title: t("notifications.type.goalOverdue"),
-      message: `${goal.title} — ${t("notifications.deadlineWas")} ${goal.deadline}`,
+      message: `${goal.title} — ${t("notifications.deadlineWas", {
+        date: formatAppDate(goal.deadline, language),
+      })}`,
       entityType: "goal",
       entityId: goal.id,
       severity: "warning",
@@ -136,10 +134,6 @@ async function runGoalRules(t: (key: string, v?: Record<string, string | number>
   }
 }
 
-/**
- * Calculate the absolute timestamp (ms) when the reminder should fire.
- * Returns null if reminder is disabled or event has no valid start.
- */
 function calcReminderFireMs(event: CalendarEvent): number | null {
   const reminder: EventReminder | null | undefined = event.reminder;
   if (!reminder?.enabled) return null;
@@ -147,10 +141,7 @@ function calcReminderFireMs(event: CalendarEvent): number | null {
   const startDateStr = event.startDate;
   if (!startDateStr) return null;
 
-  // For all-day events with "at_time", treat as midnight of the start day
-  const startTimeStr =
-    event.isAllDay || !event.startTime ? "00:00" : event.startTime;
-
+  const startTimeStr = event.isAllDay || !event.startTime ? "00:00" : event.startTime;
   const eventStartMs = new Date(`${startDateStr}T${startTimeStr}:00`).getTime();
   if (Number.isNaN(eventStartMs)) return null;
 
@@ -163,11 +154,13 @@ function calcReminderFireMs(event: CalendarEvent): number | null {
     hour: 60 * 60 * 1000,
     day: 24 * 60 * 60 * 1000,
   };
-  const offsetMs = reminder.amount * (unitMs[reminder.unit] ?? 60000);
+  const offsetMs = reminder.amount * (unitMs[reminder.unit] ?? 60 * 1000);
   return eventStartMs - offsetMs;
 }
 
-async function runEventRules(t: (key: string, v?: Record<string, string | number>) => string): Promise<void> {
+async function runEventRules(
+  t: (key: string, v?: Record<string, string | number>) => string,
+): Promise<void> {
   const events = await calendarEventsRepository.getAll();
   const today = todayKey();
   const tomorrow = tomorrowKey();
@@ -177,14 +170,11 @@ async function runEventRules(t: (key: string, v?: Record<string, string | number
     const startDate = event.startDate;
     if (!startDate) continue;
 
-    // ── Reminder-based notifications ─────────────────────────────────────
     if (event.reminder?.enabled) {
       const fireMs = calcReminderFireMs(event);
       if (fireMs !== null && nowMs >= fireMs) {
-        // Don't fire if the event has already fully ended
         const eventEndDate = event.endDate ?? event.startDate;
         if (eventEndDate >= today) {
-          // Stable dedup key includes minute-precision of reminder fire time
           const fireKey = new Date(fireMs).toISOString().substring(0, 16);
           const dedupKey = buildDedupKey("event_reminder", event.id, `r:${fireKey}`);
           const timeLabel = event.startTime ? ` ${t("notifications.at")} ${event.startTime}` : "";
@@ -202,13 +192,9 @@ async function runEventRules(t: (key: string, v?: Record<string, string | number
           });
         }
       }
-      // When reminder is explicitly set, skip the fallback today/tomorrow logic
       continue;
     }
 
-    // ── Fallback: no reminder configured — notify on day-of and day-before ──
-
-    // Today reminder (reminder is null/disabled for this event)
     if (startDate === today) {
       const dedupKey = buildDedupKey("event_reminder", event.id, today);
       const timeLabel = event.startTime ? ` ${t("notifications.at")} ${event.startTime}` : "";
@@ -226,7 +212,6 @@ async function runEventRules(t: (key: string, v?: Record<string, string | number
       });
     }
 
-    // Tomorrow reminder
     if (startDate === tomorrow) {
       const dedupKey = buildDedupKey("event_reminder", event.id, `upcoming:${tomorrow}`);
       await notificationStore.upsert({
@@ -245,10 +230,11 @@ async function runEventRules(t: (key: string, v?: Record<string, string | number
   }
 }
 
-async function runPaymentRules(t: (key: string, v?: Record<string, string | number>) => string): Promise<void> {
+async function runPaymentRules(
+  t: (key: string, v?: Record<string, string | number>) => string,
+): Promise<void> {
   const recurring = financeStorage.getRecurringTransactions();
   const today = todayKey();
-  const tomorrow = tomorrowKey();
 
   for (const rt of recurring) {
     if (!rt.isActive || rt.type !== "expense") continue;
@@ -278,7 +264,9 @@ async function runPaymentRules(t: (key: string, v?: Record<string, string | numb
   }
 }
 
-async function runHabitRules(t: (key: string, v?: Record<string, string | number>) => string): Promise<void> {
+async function runHabitRules(
+  t: (key: string, v?: Record<string, string | number>) => string,
+): Promise<void> {
   const today = new Date();
   const todayStr = todayKey();
   const habits = getHabits();
@@ -289,7 +277,6 @@ async function runHabitRules(t: (key: string, v?: Record<string, string | number
     if (!habit.reminder?.enabled || !habit.reminder.time) continue;
     if (!isHabitActiveOnDate(habit, today)) continue;
 
-    // Check if already completed today
     const completedToday = logs.some(
       (log) => log.habitId === habit.id && log.date === todayStr && log.completed,
     );
@@ -316,22 +303,20 @@ async function runHabitRules(t: (key: string, v?: Record<string, string | number
   }
 }
 
-// ── Public API ────────────────────────────────────────────────────────────────
-
 export async function runNotificationEngine(
   t: (key: string, v?: Record<string, string | number>) => string,
+  language: Language,
 ): Promise<void> {
   try {
     await Promise.all([
-      runTaskRules(t),
-      runGoalRules(t),
+      runTaskRules(t, language),
+      runGoalRules(t, language),
       runEventRules(t),
       runPaymentRules(t),
       runHabitRules(t),
     ]);
     await notificationStore.pruneOldDismissed(14);
   } catch (err) {
-    // Engine failure must never crash the app
     if (process.env.NODE_ENV !== "production") {
       console.warn("[NotificationEngine] error:", err);
     }
