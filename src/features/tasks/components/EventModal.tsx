@@ -9,6 +9,7 @@ import {
   CalendarEventRecurrenceFrequency,
   CreateCalendarEventInput,
 } from "@/domains/calendar/types";
+import { useI18n } from "@/i18n";
 
 interface EventModalProps {
   initialDate?: string;
@@ -69,6 +70,7 @@ export function EventModal({
   onDeleted,
   onSaved,
 }: EventModalProps): JSX.Element | null {
+  const { t } = useI18n();
   const [formState, setFormState] = useState<EventFormState>(DEFAULT_FORM_STATE);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,17 +118,17 @@ export function EventModal({
 
   async function handleSubmit(): Promise<void> {
     if (!formState.title.trim()) {
-      setError("Event title is required.");
+      setError(t("calendar.modal.errors.titleRequired"));
       return;
     }
 
     if (!formState.startDate) {
-      setError("Choose a start date for the event.");
+      setError(t("calendar.modal.errors.startDateRequired"));
       return;
     }
 
     if (formState.endDate && formState.endDate < formState.startDate) {
-      setError("End date cannot be before the start date.");
+      setError(t("calendar.modal.errors.endDateBeforeStart"));
       return;
     }
 
@@ -137,12 +139,12 @@ export function EventModal({
       formState.endTime &&
       formState.endTime <= formState.startTime
     ) {
-      setError("End time must be after start time when the event is on the same day.");
+      setError(t("calendar.modal.errors.endTimeBeforeStart"));
       return;
     }
 
     if (formState.frequency === "weekly" && formState.weeklyDays.length === 0) {
-      setError("Choose at least one weekday for a weekly recurring event.");
+      setError(t("calendar.modal.errors.weekdayRequired"));
       return;
     }
 
@@ -150,7 +152,7 @@ export function EventModal({
       formState.recurrenceEndMode === "until" &&
       (!formState.recurrenceUntil || formState.recurrenceUntil < formState.startDate)
     ) {
-      setError("Recurrence end date must be on or after the start date.");
+      setError(t("calendar.modal.errors.recurrenceUntilInvalid"));
       return;
     }
 
@@ -158,7 +160,7 @@ export function EventModal({
       formState.recurrenceEndMode === "count" &&
       (!formState.recurrenceCount || Number(formState.recurrenceCount) <= 0)
     ) {
-      setError("Choose how many times this recurring event should repeat.");
+      setError(t("calendar.modal.errors.recurrenceCountRequired"));
       return;
     }
 
@@ -204,8 +206,8 @@ export function EventModal({
     } catch {
       setError(
         mode === "edit"
-          ? "The event could not be updated right now."
-          : "The event could not be created right now.",
+          ? t("calendar.modal.errors.updateFailed")
+          : t("calendar.modal.errors.createFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -219,22 +221,26 @@ export function EventModal({
   return (
     <>
       <ModalShell
-        description="Create one-time, ranged, or repeating events. Editing a recurring event updates the whole series."
+        description={t("calendar.modal.description")}
         footer={
           <div className="modal-action-row">
             {mode === "edit" ? (
               <Button onClick={() => setShowDeleteConfirm(true)} type="button" variant="ghost">
-                Delete
+                {t("common.delete")}
               </Button>
             ) : (
               <span />
             )}
             <div className="modal-action-row">
               <Button onClick={onClose} type="button" variant="ghost">
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button disabled={isSubmitting} onClick={() => void handleSubmit()} type="button">
-                {isSubmitting ? "Saving..." : mode === "edit" ? "Save changes" : "Save event"}
+                {isSubmitting
+                  ? t("common.saving")
+                  : mode === "edit"
+                    ? t("calendar.modal.saveChanges")
+                    : t("calendar.modal.saveEvent")}
               </Button>
             </div>
           </div>
@@ -242,25 +248,25 @@ export function EventModal({
         isOpen={isOpen}
         onRequestClose={onClose}
         size="wide"
-        title={mode === "edit" ? "Edit Event" : "Add Event"}
+        title={mode === "edit" ? t("calendar.modal.editTitle") : t("calendar.modal.addTitle")}
       >
         <div className="task-modal-layout">
           <section className="task-editor-section task-editor-section--surface">
             <div className="task-form-grid">
               <label className="auth-form__field task-form-grid__wide">
-                <span className="auth-form__label">Event title</span>
+                <span className="auth-form__label">{t("calendar.modal.eventTitle")}</span>
                 <input
                   className="auth-form__input"
                   onChange={(inputEvent) =>
                     setFormState((current) => ({ ...current, title: inputEvent.target.value }))
                   }
-                  placeholder="Planning workshop, birthday, weekly sync..."
+                  placeholder={t("calendar.modal.placeholders.title")}
                   value={formState.title}
                 />
               </label>
 
               <label className="auth-form__field task-form-grid__wide">
-                <span className="auth-form__label">Description</span>
+                <span className="auth-form__label">{t("tasks.modal.description")}</span>
                 <textarea
                   className="auth-form__input task-modal-textarea"
                   onChange={(inputEvent) =>
@@ -269,13 +275,13 @@ export function EventModal({
                       description: inputEvent.target.value,
                     }))
                   }
-                  placeholder="Optional details, agenda, or notes"
+                  placeholder={t("calendar.modal.placeholders.description")}
                   value={formState.description}
                 />
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Start date</span>
+                <span className="auth-form__label">{t("finance.form.startDate")}</span>
                 <LocalizedDateInput
                   className="auth-form__input"
                   onChange={(nextValue) =>
@@ -286,7 +292,7 @@ export function EventModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">End date</span>
+                <span className="auth-form__label">{t("finance.form.endDate")}</span>
                 <LocalizedDateInput
                   className="auth-form__input"
                   min={formState.startDate || undefined}
@@ -298,7 +304,7 @@ export function EventModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Start time</span>
+                <span className="auth-form__label">{t("calendar.modal.startTime")}</span>
                 <input
                   className="auth-form__input"
                   disabled={formState.isAllDay}
@@ -311,7 +317,7 @@ export function EventModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">End time</span>
+                <span className="auth-form__label">{t("calendar.modal.endTime")}</span>
                 <input
                   className="auth-form__input"
                   disabled={formState.isAllDay}
@@ -336,11 +342,11 @@ export function EventModal({
                   }
                   type="checkbox"
                 />
-                <span>All day</span>
+                <span>{t("calendar.modal.allDay")}</span>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Repeat</span>
+                <span className="auth-form__label">{t("finance.form.repeat")}</span>
                 <select
                   className="auth-form__input"
                   onChange={(inputEvent) =>
@@ -357,17 +363,17 @@ export function EventModal({
                   }
                   value={formState.frequency}
                 >
-                  <option value="none">Does not repeat</option>
-                  <option value="daily">Every day</option>
-                  <option value="weekly">Every week</option>
-                  <option value="monthly">Every month</option>
-                  <option value="yearly">Every year</option>
+                  <option value="none">{t("calendar.modal.repeat.none")}</option>
+                  <option value="daily">{t("calendar.modal.repeat.daily")}</option>
+                  <option value="weekly">{t("calendar.modal.repeat.weekly")}</option>
+                  <option value="monthly">{t("calendar.modal.repeat.monthly")}</option>
+                  <option value="yearly">{t("calendar.modal.repeat.yearly")}</option>
                 </select>
               </label>
 
               {formState.frequency !== "none" ? (
                 <label className="auth-form__field">
-                  <span className="auth-form__label">Recurrence end</span>
+                  <span className="auth-form__label">{t("calendar.modal.recurrenceEnd")}</span>
                   <select
                     className="auth-form__input"
                     onChange={(inputEvent) =>
@@ -378,17 +384,21 @@ export function EventModal({
                     }
                     value={formState.recurrenceEndMode}
                   >
-                    <option value="never">Never</option>
-                    <option value="until">Until date</option>
-                    <option value="count">After count</option>
+                    <option value="never">{t("calendar.modal.recurrenceEndOptions.never")}</option>
+                    <option value="until">{t("calendar.modal.recurrenceEndOptions.until")}</option>
+                    <option value="count">{t("calendar.modal.recurrenceEndOptions.count")}</option>
                   </select>
                 </label>
               ) : null}
 
               {formState.frequency === "weekly" ? (
                 <div className="auth-form__field task-form-grid__wide">
-                  <span className="auth-form__label">Weekdays</span>
-                  <div className="task-goal-link__options" role="group" aria-label="Weekly recurrence days">
+                  <span className="auth-form__label">{t("calendar.modal.weekdays")}</span>
+                  <div
+                    className="task-goal-link__options"
+                    role="group"
+                    aria-label={t("calendar.modal.weekdaysAriaLabel")}
+                  >
                     {WEEKDAY_OPTIONS.map((option) => {
                       const isActive = formState.weeklyDays.includes(option.value);
                       return (
@@ -407,7 +417,7 @@ export function EventModal({
                           }
                           type="button"
                         >
-                          {option.label}
+                          {t(`calendar.weekdays.${option.value}`)}
                         </button>
                       );
                     })}
@@ -417,7 +427,7 @@ export function EventModal({
 
               {formState.frequency !== "none" && formState.recurrenceEndMode === "until" ? (
                 <label className="auth-form__field">
-                  <span className="auth-form__label">Repeat until</span>
+                  <span className="auth-form__label">{t("calendar.modal.repeatUntil")}</span>
                   <LocalizedDateInput
                     className="auth-form__input"
                     min={formState.startDate || undefined}
@@ -434,7 +444,7 @@ export function EventModal({
 
               {formState.frequency !== "none" && formState.recurrenceEndMode === "count" ? (
                 <label className="auth-form__field">
-                  <span className="auth-form__label">Repeat count</span>
+                  <span className="auth-form__label">{t("calendar.modal.repeatCount")}</span>
                   <input
                     className="auth-form__input"
                     inputMode="numeric"
@@ -444,7 +454,7 @@ export function EventModal({
                         recurrenceCount: inputEvent.target.value.replace(/[^\d]/g, ""),
                       }))
                     }
-                    placeholder="12"
+                    placeholder={t("calendar.modal.placeholders.repeatCount")}
                     value={formState.recurrenceCount}
                   />
                 </label>
@@ -457,9 +467,9 @@ export function EventModal({
       </ModalShell>
 
       <ConfirmDialog
-        cancelLabel="Cancel"
-        confirmLabel="Delete event"
-        description="This event will be removed from the calendar. If it repeats, the whole series will be deleted."
+        cancelLabel={t("common.cancel")}
+        confirmLabel={t("calendar.modal.deleteEvent")}
+        description={t("calendar.modal.deleteDescription")}
         isOpen={showDeleteConfirm}
         onCancel={() => setShowDeleteConfirm(false)}
         onConfirm={() => {
@@ -473,7 +483,7 @@ export function EventModal({
             onClose();
           });
         }}
-        title="Delete this event?"
+        title={t("calendar.modal.deleteTitle")}
         tone="danger"
       />
     </>

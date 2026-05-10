@@ -1,3 +1,5 @@
+import { useI18n } from "@/i18n";
+
 interface CalendarContextMenuProps {
   isOpen: boolean;
   onAddEvent: () => void;
@@ -11,6 +13,8 @@ export function CalendarContextMenu({
   onAddTask,
   position,
 }: CalendarContextMenuProps): JSX.Element | null {
+  const { t } = useI18n();
+
   if (!isOpen || !position) {
     return null;
   }
@@ -25,10 +29,10 @@ export function CalendarContextMenu({
       }}
     >
       <button className="task-calendar__context-action" onClick={onAddTask} role="menuitem" type="button">
-        Add task
+        {t("tasks.addTask")}
       </button>
       <button className="task-calendar__context-action" onClick={onAddEvent} role="menuitem" type="button">
-        Add event
+        {t("calendar.addEvent")}
       </button>
     </div>
   );
