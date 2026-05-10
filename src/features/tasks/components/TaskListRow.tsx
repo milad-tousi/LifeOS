@@ -9,14 +9,18 @@ import {
   Link2,
   ListChecks,
   NotebookText,
+  Pencil,
   PlayCircle,
   Tag,
   Target,
   Trash2,
   XCircle,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Task } from "@/domains/tasks/types";
 import { summarizeTaskSources } from "@/domains/tasks/task.utils";
+import { TaskResourceBadge } from "@/features/tasks/components/TaskResourceBadge";
+import { TaskResourceModal, TaskResourceModalType } from "@/features/tasks/components/TaskResourceModal";
 import { formatTaskDueDate } from "@/features/tasks/utils/tasks-list-view.utils";
 import {
   getAllDescendantTasks,
@@ -25,6 +29,7 @@ import {
   getTaskDepth,
   isSubtask,
 } from "@/features/tasks/utils/taskHierarchy";
+import { useI18n } from "@/i18n";
 
 interface TaskListRowProps {
   allTasks?: Task[];
@@ -47,6 +52,8 @@ export function TaskListRow({
   onToggleComplete,
   task,
 }: TaskListRowProps): JSX.Element {
+  const { t } = useI18n();
+  const [activeResourceModal, setActiveResourceModal] = useState<TaskResourceModalType | null>(null);
   const formattedDueDate = formatTaskDueDate(task);
   const descendants = getAllDescendantTasks(allTasks, task.id);
   const directChildren = allTasks.filter((item) => item.parentTaskId === task.id);
@@ -61,11 +68,32 @@ export function TaskListRow({
           total: descendants.filter((item) => item.status !== "cancelled").length,
         }
       : task.subtaskProgress;
+  const resourceSummaries = useMemo(() => {
+    const summaries = summarizeTaskSources(task.sources).filter(
+      (source) => source.type !== "image" && source.type !== "file",
+    );
+    const noteSummary = summaries.find((source) => source.type === "note");
+
+    if (task.description?.trim()) {
+      if (noteSummary) {
+        noteSummary.count += 1;
+      } else {
+        summaries.push({
+          count: 1,
+          label: "",
+          type: "note",
+        });
+      }
+    }
+
+    return summaries;
+  }, [task.description, task.sources]);
 
   return (
+    <>
     <article className="goal-task-list__item">
       <button
-        aria-label={`Toggle ${task.title}`}
+        aria-label={`${t("goals.taskList.toggleTaskAria", { title: task.title })}`}
         className={`goal-task-list__toggle${
           task.status === "done" ? " goal-task-list__toggle--done" : ""
         }`}
@@ -78,12 +106,7 @@ export function TaskListRow({
         <span className="goal-task-list__toggle-icon">{renderTaskStatusIcon(task.status)}</span>
       </button>
 
-      <button
-        aria-label={`Edit ${task.title}`}
-        className="goal-task-list__content-button"
-        onClick={() => onEdit(task)}
-        type="button"
-      >
+      <div className="goal-task-list__content-button">
         <div className="goal-task-list__content">
           <div className="goal-task-list__topline">
             <strong
@@ -96,17 +119,17 @@ export function TaskListRow({
               <span className="goal-task-list__title-text">{task.title}</span>
             </strong>
             <div className="goal-task-list__badges">
-              <span className="tasks-list-row__scope-chip">{getHierarchyLabel(task, depth)}</span>
+              <span className="tasks-list-row__scope-chip">{getHierarchyLabel(task, depth, t)}</span>
               <span
                 className={`goal-task-list__status-chip goal-task-list__status-chip--${task.status}`}
               >
                 <span className="goal-task-list__status-dot" aria-hidden="true" />
-                {getStatusLabel(task.status)}
+                {getStatusLabel(task.status, t)}
               </span>
               <span
                 className={`goal-task-list__priority-chip goal-task-list__priority-chip--${task.priority}`}
               >
-                {getPriorityLabel(task.priority)}
+                {getPriorityLabel(task.priority, t)}
               </span>
             </div>
           </div>
@@ -117,28 +140,28 @@ export function TaskListRow({
             {resolvedGoalTitle ? (
               <span className="tasks-list-row__scope-chip tasks-list-row__scope-chip--goal">
                 <Target size={14} />
-                Goal: {resolvedGoalTitle}
+                {t("navigation.goals")}: {resolvedGoalTitle}
               </span>
             ) : isStandalone ? (
               <span className="tasks-list-row__scope-chip">
                 <Circle size={12} />
-                Standalone
+                {t("tasks.modal.standalone")}
               </span>
             ) : null}
             {isSubtask(task) ? (
               parentTask ? (
                 <span className="tasks-list-row__scope-chip">
-                  Parent task: {parentTask.title}
+                  {t("tasks.parentTask")}: {parentTask.title}
                 </span>
               ) : (
                 <span className="tasks-list-row__scope-chip tasks-list-row__scope-chip--warning">
-                  Missing parent
+                  {t("tasks.resources.missingParent")}
                 </span>
               )
             ) : null}
             {depth > 1 && rootTask.id !== task.id ? (
               <span className="tasks-list-row__scope-chip">
-                Root task: {rootTask.title}
+                {t("tasks.rootTask")}: {rootTask.title}
               </span>
             ) : null}
             {formattedDueDate ? (
@@ -159,21 +182,25 @@ export function TaskListRow({
                 {tag}
               </span>
             ))}
-            {summarizeTaskSources(task.sources).map((source) => (
-              <span className="goal-task-list__meta-chip" key={source.type}>
+            {resourceSummaries.map((source) => (
+              <TaskResourceBadge
+              ariaLabel={getResourceBadgeAriaLabel(source.type, t)}
+              key={source.type}
+              onClick={() => setActiveResourceModal(source.type as TaskResourceModalType)}
+            >
                 {renderSourceSummaryIcon(source.type)}
-                {source.label}
-              </span>
+                {formatResourceBadgeLabel(source.type, source.count, t)}
+              </TaskResourceBadge>
             ))}
             {childProgress.total > 0 ? (
               <span className="goal-task-list__meta-chip goal-task-list__meta-chip--success">
                 <ListChecks size={14} />
-                {childProgress.completed} / {childProgress.total} subtasks
+                {childProgress.completed} / {childProgress.total} {t("tasks.modal.subtasks").toLowerCase()}
               </span>
             ) : null}
             {directChildren.length > 0 ? (
               <span className="goal-task-list__meta-chip">
-                {directChildren.length} direct child{directChildren.length === 1 ? "" : "ren"}
+                {directChildren.length} {t("tasks.subtask")}
               </span>
             ) : null}
           </div>
@@ -208,10 +235,22 @@ export function TaskListRow({
             </div>
           ) : null}
         </div>
+      </div>
+
+      <button
+        aria-label={t("tasks.resources.editTask")}
+        className="goal-task-list__delete"
+        onClick={(event) => {
+          event.stopPropagation();
+          onEdit(task);
+        }}
+        type="button"
+      >
+        <Pencil size={16} />
       </button>
 
       <button
-        aria-label={`Delete task ${task.title}`}
+        aria-label={t("tasks.resources.deleteTask")}
         className="goal-task-list__delete"
         onClick={(event) => {
           event.stopPropagation();
@@ -222,15 +261,23 @@ export function TaskListRow({
         <Trash2 size={16} />
       </button>
     </article>
+    <TaskResourceModal
+      isOpen={Boolean(activeResourceModal)}
+      onClose={() => setActiveResourceModal(null)}
+      onEditTask={onEdit}
+      task={task}
+      type={activeResourceModal ?? "link"}
+    />
+    </>
   );
 }
 
-function getHierarchyLabel(task: Task, depth: number): string {
+function getHierarchyLabel(task: Task, depth: number, t: (key: string) => string): string {
   if (!task.parentTaskId) {
-    return "Task";
+    return t("tasks.task");
   }
 
-  return depth <= 1 ? "Subtask" : "Nested subtask";
+  return depth <= 1 ? t("tasks.subtask") : t("tasks.nestedSubtask");
 }
 
 function renderTaskStatusIcon(status: Task["status"]): JSX.Element {
@@ -247,29 +294,29 @@ function renderTaskStatusIcon(status: Task["status"]): JSX.Element {
   }
 }
 
-function getStatusLabel(status: Task["status"]): string {
+function getStatusLabel(status: Task["status"], t: (key: string) => string): string {
   switch (status) {
     case "done":
-      return "Done";
+      return t("tasks.done");
     case "cancelled":
-      return "Cancelled";
+      return t("tasks.cancelled");
     case "in_progress":
-      return "In progress";
+      return t("tasks.inProgress");
     case "todo":
     default:
-      return "To do";
+      return t("tasks.todo");
   }
 }
 
-function getPriorityLabel(priority: Task["priority"]): string {
+function getPriorityLabel(priority: Task["priority"], t: (key: string) => string): string {
   switch (priority) {
     case "high":
-      return "High";
+      return t("goals.priorities.high");
     case "low":
-      return "Low";
+      return t("goals.priorities.low");
     case "medium":
     default:
-      return "Medium";
+      return t("goals.priorities.medium");
   }
 }
 
@@ -302,4 +349,34 @@ function renderSourceSummaryIcon(type: "image" | "video" | "link" | "file" | "no
     default:
       return <Link2 size={14} />;
   }
+}
+
+function getResourceBadgeAriaLabel(
+  type: "video" | "link" | "note",
+  t: (key: string) => string,
+): string {
+  switch (type) {
+    case "video":
+      return t("tasks.resources.openVideosAria");
+    case "note":
+      return t("tasks.resources.openNotesAria");
+    case "link":
+    default:
+      return t("tasks.resources.openLinksAria");
+  }
+}
+
+function formatResourceBadgeLabel(
+  type: "video" | "link" | "note",
+  count: number,
+  t: (key: string) => string,
+): string {
+  const label =
+    type === "video"
+      ? t("tasks.resources.video")
+      : type === "note"
+        ? t("tasks.resources.note")
+        : t("tasks.resources.link");
+
+  return `${count} ${label}`;
 }

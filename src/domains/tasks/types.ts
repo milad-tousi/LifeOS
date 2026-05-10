@@ -9,6 +9,8 @@ export interface TaskSource {
   type: TaskSourceType;
   label: string;
   value: string;
+  query?: string;
+  generatedFromAiSearch?: boolean;
   note?: string;
   fileName?: string;
   mimeType?: string;

@@ -85,6 +85,8 @@ export function normalizeTaskSource(source: Partial<TaskSource>): TaskSource {
     type: normalizeTaskSourceType(source.type),
     label: source.label?.trim() ?? "",
     value: source.value?.trim() ?? "",
+    query: source.query?.trim() || undefined,
+    generatedFromAiSearch: Boolean(source.generatedFromAiSearch),
     note: source.note?.trim() || undefined,
     fileName: source.fileName?.trim() || undefined,
     mimeType: source.mimeType?.trim() || undefined,

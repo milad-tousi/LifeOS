@@ -39,7 +39,7 @@ export const navigationItems: NavigationItem[] = [
   { href: "/habits", label: "Habits", labelKey: "navigation.habits", icon: "habits", showInMobileBottomNav: true },
   { href: "/goals", label: "Goals", labelKey: "navigation.goals", icon: "goals", showInMobileBottomNav: true },
   { href: "/finance", label: "Finance", labelKey: "navigation.finance", icon: "finance", showInMobileBottomNav: true },
-  { href: "/reviews", label: "Reviews", labelKey: "navigation.reviews", icon: "reviews", showInMobileBottomNav: false },
+  { href: "/reviews", label: "Reviews", labelKey: "navigation.reviews", icon: "reviews", showInMobileBottomNav: true },
   { href: "/settings", label: "Settings", labelKey: "navigation.settings", icon: "settings", showInMobileBottomNav: false },
 ];
 

@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import {
   closestCenter,
   DndContext,
@@ -23,6 +24,7 @@ import { formatNumber } from "@/i18n/formatters";
 import { createId } from "@/lib/id";
 
 interface SubtasksEditorProps {
+  headerActions?: ReactNode;
   subtasks: TaskSubtask[];
   onChange: (subtasks: TaskSubtask[]) => void;
 }
@@ -37,6 +39,7 @@ function createEmptySubtask(): TaskSubtask {
 }
 
 export function SubtasksEditor({
+  headerActions,
   onChange,
   subtasks,
 }: SubtasksEditorProps): JSX.Element {
@@ -105,10 +108,13 @@ export function SubtasksEditor({
             })}
           </p>
         </div>
-        <Button onClick={addSubtask} type="button" variant="secondary">
-          <Plus size={16} />
-          {t("tasks.modal.addSubtask")}
-        </Button>
+        <div className="task-editor-section__actions">
+          {headerActions}
+          <Button onClick={addSubtask} type="button" variant="secondary">
+            <Plus size={16} />
+            {t("tasks.modal.addSubtask")}
+          </Button>
+        </div>
       </div>
 
       {subtasks.length === 0 ? (

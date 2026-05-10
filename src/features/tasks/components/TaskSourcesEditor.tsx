@@ -1,11 +1,13 @@
-import { ChangeEvent } from "react";
-import { FileImage, FileText, Film, Link2, NotebookText, Trash2, Upload } from "lucide-react";
+import { ChangeEvent, ReactNode } from "react";
+import { ExternalLink, FileImage, FileText, Film, Link2, NotebookText, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { TaskSource, TaskSourceType } from "@/domains/tasks/types";
+import { buildSearchLink } from "@/features/search/searchProvider";
 import { useI18n } from "@/i18n";
 import { createId } from "@/lib/id";
 
 interface TaskSourcesEditorProps {
+  headerActions?: ReactNode;
   sources: TaskSource[];
   onChange: (sources: TaskSource[]) => void;
 }
@@ -15,6 +17,7 @@ function createEmptySource(type: TaskSourceType = "link"): TaskSource {
     id: createId(),
     type,
     label: "",
+    query: "",
     value: "",
     note: "",
     origin: "url",
@@ -22,6 +25,7 @@ function createEmptySource(type: TaskSourceType = "link"): TaskSource {
 }
 
 export function TaskSourcesEditor({
+  headerActions,
   onChange,
   sources,
 }: TaskSourcesEditorProps): JSX.Element {
@@ -71,6 +75,7 @@ export function TaskSourcesEditor({
           <p className="task-editor-section__description">{t("tasks.sources.description")}</p>
         </div>
         <div className="task-editor-section__actions">
+          {headerActions}
           {sourceTypeOptions.map((option) => (
             <button
               className="task-chip-button"
@@ -115,7 +120,13 @@ export function TaskSourcesEditor({
                     className="auth-form__input"
                     onChange={(event) =>
                       updateSource(source.id, {
+                        generatedFromAiSearch:
+                          event.target.value === "note" ? false : source.generatedFromAiSearch,
                         type: event.target.value as TaskSourceType,
+                        value:
+                          source.generatedFromAiSearch && event.target.value !== "note"
+                            ? buildGeneratedSearchUrl(event.target.value as TaskSourceType, source.query ?? "")
+                            : source.value,
                         origin: event.target.value === "note" ? "local" : source.origin,
                       })
                     }
@@ -141,19 +152,66 @@ export function TaskSourcesEditor({
 
                 <label className="auth-form__field task-source-card__field--wide">
                   <span className="auth-form__label">
-                    {source.type === "note" ? t("tasks.sources.referenceText") : t("tasks.sources.urlOrReference")}
+                    {source.type === "note"
+                      ? t("tasks.sources.referenceText")
+                      : source.generatedFromAiSearch
+                        ? t("tasks.ai.searchResults")
+                        : t("tasks.sources.urlOrReference")}
                   </span>
-                  <input
-                    className="auth-form__input"
-                    onChange={(event) => updateSource(source.id, { value: event.target.value, origin: "url" })}
-                    placeholder={
-                      source.type === "note"
-                        ? t("tasks.sources.referenceTextPlaceholder")
-                        : t("tasks.sources.urlPlaceholder")
-                    }
-                    value={source.value}
-                  />
+                  {source.type === "note" ? (
+                    <input
+                      className="auth-form__input"
+                      onChange={(event) => updateSource(source.id, { value: event.target.value, origin: "url" })}
+                      placeholder={t("tasks.sources.referenceTextPlaceholder")}
+                      value={source.value}
+                    />
+                  ) : (
+                    <div className="task-source-card__url-row">
+                      <input
+                        className="auth-form__input"
+                        onChange={(event) =>
+                          updateSource(source.id, {
+                            value: event.target.value,
+                            origin: "url",
+                            generatedFromAiSearch: false,
+                          })
+                        }
+                        placeholder={t("tasks.sources.urlPlaceholder")}
+                        value={source.value}
+                      />
+                      <Button
+                        disabled={!isOpenableSource(source)}
+                        onClick={() => openExternal(source.value)}
+                        type="button"
+                        variant="secondary"
+                      >
+                        <ExternalLink size={14} />
+                        {t("tasks.ai.open")}
+                      </Button>
+                    </div>
+                  )}
                 </label>
+
+                {source.type !== "note" && (source.query || source.generatedFromAiSearch) ? (
+                  <label className="auth-form__field task-source-card__field--wide">
+                    <span className="auth-form__label">{t("tasks.ai.searchQuery")}</span>
+                    <input
+                      className="auth-form__input"
+                      onChange={(event) =>
+                        updateSource(source.id, {
+                          generatedFromAiSearch: true,
+                          query: event.target.value,
+                          value: buildGeneratedSearchUrl(source.type, event.target.value),
+                        })
+                      }
+                      placeholder={t("tasks.ai.sourceQueryPlaceholder")}
+                      value={source.query}
+                    />
+                    {source.generatedFromAiSearch ? (
+                      <p className="task-source-card__hint">{t("tasks.ai.generatedFromSearchQuery")}</p>
+                    ) : null}
+                  </label>
+                ) : null}
 
                 {source.type === "image" || source.type === "video" || source.type === "file" ? (
                   <label className="auth-form__field task-source-card__field--wide">
@@ -233,7 +291,7 @@ function renderSourcePreview(source: TaskSource, t: (key: string) => string): JS
     );
   }
 
-  if (source.type === "link" && source.value) {
+  if ((source.type === "link" || source.type === "video") && source.value) {
     return (
       <a className="task-source-preview__link" href={source.value} rel="noreferrer" target="_blank">
         {source.label || source.value}
@@ -246,8 +304,38 @@ function renderSourcePreview(source: TaskSource, t: (key: string) => string): JS
       {renderSourceIcon(source.type)}
       <div>
         <strong>{source.label || source.fileName || t("tasks.sources.untitled")}</strong>
-        <p>{source.fileName || source.value || t("tasks.sources.waitingForDetails")}</p>
+        <p>{source.fileName || source.value || source.query || t("tasks.sources.waitingForDetails")}</p>
       </div>
     </div>
   );
+}
+
+function isOpenableSource(source: TaskSource): boolean {
+  if (!source.value.trim() || source.origin === "local") {
+    return false;
+  }
+
+  try {
+    const url = new URL(source.value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function openExternal(url: string): void {
+  if (!url.trim()) {
+    return;
+  }
+
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function buildGeneratedSearchUrl(type: TaskSourceType, query: string): string {
+  const searchLink = buildSearchLink({
+    query,
+    type: type === "video" ? "youtube" : "web",
+  });
+
+  return searchLink?.url ?? "";
 }

@@ -10,15 +10,25 @@ import { Goal } from "@/domains/goals/types";
 import { tasksRepository } from "@/domains/tasks/repository";
 import { Task } from "@/domains/tasks/types";
 import { sortTasksByOrder } from "@/domains/tasks/task.utils";
+import {
+  EditableGoalTaskSuggestion,
+  AiTaskSuggestionsModal,
+} from "@/features/goals/components/AiTaskSuggestionsModal";
+import { AiGoalTaskButton } from "@/features/goals/components/AiGoalTaskButton";
 import { EditGoalModal } from "@/features/goals/components/EditGoalModal";
 import { GoalHeader } from "@/features/goals/components/GoalHeader";
 import { GoalProgress } from "@/features/goals/components/GoalProgress";
 import { GoalTaskList } from "@/features/goals/components/GoalTaskList";
+import {
+  GoalTaskGenerationError,
+  generateGoalTaskSuggestions,
+} from "@/features/goals/ai/generateGoalTasks";
 import { useGoalDetail } from "@/features/goals/hooks/useGoalDetail";
 import { formatGoalProgressSummary } from "@/features/goals/utils/goals.i18n";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
 import { getAllDescendantTasks } from "@/features/tasks/utils/taskHierarchy";
 import { useI18n } from "@/i18n";
+import { createId } from "@/lib/id";
 
 const TASK_ROW_TRANSITION_MS = 220;
 
@@ -38,6 +48,11 @@ export function GoalDetailPage(): JSX.Element {
   const [recentTaskId, setRecentTaskId] = useState<string | null>(null);
   const [recentTaskTone, setRecentTaskTone] = useState<"created" | "updated" | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false);
+  const [isAddingSuggestions, setIsAddingSuggestions] = useState(false);
+  const [aiSuggestionError, setAiSuggestionError] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<EditableGoalTaskSuggestion[]>([]);
+  const [isAiSuggestionsModalOpen, setIsAiSuggestionsModalOpen] = useState(false);
 
   useEffect(() => {
     setGoalState(goal ?? null);
@@ -152,6 +167,110 @@ export function GoalDetailPage(): JSX.Element {
     });
   }
 
+  async function requestAiSuggestions(): Promise<void> {
+    if (!displayGoal || !progress) {
+      return;
+    }
+
+    setAiSuggestionError("");
+    setIsGeneratingSuggestions(true);
+
+    try {
+      const suggestions = await generateGoalTaskSuggestions({
+        category: displayGoal.category,
+        deadline: displayGoal.deadline,
+        description: displayGoal.description ?? "",
+        existingSubtasks: taskListState.flatMap((task) =>
+          task.subtasks.map((subtask) => ({
+            completed: subtask.completed,
+            title: subtask.title,
+          })),
+        ),
+        existingTasks: taskListState.map((task) => ({
+          overdue: isTaskOverdue(task),
+          status: task.status,
+          title: task.title,
+        })),
+        language,
+        notes: displayGoal.notes,
+        pace: displayGoal.pace,
+        priority: displayGoal.priority,
+        progress,
+        progressType: displayGoal.progressType,
+        title: displayGoal.title,
+      });
+
+      setAiSuggestions(
+        suggestions.map((suggestion) => ({
+          ...suggestion,
+          id: createId(),
+          selected: true,
+        })),
+      );
+      setIsAiSuggestionsModalOpen(true);
+    } catch (error) {
+      setAiSuggestionError(getAiSuggestionErrorMessage(error, t));
+    } finally {
+      setIsGeneratingSuggestions(false);
+    }
+  }
+
+  async function handleAddSelectedSuggestions(): Promise<void> {
+    if (!displayGoal) {
+      return;
+    }
+
+    const existingTitles = new Set(
+      [
+        ...taskListState.map((task) => task.title),
+        ...taskListState.flatMap((task) => task.subtasks.map((subtask) => subtask.title)),
+      ]
+        .map(normalizeSuggestionTitle)
+        .filter(Boolean),
+    );
+    const seenSelectedTitles = new Set<string>();
+    const selectedSuggestions = aiSuggestions.filter((suggestion) => {
+      if (!suggestion.selected || !suggestion.title.trim()) {
+        return false;
+      }
+
+      const normalizedTitle = normalizeSuggestionTitle(suggestion.title);
+
+      if (!normalizedTitle || existingTitles.has(normalizedTitle) || seenSelectedTitles.has(normalizedTitle)) {
+        return false;
+      }
+
+      seenSelectedTitles.add(normalizedTitle);
+      return true;
+    });
+
+    if (selectedSuggestions.length === 0) {
+      setAiSuggestionError(t("goals.detail.ai.errors.empty"));
+      return;
+    }
+
+    setIsAddingSuggestions(true);
+
+    try {
+      const savedTasks = await Promise.all(
+        selectedSuggestions.map((suggestion) =>
+          tasksRepository.addTaskToGoal(displayGoal.id, {
+            priority: suggestion.priority,
+            title: suggestion.title.trim(),
+          }),
+        ),
+      );
+
+      setTaskListState((currentTasks) => sortTasksByOrder([...currentTasks, ...savedTasks]));
+      setRecentTaskId(savedTasks[0]?.id ?? null);
+      setRecentTaskTone(savedTasks.length > 0 ? "created" : null);
+      setAiSuggestions([]);
+      setIsAiSuggestionsModalOpen(false);
+    } finally {
+      setIsAddingSuggestions(false);
+    }
+  }
+
   if (loading) {
     return <p className="text-muted">{t("goals.detail.loading")}</p>;
   }
@@ -178,6 +297,7 @@ export function GoalDetailPage(): JSX.Element {
         <GoalProgress
           completed={progress?.completed ?? 0}
           large
+          language={language}
           percent={progress?.percentage ?? 0}
           summaryText={
             progress
@@ -185,11 +305,17 @@ export function GoalDetailPage(): JSX.Element {
               : t("goals.noStepsYet")
           }
           total={progress?.total ?? 0}
-          language={language}
         />
       </Card>
 
       <Card title={t("goals.detail.stepsTitle")} subtitle={t("goals.detail.stepsSubtitle")}>
+        <div className="goal-detail-page__steps-toolbar">
+          <AiGoalTaskButton
+            isLoading={isGeneratingSuggestions}
+            onClick={() => void requestAiSuggestions()}
+          />
+        </div>
+        {aiSuggestionError ? <p className="auth-form__error">{aiSuggestionError}</p> : null}
         {taskListState.length === 0 ? (
           <EmptyState
             actionLabel={t("goals.detail.stepsEmptyAction")}
@@ -201,6 +327,8 @@ export function GoalDetailPage(): JSX.Element {
           <GoalTaskList
             deletingTaskId={deletingTaskId}
             goalId={displayGoal.id}
+            onDeleteTask={setTaskPendingDelete}
+            onEditTask={setTaskBeingEdited}
             onMarkHighPriority={(task) => {
               commitTaskUpdate(task, {
                 priority: "high",
@@ -212,12 +340,9 @@ export function GoalDetailPage(): JSX.Element {
                 completedAt: undefined,
               });
             }}
-            onDeleteTask={setTaskPendingDelete}
-            onEditTask={setTaskBeingEdited}
             onReorderTasks={handleReorderTasks}
             onToggleTask={(task) => {
-              const hasIncompleteSubtasks =
-                getIncompleteDescendantCount(task, taskListState) > 0;
+              const hasIncompleteSubtasks = getIncompleteDescendantCount(task, taskListState) > 0;
 
               if (task.status !== "done" && hasIncompleteSubtasks) {
                 setTaskPendingCompletion(task);
@@ -262,12 +387,12 @@ export function GoalDetailPage(): JSX.Element {
         goalId={displayGoal.id}
         goalTitle={displayGoal.title}
         isOpen={isAddTaskModalOpen}
+        onClose={() => setIsAddTaskModalOpen(false)}
         onSaved={(savedTask) => {
           replaceTaskInState(savedTask);
           setRecentTaskId(savedTask.id);
           setRecentTaskTone("created");
         }}
-        onClose={() => setIsAddTaskModalOpen(false)}
       />
       <TaskModal
         goalId={displayGoal.id}
@@ -275,19 +400,48 @@ export function GoalDetailPage(): JSX.Element {
         initialTask={taskBeingEdited}
         isOpen={Boolean(taskBeingEdited)}
         mode="edit"
+        onClose={() => setTaskBeingEdited(null)}
         onSaved={(savedTask) => {
           replaceTaskInState(savedTask);
           setTaskBeingEdited(savedTask);
           setRecentTaskId(savedTask.id);
           setRecentTaskTone("updated");
         }}
-        onClose={() => setTaskBeingEdited(null)}
+      />
+      <AiTaskSuggestionsModal
+        error={aiSuggestionError}
+        isAddingTasks={isAddingSuggestions}
+        isOpen={isAiSuggestionsModalOpen}
+        isRegenerating={isGeneratingSuggestions}
+        onAddSelected={() => void handleAddSelectedSuggestions()}
+        onChangeSelection={(suggestionId, selected) =>
+          setAiSuggestions((currentSuggestions) =>
+            currentSuggestions.map((suggestion) =>
+              suggestion.id === suggestionId ? { ...suggestion, selected } : suggestion,
+            ),
+          )
+        }
+        onChangeTitle={(suggestionId, title) =>
+          setAiSuggestions((currentSuggestions) =>
+            currentSuggestions.map((suggestion) =>
+              suggestion.id === suggestionId ? { ...suggestion, title } : suggestion,
+            ),
+          )
+        }
+        onClose={() => setIsAiSuggestionsModalOpen(false)}
+        onRegenerate={() => void requestAiSuggestions()}
+        onRemoveSuggestion={(suggestionId) =>
+          setAiSuggestions((currentSuggestions) =>
+            currentSuggestions.filter((suggestion) => suggestion.id !== suggestionId),
+          )
+        }
+        suggestions={aiSuggestions}
       />
       <EditGoalModal
         goal={displayGoal}
         isOpen={isEditGoalModalOpen}
-        onSaved={setGoalState}
         onClose={() => setIsEditGoalModalOpen(false)}
+        onSaved={setGoalState}
       />
       <ConfirmDialog
         cancelLabel={t("common.cancel")}
@@ -360,4 +514,37 @@ function getIncompleteDescendantCount(task: Task, tasks: Task[]): number {
   }
 
   return descendants.filter((descendant) => descendant.status !== "done" && descendant.status !== "cancelled").length;
+}
+
+function isTaskOverdue(task: Task): boolean {
+  if (!task.dueDate || task.status === "done" || task.status === "cancelled") {
+    return false;
+  }
+
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  return task.dueDate < todayKey;
+}
+
+function getAiSuggestionErrorMessage(error: unknown, t: (key: string) => string): string {
+  if (error instanceof GoalTaskGenerationError) {
+    switch (error.code) {
+      case "ai-disabled":
+        return t("goals.detail.ai.errors.disabled");
+      case "ai-incomplete":
+        return t("goals.detail.ai.errors.incomplete");
+      case "ai-empty":
+        return t("goals.detail.ai.errors.empty");
+      case "ai-request-failed":
+      default:
+        return t("goals.detail.ai.errors.failed");
+    }
+  }
+
+  return t("goals.detail.ai.errors.failed");
+}
+
+function normalizeSuggestionTitle(value: string): string {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
 }

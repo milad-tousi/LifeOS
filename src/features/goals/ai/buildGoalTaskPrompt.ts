@@ -1,4 +1,7 @@
 import { GoalCategory, GoalPace, GoalPriority } from "@/domains/goals/types";
+import { GoalProgressSnapshot } from "@/domains/goals/goal-progress";
+import { GoalProgressType } from "@/domains/goals/types";
+import { TaskStatus } from "@/domains/tasks/types";
 import { AiMessage } from "@/features/ai/types";
 import { Language } from "@/i18n/i18n.types";
 
@@ -10,6 +13,14 @@ export interface GoalTaskGenerationInput {
   pace: GoalPace;
   priority: GoalPriority;
   title: string;
+}
+
+export interface GoalTaskSuggestionInput extends GoalTaskGenerationInput {
+  existingSubtasks: Array<{ completed: boolean; title: string }>;
+  existingTasks: Array<{ overdue?: boolean; status: TaskStatus; title: string }>;
+  notes?: string;
+  progress: GoalProgressSnapshot;
+  progressType: GoalProgressType;
 }
 
 const CATEGORY_CONTEXT: Record<GoalCategory, string> = {
@@ -61,6 +72,71 @@ export function buildGoalTaskPrompt(input: GoalTaskGenerationInput): AiMessage[]
         deadlineLine,
         "If there is a deadline, sequence the tasks so the plan fits the available time.",
         "The tasks should feel like a strong first plan the user can edit immediately.",
+      ].join("\n"),
+    },
+  ];
+}
+
+export function buildGoalTaskSuggestionPrompt(input: GoalTaskSuggestionInput): AiMessage[] {
+  const preferredLanguage = input.language === "fa" ? "Persian (Farsi)" : "English";
+  const deadlineLine = input.deadline ? `Deadline: ${input.deadline}` : "Deadline: none";
+  const descriptionLine = input.description.trim()
+    ? `Goal description: ${input.description.trim()}`
+    : "Goal description: none";
+  const notesLine = input.notes?.trim() ? `Goal notes: ${input.notes.trim()}` : "Goal notes: none";
+  const existingTasksBlock =
+    input.existingTasks.length > 0
+      ? input.existingTasks
+          .map((task) => `- ${task.title} [${task.overdue ? "overdue" : task.status}]`)
+          .join("\n")
+      : "- none";
+  const existingSubtasksBlock =
+    input.existingSubtasks.length > 0
+      ? input.existingSubtasks
+          .map((subtask) => `- ${subtask.title} [${subtask.completed ? "done" : "open"}]`)
+          .join("\n")
+      : "- none";
+  const overdueCount = input.existingTasks.filter((task) => task.overdue).length;
+  const openTaskCount = input.existingTasks.filter(
+    (task) => task.status !== "done" && task.status !== "cancelled",
+  ).length;
+
+  return [
+    {
+      role: "system",
+      content: [
+        "You are an expert productivity coach for LifeOS.",
+        "Suggest the next useful goal tasks based on existing progress.",
+        "Prefer structured JSON with this shape:",
+        '{"tasks":[{"title":"Short actionable task","reason":"Why this helps","priority":"low|medium|high"}]}',
+        "Return 3 to 7 tasks.",
+        "Do not repeat any existing task or subtask title.",
+        "Keep task titles short, concrete, and editable in a task UI.",
+      ].join(" "),
+    },
+    {
+      role: "user",
+      content: [
+        `Respond in ${preferredLanguage}.`,
+        `Goal title: ${input.title.trim()}`,
+        descriptionLine,
+        notesLine,
+        `Goal category context: ${CATEGORY_CONTEXT[input.category]}`,
+        `Pace guidance: ${PACE_CONTEXT[input.pace]}`,
+        `Priority guidance: ${PRIORITY_CONTEXT[input.priority]}`,
+        deadlineLine,
+        `Progress mode: ${input.progressType}`,
+        `Current progress: ${input.progress.completed}/${input.progress.total} tasks, ${input.progress.percentage}% complete.`,
+        `Open or unfinished task count: ${openTaskCount}.`,
+        `Overdue task count: ${overdueCount}.`,
+        "Existing tasks:",
+        existingTasksBlock,
+        "Existing subtasks:",
+        existingSubtasksBlock,
+        "If the goal is overdue or behind, suggest recovery tasks.",
+        "If many tasks are already completed, suggest next-level tasks.",
+        "If no tasks exist, suggest starter tasks.",
+        "Avoid duplicates and avoid vague advice.",
       ].join("\n"),
     },
   ];
