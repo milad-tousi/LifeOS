@@ -6,6 +6,7 @@ import {
 } from "@/features/finance/finance.utils";
 import { generateTransactionsFromRecurring } from "@/features/finance/services/finance.recurring";
 import { financeStorage } from "@/features/finance/services/finance.storage";
+import { onFinanceTransactionAdded } from "@/features/finance/services/financeEvents";
 import {
   FinanceAnalyticsSummary,
   FinanceCategory,
@@ -123,6 +124,13 @@ export function useFinanceState(): UseFinanceStateResult {
   useEffect(() => {
     financeStorage.saveVoiceAliases(voiceAliases);
   }, [voiceAliases]);
+
+  // Reload transactions when another part of the app (e.g. Receipt Scanner) writes directly to storage
+  useEffect(() => {
+    return onFinanceTransactionAdded(() => {
+      setTransactions(sortTransactionsByDate(financeStorage.getTransactions()));
+    });
+  }, []);
 
   useEffect(() => {
     const {

@@ -29,6 +29,25 @@ export interface DailyReview {
   updatedAt: TimestampMs;
 }
 
+// Notification type is imported lazily to avoid circular deps;
+// the shape is defined in src/features/notifications/types.ts
+export interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  entityType: string;
+  entityId: string;
+  severity: "info" | "warning" | "critical";
+  scheduledAt: string;
+  createdAt: number;
+  readAt?: number | null;
+  dismissedAt?: number | null;
+  actionUrl?: string;
+  dedupKey: string;
+  metadata?: Record<string, unknown>;
+}
+
 export class LifeOSDatabase extends Dexie {
   authUsers!: Table<AuthUser, EntityId>;
   onboardingStates!: Table<OnboardingState, EntityId>;
@@ -43,6 +62,7 @@ export class LifeOSDatabase extends Dexie {
   expenses!: Table<Expense, EntityId>;
   dailyReviews!: Table<DailyReview, EntityId>;
   settings!: Table<AppSetting, string>;
+  notifications!: Table<AppNotification, string>;
 
   constructor() {
     super(DB_NAME);

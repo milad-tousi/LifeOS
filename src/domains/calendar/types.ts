@@ -1,4 +1,18 @@
 import { EntityId, ISODateString, TimestampMs } from "@/types/shared.types";
+import type { LocationProvider } from "@/features/events/types/location";
+
+// ── Event Reminder ────────────────────────────────────────────────────────────
+
+export type EventReminderUnit = "minute" | "hour" | "day";
+export type EventReminderMode = "before" | "at_time";
+
+export interface EventReminder {
+  enabled: boolean;
+  /** Number of units before the event to fire the reminder */
+  amount?: number | null;
+  unit?: EventReminderUnit | null;
+  mode?: EventReminderMode | null;
+}
 
 export type CalendarEventRecurrenceFrequency =
   | "none"
@@ -29,6 +43,18 @@ export interface CalendarEvent {
   recurrence?: CalendarEventRecurrence | null;
   date?: ISODateString;
   time?: string | null;
+  /** Free-text location name / address */
+  locationText?: string | null;
+  /** Optional pre-formed Google Maps or OSM URL */
+  locationUrl?: string | null;
+  /** WGS-84 latitude */
+  locationLat?: number | null;
+  /** WGS-84 longitude */
+  locationLng?: number | null;
+  /** Which provider was used to select the location */
+  locationProvider?: LocationProvider | null;
+  /** In-app reminder configuration */
+  reminder?: EventReminder | null;
   createdAt: TimestampMs;
   updatedAt: TimestampMs;
 }
@@ -43,6 +69,12 @@ export interface CreateCalendarEventInput {
   color?: string | null;
   isAllDay?: boolean;
   recurrence?: CalendarEventRecurrence | null;
+  locationText?: string | null;
+  locationUrl?: string | null;
+  locationLat?: number | null;
+  locationLng?: number | null;
+  locationProvider?: LocationProvider | null;
+  reminder?: EventReminder | null;
 }
 
 export interface CalendarHoliday {

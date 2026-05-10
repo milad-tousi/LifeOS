@@ -18,6 +18,12 @@ export function createCalendarEventModel(input: CreateCalendarEventInput): Calen
     recurrence: input.recurrence ?? null,
     date: input.startDate,
     time: input.isAllDay ? null : input.startTime?.trim() || null,
+    locationText: input.locationText?.trim() || null,
+    locationUrl: input.locationUrl?.trim() || null,
+    locationLat: input.locationLat ?? null,
+    locationLng: input.locationLng ?? null,
+    locationProvider: input.locationProvider ?? null,
+    reminder: input.reminder ?? null,
     createdAt: timestamp,
     updatedAt: timestamp,
   };

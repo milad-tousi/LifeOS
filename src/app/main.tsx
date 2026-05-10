@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "@/app/App";
 import { applyDocumentLanguage, getStoredLanguage, I18nProvider } from "@/i18n";
+import "leaflet/dist/leaflet.css";
 import "@/assets/styles/theme.css";
 import "@/assets/styles/globals.css";
 

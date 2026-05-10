@@ -10,6 +10,8 @@ import {
   AiMessage,
   AiProvider,
   AiSettings,
+  AiVisionInput,
+  AiVisionResult,
 } from "@/features/ai/types";
 
 interface ProviderAdapter {
@@ -107,6 +109,104 @@ export async function generateText(
       throw new Error("Connection timed out.");
     }
 
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+
+// ── Vision / image input ──────────────────────────────────────────────────────
+
+/**
+ * Send a prompt + image to the AI provider and return the text response.
+ * Builds a provider-specific multimodal request payload.
+ */
+export async function generateVision(
+  settings: AiSettings,
+  input: AiVisionInput,
+): Promise<AiVisionResult> {
+  const sanitizedSettings = sanitizeSettings(settings);
+
+  if (!sanitizedSettings.baseUrl) {
+    throw new Error("API base URL is required.");
+  }
+  if (!sanitizedSettings.model) {
+    throw new Error("Model name is required.");
+  }
+
+  const dataUrl = `data:${input.image.mimeType};base64,${input.image.imageBase64}`;
+  let endpoint: string;
+  let requestBody: Record<string, unknown>;
+
+  if (sanitizedSettings.provider === "ollama") {
+    // Ollama vision: images array on the message
+    endpoint = joinUrl(sanitizedSettings.baseUrl, "api/chat");
+    requestBody = {
+      model: sanitizedSettings.model,
+      stream: false,
+      messages: [
+        ...(input.systemPrompt
+          ? [{ role: "system", content: input.systemPrompt }]
+          : []),
+        {
+          role: "user",
+          content: input.userPrompt,
+          images: [input.image.imageBase64],
+        },
+      ],
+    };
+  } else {
+    // OpenAI-compatible vision (openai, gemini, claude, custom)
+    endpoint = joinUrl(sanitizedSettings.baseUrl, "chat/completions");
+    const userContent: unknown[] = [
+      { type: "text", text: input.userPrompt },
+      {
+        type: "image_url",
+        image_url: { url: dataUrl },
+      },
+    ];
+    requestBody = {
+      model: sanitizedSettings.model,
+      temperature: 0.1,
+      messages: [
+        ...(input.systemPrompt
+          ? [{ role: "system", content: input.systemPrompt }]
+          : []),
+        { role: "user", content: userContent },
+      ],
+    };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 30000); // 30 s for image
+
+  try {
+    const response = await fetch(endpoint, {
+      body: JSON.stringify(requestBody),
+      headers: createHeaders(sanitizedSettings),
+      method: "POST",
+      signal: controller.signal,
+    });
+
+    const payload = await parseResponseBody(response);
+
+    if (!response.ok) {
+      const apiError = parseApiErrorMessage(payload);
+      throw new Error(apiError ?? `Request failed with status ${response.status}.`);
+    }
+
+    // Parse the text from the response using the matching adapter
+    const adapter = ADAPTERS[sanitizedSettings.provider];
+    return {
+      provider: sanitizedSettings.provider,
+      raw: payload,
+      text: adapter.parseText(payload),
+    };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Connection timed out.");
+    }
     throw error;
   } finally {
     window.clearTimeout(timeoutId);

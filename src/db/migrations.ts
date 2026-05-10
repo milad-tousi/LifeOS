@@ -8,6 +8,7 @@ import {
   DB_VERSION_6,
   DB_VERSION_7,
   DB_VERSION_8,
+  DB_VERSION_9,
   schemaV1,
   schemaV2,
   schemaV3,
@@ -16,6 +17,7 @@ import {
   schemaV6,
   schemaV7,
   schemaV8,
+  schemaV9,
 } from "@/db/schema";
 
 export function registerDatabaseMigrations(database: Dexie): void {
@@ -63,6 +65,10 @@ export function registerDatabaseMigrations(database: Dexie): void {
         event.recurrence =
           typeof event.recurrence === "object" && event.recurrence !== null ? event.recurrence : null;
       });
+  });
+
+  database.version(DB_VERSION_9).stores(schemaV9).upgrade(() => {
+    // Version 9 introduces the persistent notification center.
   });
 
   // Future schema upgrades should be registered here.

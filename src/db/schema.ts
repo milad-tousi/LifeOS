@@ -78,3 +78,10 @@ export const schemaV8 = {
   ...schemaV6,
   [TABLES.calendarEvents]: "id, startDate, createdAt, [startDate+startTime]",
 } as const;
+
+export const DB_VERSION_9 = 9;
+
+export const schemaV9 = {
+  ...schemaV8,
+  notifications: "id, &dedupKey, type, entityType, entityId, readAt, dismissedAt, createdAt",
+} as const;

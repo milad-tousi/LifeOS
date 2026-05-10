@@ -1,7 +1,7 @@
 import { TranslationKey } from "@/i18n/i18n.types";
 import { useI18n } from "@/i18n";
 
-export type FinanceTab = "overview" | "transactions" | "analytics";
+export type FinanceTab = "overview" | "transactions" | "analytics" | "assistant";
 
 interface FinanceTabsProps {
   activeTab: FinanceTab;
@@ -12,6 +12,7 @@ const TAB_ITEMS: Array<{ labelKey: TranslationKey; value: FinanceTab }> = [
   { labelKey: "finance.overview", value: "overview" },
   { labelKey: "finance.transactions", value: "transactions" },
   { labelKey: "finance.analytics", value: "analytics" },
+  { labelKey: "finance.assistant.tab", value: "assistant" },
 ];
 
 export function FinanceTabs({

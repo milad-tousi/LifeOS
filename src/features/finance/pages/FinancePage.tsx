@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
 import { FinanceAnalyticsTab } from "@/features/finance/components/FinanceAnalyticsTab";
+import { FinancialAssistantTab } from "@/features/finance/components/FinancialAssistantTab";
 import { FinanceOverviewTab } from "@/features/finance/components/FinanceOverviewTab";
 import { FinanceSettingsEntry } from "@/features/finance/components/FinanceSettingsEntry";
 import { FinanceSettingsModal } from "@/features/finance/components/FinanceSettingsModal";
 import { FinanceTabs, FinanceTab } from "@/features/finance/components/FinanceTabs";
 import { FinanceTransactionsTab } from "@/features/finance/components/FinanceTransactionsTab";
 import { useFinanceState } from "@/features/finance/hooks/useFinanceState";
+import { calculateFinanceAnalytics as calculateFinanceAnalyticsDashboard } from "@/features/finance/utils/calculateFinanceAnalytics";
 import { useI18n } from "@/i18n";
 
 export function FinancePage(): JSX.Element {
@@ -43,6 +45,15 @@ export function FinancePage(): JSX.Element {
     updateTransaction,
     updateVoiceAlias,
   } = useFinanceState();
+  const assistantAnalytics = useMemo(
+    () =>
+      calculateFinanceAnalyticsDashboard({
+        categories,
+        period: "monthly",
+        transactions,
+      }),
+    [categories, transactions],
+  );
 
   return (
     <div className="finance-page">
@@ -88,6 +99,20 @@ export function FinancePage(): JSX.Element {
           budgetUsage={budgetUsage}
           categories={categories}
           currency={settings.currency}
+          transactions={transactions}
+        />
+      ) : null}
+
+      {activeTab === "assistant" ? (
+        <FinancialAssistantTab
+          analytics={assistantAnalytics}
+          budgetUsage={budgetUsage}
+          categories={categories}
+          currency={settings.currency}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onUpdateCategory={updateCategory}
+          recurringTransactions={recurringTransactions}
+          summary={summary}
           transactions={transactions}
         />
       ) : null}

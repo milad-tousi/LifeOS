@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -6,10 +7,23 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { HabitReminderToastHost } from "@/features/habits/components/HabitReminderToastHost";
 import { useSidebar } from "@/hooks/useSidebar";
 import { useI18n } from "@/i18n";
+import { runNotificationEngine } from "@/features/notifications/services/notificationEngine";
+
+const NOTIFICATION_POLL_MS = 60_000;
 
 export function AppShell(): JSX.Element {
   const sidebar = useSidebar();
-  const { direction } = useI18n();
+  const { direction, t } = useI18n();
+
+  // Run notification engine on mount and every 60 seconds
+  useEffect(() => {
+    void runNotificationEngine(t);
+    const interval = setInterval(() => {
+      void runNotificationEngine(t);
+    }, NOTIFICATION_POLL_MS);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const desktopLayoutClass =
     sidebar.isDesktop && sidebar.desktopMode !== "hidden"
       ? `app-shell app-shell--desktop app-shell--${sidebar.desktopMode}`

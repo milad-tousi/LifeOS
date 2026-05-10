@@ -1,4 +1,6 @@
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
+import { ReceiptScanButton } from "@/components/layout/ReceiptScanButton";
+import { NotificationButton } from "@/features/notifications/components/NotificationButton";
 import { PageGreeting } from "@/components/layout/PageGreeting";
 import { useI18n } from "@/i18n";
 
@@ -35,9 +37,10 @@ export function TopBar({
         <PageGreeting />
       </div>
 
-      <button aria-label="Notifications" className="icon-button" type="button">
-        <Bell size={18} />
-      </button>
+      <div className="topbar__actions">
+        <ReceiptScanButton />
+        <NotificationButton />
+      </div>
     </header>
   );
 }
