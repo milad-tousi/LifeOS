@@ -6,6 +6,7 @@ import { useOnboarding } from "@/features/onboarding/hooks/useOnboarding";
 import { SettingsAccount } from "@/features/settings/components/SettingsAccount";
 import { SettingsAppearance } from "@/features/settings/components/SettingsAppearance";
 import { SettingsDangerZone } from "@/features/settings/components/SettingsDangerZone";
+import { SettingsAiAssistant } from "@/features/settings/components/SettingsAiAssistant";
 import { SettingsLanguage } from "@/features/settings/components/SettingsLanguage";
 import { useI18n } from "@/i18n";
 
@@ -36,6 +37,9 @@ export function SettingsPage(): JSX.Element {
       <Card title={t("settings.appearance")}>
         <SettingsAppearance />
         <SettingsLanguage />
+      </Card>
+      <Card title={t("settings.ai.title")} subtitle={t("settings.ai.description")}>
+        <SettingsAiAssistant />
       </Card>
       <Card title={t("settings.account")}>
         <SettingsAccount isLoading={isLoading} onLogout={handleLogout} />
