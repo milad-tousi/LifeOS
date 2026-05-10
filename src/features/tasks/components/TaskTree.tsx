@@ -1,6 +1,9 @@
-import { CheckCircle2, Circle, CircleDashed, Plus, Pencil } from "lucide-react";
+import { CheckCircle2, Circle, CircleDashed, Pencil, Plus, XCircle } from "lucide-react";
 import { Task } from "@/domains/tasks/types";
 import { TaskTreeNode } from "@/features/tasks/utils/taskHierarchy";
+import { getGoalPriorityDisplayName } from "@/features/goals/utils/goals.i18n";
+import { useI18n } from "@/i18n";
+import { formatAppDate } from "@/i18n/formatters";
 
 interface TaskTreeProps {
   compact?: boolean;
@@ -53,7 +56,9 @@ function TaskTreeItem({
   onEditTask,
   onToggleComplete,
 }: TaskTreeItemProps): JSX.Element {
+  const { language, t } = useI18n();
   const { task } = node;
+  const scheduledLabel = task.dueDate ?? task.scheduledDate;
 
   return (
     <div className="task-tree__branch">
@@ -65,10 +70,10 @@ function TaskTreeItem({
         ]
           .filter(Boolean)
           .join(" ")}
-        style={{ marginLeft: `${depth * 22}px` }}
+        style={{ marginInlineStart: `${depth * 22}px` }}
       >
         <button
-          aria-label={`Toggle ${task.title}`}
+          aria-label={t("goals.taskList.toggleTaskAria", { title: task.title })}
           className="task-tree__status"
           onClick={() => onToggleComplete?.(task)}
           type="button"
@@ -78,22 +83,30 @@ function TaskTreeItem({
         <div className="task-tree__content">
           <div className="task-tree__topline">
             <strong>{task.title}</strong>
-            <span className="task-tree__badge">{getTaskBadge(depth)}</span>
+            <span className="task-tree__badge">{getTaskBadge(depth, t)}</span>
           </div>
           <div className="task-tree__meta">
-            <span>{task.status}</span>
-            <span>{task.priority} priority</span>
-            {task.dueDate ?? task.scheduledDate ? <span>{task.dueDate ?? task.scheduledDate}</span> : null}
+            <span>{getTaskStatusLabel(task.status, t)}</span>
+            <span>{t("tasks.priorityLabel", { priority: getGoalPriorityDisplayName(task.priority, t) })}</span>
+            {scheduledLabel ? <span>{formatTaskDate(scheduledLabel, language)}</span> : null}
           </div>
         </div>
         <div className="task-tree__actions">
           {onEditTask ? (
-            <button aria-label={`Edit ${task.title}`} onClick={() => onEditTask(task)} type="button">
+            <button
+              aria-label={t("goals.taskList.editTaskAria", { title: task.title })}
+              onClick={() => onEditTask(task)}
+              type="button"
+            >
               <Pencil size={15} />
             </button>
           ) : null}
           {onAddSubtask ? (
-            <button aria-label={`Add subtask to ${task.title}`} onClick={() => onAddSubtask(task)} type="button">
+            <button
+              aria-label={t("tasks.addSubtaskToTask", { title: task.title })}
+              onClick={() => onAddSubtask(task)}
+              type="button"
+            >
               <Plus size={15} />
             </button>
           ) : null}
@@ -118,6 +131,10 @@ function renderStatusIcon(task: Task): JSX.Element {
     return <CheckCircle2 size={18} />;
   }
 
+  if (task.status === "cancelled") {
+    return <XCircle size={18} />;
+  }
+
   if (task.status === "in_progress") {
     return <CircleDashed size={18} />;
   }
@@ -125,14 +142,33 @@ function renderStatusIcon(task: Task): JSX.Element {
   return <Circle size={18} />;
 }
 
-function getTaskBadge(depth: number): string {
+function getTaskBadge(depth: number, t: (key: string) => string): string {
   if (depth === 0) {
-    return "Task";
+    return t("tasks.task");
   }
 
   if (depth === 1) {
-    return "Subtask";
+    return t("tasks.subtask");
   }
 
-  return "Nested Subtask";
+  return t("tasks.nestedSubtask");
+}
+
+function getTaskStatusLabel(status: Task["status"], t: (key: string) => string): string {
+  switch (status) {
+    case "done":
+      return t("tasks.done");
+    case "cancelled":
+      return t("tasks.cancelled");
+    case "in_progress":
+      return t("tasks.inProgress");
+    case "todo":
+    default:
+      return t("tasks.todo");
+  }
+}
+
+function formatTaskDate(value: string, language: "en" | "fa"): string {
+  const safeDate = new Date(value);
+  return Number.isNaN(safeDate.getTime()) ? value : formatAppDate(safeDate, language);
 }

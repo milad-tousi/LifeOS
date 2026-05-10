@@ -14,6 +14,15 @@ import {
   GoalStatus,
   GoalTargetType,
 } from "@/domains/goals/types";
+import {
+  getGoalCategoryDisplayName,
+  getGoalPaceDisplayName,
+  getGoalPriorityDisplayName,
+  getGoalProgressTypeDisplayName,
+  getGoalStatusDisplayName,
+  getGoalTargetTypeDisplayName,
+} from "@/features/goals/utils/goals.i18n";
+import { useI18n } from "@/i18n";
 
 interface EditGoalModalProps {
   goal: Goal | null;
@@ -63,6 +72,7 @@ export function EditGoalModal({
   onClose,
   onSaved,
 }: EditGoalModalProps): JSX.Element | null {
+  const { t } = useI18n();
   const [formState, setFormState] = useState<GoalFormState | null>(
     goal ? createGoalFormState(goal) : null,
   );
@@ -106,7 +116,7 @@ export function EditGoalModal({
     }
 
     if (!formState.title.trim()) {
-      setError("Goal title is required.");
+      setError(t("goals.edit.errors.titleRequired"));
       return;
     }
 
@@ -116,24 +126,24 @@ export function EditGoalModal({
 
     if (formState.progressType === "manual") {
       if (manualProgress === null || Number.isNaN(manualProgress)) {
-        setError("Manual progress must be a valid number between 0 and 100.");
+        setError(t("goals.edit.errors.manualProgressInvalid"));
         return;
       }
 
       if (manualProgress < 0 || manualProgress > 100) {
-        setError("Manual progress must stay between 0 and 100.");
+        setError(t("goals.edit.errors.manualProgressRange"));
         return;
       }
     }
 
     if (formState.progressType === "target" && formState.targetType !== "none") {
       if (targetValue === null || Number.isNaN(targetValue) || targetValue <= 0) {
-        setError("Target value must be a positive number.");
+        setError(t("goals.edit.errors.targetValueInvalid"));
         return;
       }
 
       if (currentValue !== null && (Number.isNaN(currentValue) || currentValue < 0)) {
-        setError("Current value cannot be negative.");
+        setError(t("goals.edit.errors.currentValueInvalid"));
         return;
       }
     }
@@ -166,7 +176,7 @@ export function EditGoalModal({
       onSaved?.(updatedGoal);
       onClose();
     } catch {
-      setError("The goal could not be updated locally right now.");
+      setError(t("goals.edit.errors.updateFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -183,36 +193,36 @@ export function EditGoalModal({
   return (
     <>
       <ModalShell
-        description="Update the goal details without touching its linked task list."
+        description={t("goals.edit.description")}
         footer={
           <div className="modal-action-row">
             <Button onClick={requestClose} type="button" variant="ghost">
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button disabled={isSubmitting} onClick={() => void handleSubmit()} type="button">
-              {isSubmitting ? "Saving..." : "Save changes"}
+              {isSubmitting ? t("common.saving") : t("goals.edit.saveChanges")}
             </Button>
           </div>
         }
         isOpen={isOpen}
         onRequestClose={requestClose}
         size="wide"
-        title="Edit Goal"
+        title={t("goals.edit.title")}
       >
         <div className="task-modal-layout">
           <section className="task-editor-section task-editor-section--surface">
             <div className="task-editor-section__header">
               <div>
-                <h3 className="task-editor-section__title">Goal details</h3>
+                <h3 className="task-editor-section__title">{t("goals.edit.sections.detailsTitle")}</h3>
                 <p className="task-editor-section__description">
-                  Fine-tune the framing, measurement mode, and planning notes for this goal.
+                  {t("goals.edit.sections.detailsDescription")}
                 </p>
               </div>
             </div>
 
             <div className="task-form-grid">
               <label className="auth-form__field task-form-grid__wide">
-                <span className="auth-form__label">Goal title</span>
+                <span className="auth-form__label">{t("goals.createFlow.basic.goalTitle")}</span>
                 <input
                   className="auth-form__input"
                   onChange={(event) =>
@@ -223,7 +233,7 @@ export function EditGoalModal({
               </label>
 
               <label className="auth-form__field task-form-grid__wide">
-                <span className="auth-form__label">Description</span>
+                <span className="auth-form__label">{t("goals.createFlow.basic.description")}</span>
                 <textarea
                   className="auth-form__input task-modal-textarea"
                   onChange={(event) =>
@@ -236,7 +246,7 @@ export function EditGoalModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Category</span>
+                <span className="auth-form__label">{t("goals.edit.fields.category")}</span>
                 <div className="task-select-wrap">
                   <Tag size={16} />
                   <select
@@ -248,17 +258,17 @@ export function EditGoalModal({
                     }
                     value={formState.category}
                   >
-                    <option value="health">Health</option>
-                    <option value="finance">Finance</option>
-                    <option value="career">Career</option>
-                    <option value="learning">Learning</option>
-                    <option value="lifestyle">Lifestyle</option>
+                    <option value="health">{getGoalCategoryDisplayName("health", t)}</option>
+                    <option value="finance">{getGoalCategoryDisplayName("finance", t)}</option>
+                    <option value="career">{getGoalCategoryDisplayName("career", t)}</option>
+                    <option value="learning">{getGoalCategoryDisplayName("learning", t)}</option>
+                    <option value="lifestyle">{getGoalCategoryDisplayName("lifestyle", t)}</option>
                   </select>
                 </div>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Status</span>
+                <span className="auth-form__label">{t("goals.edit.fields.status")}</span>
                 <div className="task-select-wrap">
                   <ListTodo size={16} />
                   <select
@@ -270,16 +280,16 @@ export function EditGoalModal({
                     }
                     value={formState.status}
                   >
-                    <option value="active">Active</option>
-                    <option value="paused">Paused</option>
-                    <option value="completed">Completed</option>
-                    <option value="archived">Archived</option>
+                    <option value="active">{getGoalStatusDisplayName("active", t)}</option>
+                    <option value="paused">{getGoalStatusDisplayName("paused", t)}</option>
+                    <option value="completed">{getGoalStatusDisplayName("completed", t)}</option>
+                    <option value="archived">{getGoalStatusDisplayName("archived", t)}</option>
                   </select>
                 </div>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Priority</span>
+                <span className="auth-form__label">{t("goals.createFlow.meta.priority")}</span>
                 <div className="task-select-wrap">
                   <Flag size={16} />
                   <select
@@ -291,15 +301,15 @@ export function EditGoalModal({
                     }
                     value={formState.priority}
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                    <option value="low">{getGoalPriorityDisplayName("low", t)}</option>
+                    <option value="medium">{getGoalPriorityDisplayName("medium", t)}</option>
+                    <option value="high">{getGoalPriorityDisplayName("high", t)}</option>
                   </select>
                 </div>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Pace</span>
+                <span className="auth-form__label">{t("goals.createFlow.meta.pace")}</span>
                 <div className="task-select-wrap">
                   <Gauge size={16} />
                   <select
@@ -311,23 +321,21 @@ export function EditGoalModal({
                     }
                     value={formState.pace}
                   >
-                    <option value="gentle">Gentle</option>
-                    <option value="balanced">Balanced</option>
-                    <option value="ambitious">Ambitious</option>
+                    <option value="gentle">{getGoalPaceDisplayName("gentle", t)}</option>
+                    <option value="balanced">{getGoalPaceDisplayName("balanced", t)}</option>
+                    <option value="ambitious">{getGoalPaceDisplayName("ambitious", t)}</option>
                   </select>
                 </div>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Target date</span>
+                <span className="auth-form__label">{t("goals.edit.fields.targetDate")}</span>
                 <div className="task-select-wrap">
                   <CalendarDays size={16} />
                   <LocalizedDateInput
                     className="auth-form__input"
                     onChange={(event) =>
-                      setFormState((current) =>
-                        current ? { ...current, deadline: event } : current,
-                      )
+                      setFormState((current) => (current ? { ...current, deadline: event } : current))
                     }
                     value={formState.deadline}
                   />
@@ -339,16 +347,16 @@ export function EditGoalModal({
           <section className="task-editor-section task-editor-section--surface">
             <div className="task-editor-section__header">
               <div>
-                <h3 className="task-editor-section__title">Progress settings</h3>
+                <h3 className="task-editor-section__title">{t("goals.edit.sections.progressTitle")}</h3>
                 <p className="task-editor-section__description">
-                  Choose how this goal should measure progress now, so future planning features have a strong base.
+                  {t("goals.edit.sections.progressDescription")}
                 </p>
               </div>
             </div>
 
             <div className="task-form-grid">
               <label className="auth-form__field">
-                <span className="auth-form__label">Progress type</span>
+                <span className="auth-form__label">{t("goals.edit.fields.progressType")}</span>
                 <div className="task-select-wrap">
                   <Gauge size={16} />
                   <select
@@ -371,16 +379,16 @@ export function EditGoalModal({
                     }
                     value={formState.progressType}
                   >
-                    <option value="tasks">Tasks</option>
-                    <option value="subtasks">Subtasks</option>
-                    <option value="manual">Manual</option>
-                    <option value="target">Target</option>
+                    <option value="tasks">{getGoalProgressTypeDisplayName("tasks", t)}</option>
+                    <option value="subtasks">{getGoalProgressTypeDisplayName("subtasks", t)}</option>
+                    <option value="manual">{getGoalProgressTypeDisplayName("manual", t)}</option>
+                    <option value="target">{getGoalProgressTypeDisplayName("target", t)}</option>
                   </select>
                 </div>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Target type</span>
+                <span className="auth-form__label">{t("goals.edit.fields.targetType")}</span>
                 <div className="task-select-wrap">
                   <Target size={16} />
                   <select
@@ -400,18 +408,18 @@ export function EditGoalModal({
                     }
                     value={formState.targetType}
                   >
-                    <option value="none">None</option>
-                    <option value="count">Count</option>
-                    <option value="binary">Binary</option>
-                    <option value="milestone">Milestone</option>
-                    <option value="percentage">Percentage</option>
+                    <option value="none">{getGoalTargetTypeDisplayName("none", t)}</option>
+                    <option value="count">{getGoalTargetTypeDisplayName("count", t)}</option>
+                    <option value="binary">{getGoalTargetTypeDisplayName("binary", t)}</option>
+                    <option value="milestone">{getGoalTargetTypeDisplayName("milestone", t)}</option>
+                    <option value="percentage">{getGoalTargetTypeDisplayName("percentage", t)}</option>
                   </select>
                 </div>
               </label>
 
               {showManualProgress ? (
                 <label className="auth-form__field">
-                  <span className="auth-form__label">Manual progress</span>
+                  <span className="auth-form__label">{t("goals.edit.fields.manualProgress")}</span>
                   <input
                     className="auth-form__input"
                     inputMode="decimal"
@@ -420,14 +428,11 @@ export function EditGoalModal({
                     onChange={(event) =>
                       setFormState((current) =>
                         current
-                          ? {
-                              ...current,
-                              manualProgress: event.target.value.replace(/[^\d.]/g, ""),
-                            }
+                          ? { ...current, manualProgress: event.target.value.replace(/[^\d.]/g, "") }
                           : current,
                       )
                     }
-                    placeholder="0 to 100"
+                    placeholder={t("goals.edit.placeholders.manualProgress")}
                     value={formState.manualProgress}
                   />
                 </label>
@@ -436,7 +441,7 @@ export function EditGoalModal({
               {showTargetNumbers ? (
                 <>
                   <label className="auth-form__field">
-                    <span className="auth-form__label">Target value</span>
+                    <span className="auth-form__label">{t("goals.edit.fields.targetValue")}</span>
                     <input
                       className="auth-form__input"
                       inputMode="decimal"
@@ -448,13 +453,13 @@ export function EditGoalModal({
                             : current,
                         )
                       }
-                      placeholder="10"
+                      placeholder={t("goals.edit.placeholders.targetValue")}
                       value={formState.targetValue}
                     />
                   </label>
 
                   <label className="auth-form__field">
-                    <span className="auth-form__label">Current value</span>
+                    <span className="auth-form__label">{t("goals.edit.fields.currentValue")}</span>
                     <input
                       className="auth-form__input"
                       inputMode="decimal"
@@ -466,7 +471,7 @@ export function EditGoalModal({
                             : current,
                         )
                       }
-                      placeholder="0"
+                      placeholder={t("goals.edit.placeholders.currentValue")}
                       value={formState.currentValue}
                     />
                   </label>
@@ -478,15 +483,15 @@ export function EditGoalModal({
           <section className="task-editor-section task-editor-section--surface">
             <div className="task-editor-section__header">
               <div>
-                <h3 className="task-editor-section__title">Planning notes</h3>
+                <h3 className="task-editor-section__title">{t("goals.edit.sections.notesTitle")}</h3>
                 <p className="task-editor-section__description">
-                  Capture the thinking, assumptions, or milestones behind this goal.
+                  {t("goals.edit.sections.notesDescription")}
                 </p>
               </div>
             </div>
 
             <label className="auth-form__field">
-              <span className="auth-form__label">Notes</span>
+              <span className="auth-form__label">{t("goals.notes")}</span>
               <div className="task-select-wrap">
                 <NotebookText size={16} />
                 <textarea
@@ -494,7 +499,7 @@ export function EditGoalModal({
                   onChange={(event) =>
                     setFormState((current) => (current ? { ...current, notes: event.target.value } : current))
                   }
-                  placeholder="Capture milestones, assumptions, blockers, and planning context"
+                  placeholder={t("goals.edit.placeholders.notes")}
                   value={formState.notes}
                 />
               </div>
@@ -506,16 +511,16 @@ export function EditGoalModal({
       </ModalShell>
 
       <ConfirmDialog
-        cancelLabel="Keep editing"
-        confirmLabel="Discard changes"
-        description="You have unsaved goal edits. Close this modal and lose them?"
+        cancelLabel={t("goals.edit.keepEditing")}
+        confirmLabel={t("goals.edit.discardChanges")}
+        description={t("goals.edit.discardDescription")}
         isOpen={showDiscardDialog}
         onCancel={() => setShowDiscardDialog(false)}
         onConfirm={() => {
           setShowDiscardDialog(false);
           onClose();
         }}
-        title="Discard goal changes?"
+        title={t("goals.edit.discardTitle")}
         tone="danger"
       />
     </>

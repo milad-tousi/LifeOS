@@ -7,25 +7,30 @@ import {
   getGoalTargetSummary,
 } from "@/domains/goals/goal.utils";
 import { Goal } from "@/domains/goals/types";
+import {
+  getGoalCategoryDisplayName,
+  getGoalPaceDisplayName,
+  getGoalPriorityDisplayName,
+  getGoalStatusDisplayName,
+} from "@/features/goals/utils/goals.i18n";
 import { useI18n } from "@/i18n";
-import { formatAppDate } from "@/i18n/formatters";
 
 interface GoalHeaderProps {
   goal: Goal;
 }
 
 export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
-  const { language } = useI18n();
-  const deadlineState = computeGoalDeadlineState(goal);
+  const { language, t } = useI18n();
+  const deadlineState = computeGoalDeadlineState(goal, t, language);
   const notesPreview = getGoalNotesPreview(goal);
-  const targetSummary = getGoalTargetSummary(goal);
-  const progressModeName = getGoalProgressModeName(goal);
-  const progressHelperText = getGoalProgressModeHelperText(goal);
+  const targetSummary = getGoalTargetSummary(goal, t, language);
+  const progressModeName = getGoalProgressModeName(goal, t);
+  const progressHelperText = getGoalProgressModeHelperText(goal, t);
 
   return (
     <header className="goal-detail-header">
       <div className="goal-detail-header__copy">
-        <span className="goal-card__category-pill">{goal.category}</span>
+        <span className="goal-card__category-pill">{getGoalCategoryDisplayName(goal.category, t)}</span>
         <h2 className="goal-detail-header__title">{goal.title}</h2>
         {goal.description ? (
           <p className="goal-detail-header__description">{goal.description}</p>
@@ -35,27 +40,27 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
       <div className="goal-detail-header__meta">
         <span className="goal-detail-header__meta-item">
           <Tag size={16} />
-          {goal.status}
+          {getGoalStatusDisplayName(goal.status, t)}
         </span>
         <span className="goal-detail-header__meta-item">
           <Gauge size={16} />
-          {goal.pace}
+          {getGoalPaceDisplayName(goal.pace, t)}
         </span>
         <span className="goal-detail-header__meta-item">
           <Flag size={16} />
-          {goal.priority}
+          {getGoalPriorityDisplayName(goal.priority, t)}
         </span>
         {goal.deadline ? (
           <span className="goal-detail-header__meta-item">
             <CalendarDays size={16} />
-            {formatGoalDeadline(goal.deadline, language)}
+            {deadlineState.formattedDeadline}
           </span>
         ) : null}
       </div>
 
       <div className="goal-detail-header__summary">
         <div className="goal-detail-header__summary-item">
-          <span className="goal-detail-header__summary-label">Progress mode</span>
+          <span className="goal-detail-header__summary-label">{t("goals.progressMode")}</span>
           <span className="goal-detail-header__summary-value">
             <Gauge size={16} />
             {progressModeName}
@@ -64,7 +69,7 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
         </div>
         {targetSummary ? (
           <div className="goal-detail-header__summary-item">
-            <span className="goal-detail-header__summary-label">Target</span>
+            <span className="goal-detail-header__summary-label">{t("goals.target")}</span>
             <span className="goal-detail-header__summary-value">
               <Target size={16} />
               {targetSummary}
@@ -77,10 +82,10 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
             `goal-detail-header__summary-item--${deadlineState.tone}`,
           ].join(" ")}
         >
-          <span className="goal-detail-header__summary-label">Deadline</span>
+          <span className="goal-detail-header__summary-label">{t("goals.deadline")}</span>
           <span className="goal-detail-header__summary-value">
             <CalendarDays size={16} />
-            {goal.deadline ? formatGoalDeadline(goal.deadline, language) : "No deadline"}
+            {goal.deadline ? deadlineState.formattedDeadline : t("goals.noDeadline")}
           </span>
           <div className="goal-detail-header__deadline-row">
             <span
@@ -97,7 +102,7 @@ export function GoalHeader({ goal }: GoalHeaderProps): JSX.Element {
         </div>
         {notesPreview ? (
           <div className="goal-detail-header__summary-item goal-detail-header__summary-item--notes">
-            <span className="goal-detail-header__summary-label">Notes</span>
+            <span className="goal-detail-header__summary-label">{t("goals.notes")}</span>
             <span className="goal-detail-header__summary-notes">
               <NotebookText size={16} />
               {notesPreview}
@@ -124,9 +129,4 @@ function renderDeadlineIcon(
     default:
       return <CalendarDays size={14} />;
   }
-}
-
-function formatGoalDeadline(value: string, language: "en" | "fa"): string {
-  const safeDate = new Date(value);
-  return Number.isNaN(safeDate.getTime()) ? value : formatAppDate(safeDate, language);
 }

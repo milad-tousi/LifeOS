@@ -42,6 +42,9 @@ import {
   getAllDescendantTasks,
   TaskTreeNode,
 } from "@/features/tasks/utils/taskHierarchy";
+import { getGoalPriorityDisplayName } from "@/features/goals/utils/goals.i18n";
+import { useI18n } from "@/i18n";
+import { formatAppDate, formatNumber } from "@/i18n/formatters";
 
 interface GoalTaskListProps {
   goalId: string;
@@ -70,6 +73,7 @@ export function GoalTaskList({
   recentTaskTone = null,
   tasks,
 }: GoalTaskListProps): JSX.Element {
+  const { t } = useI18n();
   const taskTrees = buildGoalTaskTree(tasks, goalId);
   const rootTasks = taskTrees.map((node) => node.task);
   const sensors = useSensors(
@@ -92,8 +96,8 @@ export function GoalTaskList({
   if (rootTasks.length === 0) {
     return (
       <EmptyState
-        title="No steps yet"
-        description="No steps yet. Add tasks to start making progress."
+        title={t("goals.noStepsYet")}
+        description={t("goals.detail.stepsEmptyDescription")}
       />
     );
   }
@@ -116,15 +120,13 @@ export function GoalTaskList({
     const [movedTask] = reorderedTasks.splice(oldIndex, 1);
     reorderedTasks.splice(newIndex, 0, movedTask);
 
-    onReorderTasks(
-      [
-        ...reorderedTasks.map((task, index) => ({
-          ...task,
-          sortOrder: index,
-        })),
-        ...tasks.filter((task) => task.parentTaskId),
-      ],
-    );
+    onReorderTasks([
+      ...reorderedTasks.map((task, index) => ({
+        ...task,
+        sortOrder: index,
+      })),
+      ...tasks.filter((task) => task.parentTaskId),
+    ]);
   }
 
   return (
@@ -133,6 +135,7 @@ export function GoalTaskList({
         <div className="goal-task-list">
           {taskTrees.map((treeNode) => (
             <SortableTaskItem
+              allTasks={tasks}
               deletingTaskId={deletingTaskId}
               key={treeNode.task.id}
               onDeleteTask={onDeleteTask}
@@ -144,7 +147,6 @@ export function GoalTaskList({
               recentTaskTone={recentTaskTone}
               task={treeNode.task}
               taskTreeChildren={treeNode.children}
-              allTasks={tasks}
             />
           ))}
         </div>
@@ -180,6 +182,7 @@ function SortableTaskItem({
   taskTreeChildren,
   allTasks,
 }: SortableTaskItemProps): JSX.Element {
+  const { language, t } = useI18n();
   const {
     attributes,
     isDragging,
@@ -195,6 +198,10 @@ function SortableTaskItem({
   };
   const descendantTasks = getAllDescendantTasks(allTasks, task.id);
   const subtaskProgress = getDescendantProgress(task, descendantTasks);
+  const subtaskPercent =
+    subtaskProgress.total > 0
+      ? Math.round((subtaskProgress.completed / subtaskProgress.total) * 100)
+      : 0;
 
   return (
     <article
@@ -215,7 +222,7 @@ function SortableTaskItem({
       style={style}
     >
       <button
-        aria-label={`Reorder task ${task.title}`}
+        aria-label={t("goals.taskList.reorderTaskAria", { title: task.title })}
         className="goal-task-list__drag-handle"
         onClick={(event) => event.preventDefault()}
         ref={setActivatorNodeRef}
@@ -227,7 +234,7 @@ function SortableTaskItem({
       </button>
 
       <button
-        aria-label={`Toggle ${task.title}`}
+        aria-label={t("goals.taskList.toggleTaskAria", { title: task.title })}
         className={`goal-task-list__toggle${
           task.status === "done" ? " goal-task-list__toggle--done" : ""
         }`}
@@ -237,13 +244,11 @@ function SortableTaskItem({
         }}
         type="button"
       >
-        <span className="goal-task-list__toggle-icon">
-          {renderTaskStatusIcon(task.status)}
-        </span>
+        <span className="goal-task-list__toggle-icon">{renderTaskStatusIcon(task.status)}</span>
       </button>
 
       <button
-        aria-label={`Edit ${task.title}`}
+        aria-label={t("goals.taskList.editTaskAria", { title: task.title })}
         className="goal-task-list__content-button"
         onClick={() => onEditTask(task)}
         type="button"
@@ -264,12 +269,12 @@ function SortableTaskItem({
                 className={`goal-task-list__status-chip goal-task-list__status-chip--${task.status}`}
               >
                 <span className="goal-task-list__status-dot" aria-hidden="true" />
-                {getStatusLabel(task.status)}
+                {getTaskStatusLabel(task.status, t)}
               </span>
               <span
                 className={`goal-task-list__priority-chip goal-task-list__priority-chip--${task.priority}`}
               >
-                {getPriorityLabel(task.priority)}
+                {getGoalPriorityDisplayName(task.priority, t)}
               </span>
             </div>
           </div>
@@ -277,13 +282,13 @@ function SortableTaskItem({
             {task.dueDate ?? task.scheduledDate ? (
               <span className="goal-task-list__meta-chip">
                 <CalendarDays size={14} />
-                {task.dueDate ?? task.scheduledDate}
+                {formatTaskDate(task.dueDate ?? task.scheduledDate ?? "", language)}
               </span>
             ) : null}
             {task.estimatedDurationMinutes ? (
               <span className="goal-task-list__meta-chip">
                 <Clock3 size={14} />
-                {formatEstimatedDuration(task.estimatedDurationMinutes)}
+                {formatEstimatedDuration(task.estimatedDurationMinutes, language, t)}
               </span>
             ) : null}
             {task.tags.map((tag) => (
@@ -301,7 +306,10 @@ function SortableTaskItem({
             {subtaskProgress.total > 0 ? (
               <span className="goal-task-list__meta-chip goal-task-list__meta-chip--success">
                 <ListChecks size={14} />
-                {subtaskProgress.completed} / {subtaskProgress.total} subtasks
+                {t("goals.taskList.subtasksCount", {
+                  completed: formatNumber(subtaskProgress.completed, language),
+                  total: formatNumber(subtaskProgress.total, language),
+                })}
               </span>
             ) : null}
           </div>
@@ -309,11 +317,13 @@ function SortableTaskItem({
             <div className="goal-task-list__subtasks">
               <div className="goal-task-list__subtasks-header">
                 <span className="goal-task-list__subtasks-label">
-                  {subtaskProgress.completed} / {subtaskProgress.total} subtasks
+                  {t("goals.taskList.subtasksCount", {
+                    completed: formatNumber(subtaskProgress.completed, language),
+                    total: formatNumber(subtaskProgress.total, language),
+                  })}
                 </span>
                 <span className="goal-task-list__subtasks-value">
-                  {Math.round((subtaskProgress.completed / subtaskProgress.total) * 100)}
-                  %
+                  {formatNumber(subtaskPercent, language)}%
                 </span>
               </div>
               <div
@@ -326,20 +336,17 @@ function SortableTaskItem({
               >
                 <span
                   className="goal-task-list__subtasks-bar-fill"
-                  style={{
-                    width: `${Math.round(
-                      (subtaskProgress.completed / subtaskProgress.total) * 100,
-                    )}%`,
-                  }}
+                  style={{ width: `${subtaskPercent}%` }}
                 />
               </div>
             </div>
           ) : null}
-          {task.status === "done" &&
-          subtaskProgress.total > subtaskProgress.completed ? (
+          {task.status === "done" && subtaskProgress.total > subtaskProgress.completed ? (
             <p className="goal-task-list__warning">
-              {subtaskProgress.total - subtaskProgress.completed} of{" "}
-              {subtaskProgress.total} subtasks still incomplete
+              {t("goals.taskList.incompleteSubtasksWarning", {
+                remaining: formatNumber(subtaskProgress.total - subtaskProgress.completed, language),
+                total: formatNumber(subtaskProgress.total, language),
+              })}
             </p>
           ) : null}
           {task.description ? <p className="goal-task-list__description">{task.description}</p> : null}
@@ -358,10 +365,10 @@ function SortableTaskItem({
         </div>
       ) : null}
 
-      <div className="goal-task-list__quick-actions" aria-label={`Quick actions for ${task.title}`}>
+      <div className="goal-task-list__quick-actions" aria-label={t("goals.taskList.quickActionsAria", { title: task.title })}>
         {task.status !== "in_progress" ? (
           <button
-            aria-label={`Mark ${task.title} in progress`}
+            aria-label={t("goals.taskList.markInProgressAria", { title: task.title })}
             className="goal-task-list__quick-action"
             onClick={(event) => {
               event.stopPropagation();
@@ -370,12 +377,12 @@ function SortableTaskItem({
             type="button"
           >
             <CircleDashed size={15} />
-            <span>In progress</span>
+            <span>{t("tasks.inProgress")}</span>
           </button>
         ) : null}
         {task.priority !== "high" ? (
           <button
-            aria-label={`Mark ${task.title} high priority`}
+            aria-label={t("goals.taskList.markHighPriorityAria", { title: task.title })}
             className="goal-task-list__quick-action"
             onClick={(event) => {
               event.stopPropagation();
@@ -384,13 +391,13 @@ function SortableTaskItem({
             type="button"
           >
             <AlertCircle size={15} />
-            <span>High priority</span>
+            <span>{t("goals.taskList.highPriorityAction")}</span>
           </button>
         ) : null}
       </div>
 
       <button
-        aria-label={`Delete task ${task.title}`}
+        aria-label={t("goals.taskList.deleteTaskAria", { title: task.title })}
         className="goal-task-list__delete"
         onClick={(event) => {
           event.stopPropagation();
@@ -404,10 +411,7 @@ function SortableTaskItem({
   );
 }
 
-function getDescendantProgress(
-  task: Task,
-  descendants: Task[],
-): { completed: number; total: number } {
+function getDescendantProgress(task: Task, descendants: Task[]): { completed: number; total: number } {
   if (descendants.length > 0) {
     return {
       completed: descendants.filter((descendant) => descendant.status === "done").length,
@@ -427,49 +431,56 @@ function renderTaskStatusIcon(status: Task["status"]): JSX.Element {
     case "in_progress":
       return <CircleDashed size={20} />;
     case "todo":
+    default:
       return <Circle size={20} />;
   }
 }
 
-function getStatusLabel(status: Task["status"]): string {
+function getTaskStatusLabel(
+  status: Task["status"],
+  t: (key: string) => string,
+): string {
   switch (status) {
     case "done":
-      return "Done";
+      return t("tasks.done");
     case "cancelled":
-      return "Cancelled";
+      return t("tasks.cancelled");
     case "in_progress":
-      return "In progress";
+      return t("tasks.inProgress");
     case "todo":
     default:
-      return "To do";
+      return t("tasks.todo");
   }
 }
 
-function getPriorityLabel(priority: Task["priority"]): string {
-  switch (priority) {
-    case "high":
-      return "High";
-    case "low":
-      return "Low";
-    case "medium":
-    default:
-      return "Medium";
-  }
-}
+function formatEstimatedDuration(
+  minutes: number,
+  language: "en" | "fa",
+  t: (key: string, values?: Record<string, string | number>) => string,
+): string {
+  const formattedMinutes = formatNumber(minutes, language);
 
-function formatEstimatedDuration(minutes: number): string {
   if (minutes < 60) {
-    return `${minutes} min`;
+    return t("goals.taskList.durationMinutes", { minutes: formattedMinutes });
   }
 
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
+  const formattedHours = formatNumber(hours, language);
 
   if (remainingMinutes === 0) {
-    return `${hours} hr`;
+    return t("goals.taskList.durationHours", { hours: formattedHours });
   }
 
-  return `${hours} hr ${remainingMinutes} min`;
+  return t("goals.taskList.durationHoursMinutes", {
+    hours: formattedHours,
+    minutes: formatNumber(remainingMinutes, language),
+  });
+}
+
+function formatTaskDate(value: string, language: "en" | "fa"): string {
+  const safeDate = new Date(value);
+  return Number.isNaN(safeDate.getTime()) ? value : formatAppDate(safeDate, language);
 }
 
 function renderSourceSummaryIcon(type: "image" | "video" | "link" | "file" | "note"): JSX.Element {

@@ -15,12 +15,15 @@ import { GoalHeader } from "@/features/goals/components/GoalHeader";
 import { GoalProgress } from "@/features/goals/components/GoalProgress";
 import { GoalTaskList } from "@/features/goals/components/GoalTaskList";
 import { useGoalDetail } from "@/features/goals/hooks/useGoalDetail";
+import { formatGoalProgressSummary } from "@/features/goals/utils/goals.i18n";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
 import { getAllDescendantTasks } from "@/features/tasks/utils/taskHierarchy";
+import { useI18n } from "@/i18n";
 
 const TASK_ROW_TRANSITION_MS = 220;
 
 export function GoalDetailPage(): JSX.Element {
+  const { language, t } = useI18n();
   const navigate = useNavigate();
   const { goalId } = useParams<{ goalId: string }>();
   const { goal, linkedTasks, loading } = useGoalDetail(goalId);
@@ -150,16 +153,16 @@ export function GoalDetailPage(): JSX.Element {
   }
 
   if (loading) {
-    return <p className="text-muted">Loading goal...</p>;
+    return <p className="text-muted">{t("goals.detail.loading")}</p>;
   }
 
   if (!displayGoal) {
     return (
       <EmptyState
-        actionLabel="Back to goals"
-        description="This goal could not be found locally."
+        actionLabel={t("goals.detail.backToGoals")}
+        description={t("goals.detail.notFoundDescription")}
         onAction={() => navigate("/goals")}
-        title="Goal not found"
+        title={t("goals.detail.notFoundTitle")}
       />
     );
   }
@@ -167,7 +170,7 @@ export function GoalDetailPage(): JSX.Element {
   return (
     <div className="goal-detail-page">
       <Button onClick={() => navigate("/goals")} type="button" variant="ghost">
-        Back to goals
+        {t("goals.detail.backToGoals")}
       </Button>
 
       <Card>
@@ -176,18 +179,23 @@ export function GoalDetailPage(): JSX.Element {
           completed={progress?.completed ?? 0}
           large
           percent={progress?.percentage ?? 0}
-          summaryText={progress?.label ?? "No steps yet"}
+          summaryText={
+            progress
+              ? formatGoalProgressSummary(displayGoal, progress, t, language)
+              : t("goals.noStepsYet")
+          }
           total={progress?.total ?? 0}
+          language={language}
         />
       </Card>
 
-      <Card title="Steps" subtitle="Progress updates instantly as linked tasks change">
+      <Card title={t("goals.detail.stepsTitle")} subtitle={t("goals.detail.stepsSubtitle")}>
         {taskListState.length === 0 ? (
           <EmptyState
-            actionLabel="Add your first task"
-            description="No steps yet. Add tasks to start making progress."
+            actionLabel={t("goals.detail.stepsEmptyAction")}
+            description={t("goals.detail.stepsEmptyDescription")}
             onAction={() => setIsAddTaskModalOpen(true)}
-            title="No steps yet"
+            title={t("goals.noStepsYet")}
           />
         ) : (
           <GoalTaskList
@@ -225,27 +233,27 @@ export function GoalDetailPage(): JSX.Element {
         )}
       </Card>
 
-      <Card title="Quick actions">
+      <Card title={t("goals.detail.quickActionsTitle")}>
         <div className="goal-detail-page__actions">
           <Button onClick={() => setIsAddTaskModalOpen(true)} type="button">
-            Add task
+            {t("goals.detail.addTask")}
           </Button>
           <Button onClick={() => setIsEditGoalModalOpen(true)} type="button" variant="secondary">
-            Edit goal
+            {t("goals.detail.editGoal")}
           </Button>
           <Button
             onClick={() => void goalsRepository.pause(displayGoal.id)}
             type="button"
             variant="secondary"
           >
-            Pause
+            {t("goals.detail.pause")}
           </Button>
           <Button
             onClick={() => void goalsRepository.archive(displayGoal.id)}
             type="button"
             variant="ghost"
           >
-            Archive
+            {t("goals.detail.archive")}
           </Button>
         </div>
       </Card>
@@ -282,9 +290,9 @@ export function GoalDetailPage(): JSX.Element {
         onClose={() => setIsEditGoalModalOpen(false)}
       />
       <ConfirmDialog
-        cancelLabel="Cancel"
-        confirmLabel="Delete"
-        description="This action cannot be undone."
+        cancelLabel={t("common.cancel")}
+        confirmLabel={t("common.delete")}
+        description={t("goals.detail.deleteTaskDescription")}
         isConfirming={isDeletingTask}
         isOpen={Boolean(taskPendingDelete)}
         onCancel={() => {
@@ -320,13 +328,13 @@ export function GoalDetailPage(): JSX.Element {
               });
           }, TASK_ROW_TRANSITION_MS);
         }}
-        title="Delete this task?"
+        title={t("goals.detail.deleteTaskTitle")}
         tone="danger"
       />
       <ConfirmDialog
-        cancelLabel="Cancel"
-        confirmLabel="Mark as done"
-        description="This task still has incomplete subtasks. Mark it as done anyway?"
+        cancelLabel={t("common.cancel")}
+        confirmLabel={t("goals.detail.markDone")}
+        description={t("goals.detail.incompleteSubtasksDescription")}
         isOpen={Boolean(taskPendingCompletion)}
         onCancel={() => setTaskPendingCompletion(null)}
         onConfirm={() => {
@@ -338,7 +346,7 @@ export function GoalDetailPage(): JSX.Element {
           setTaskPendingCompletion(null);
           commitTaskToggle(task);
         }}
-        title="Incomplete subtasks"
+        title={t("goals.detail.incompleteSubtasksTitle")}
       />
     </div>
   );

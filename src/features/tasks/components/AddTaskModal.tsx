@@ -16,10 +16,15 @@ import {
   TaskSubtask,
 } from "@/domains/tasks/types";
 import { normalizeTask, normalizeTaskTags } from "@/domains/tasks/task.utils";
+import {
+  getGoalPriorityDisplayName,
+} from "@/features/goals/utils/goals.i18n";
 import { TaskSourcesEditor } from "@/features/tasks/components/TaskSourcesEditor";
 import { SubtasksEditor } from "@/features/tasks/components/SubtasksEditor";
 import { TaskTree } from "@/features/tasks/components/TaskTree";
 import { buildTaskTree, getAllDescendantTasks } from "@/features/tasks/utils/taskHierarchy";
+import { useI18n } from "@/i18n";
+import { formatNumber } from "@/i18n/formatters";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -140,6 +145,7 @@ export function TaskModal({
   onSaved,
   onClose,
 }: TaskModalProps): JSX.Element | null {
+  const { language, t } = useI18n();
   const [formState, setFormState] = useState<TaskFormState>(createEmptyTaskFormState);
   const [tagDraft, setTagDraft] = useState("");
   const [error, setError] = useState("");
@@ -243,12 +249,12 @@ export function TaskModal({
       .filter((subtask) => subtask.title);
 
     if (!formState.title.trim()) {
-      setError("Task title is required.");
+      setError(t("tasks.modal.errors.titleRequired"));
       return;
     }
 
     if (formState.goalConnection === "linked" && !formState.selectedGoalId) {
-      setError("Choose a goal before saving a linked task.");
+      setError(t("tasks.modal.errors.goalRequired"));
       return;
     }
 
@@ -257,7 +263,11 @@ export function TaskModal({
     );
 
     if (invalidLink) {
-      setError(`The link source "${invalidLink.label || invalidLink.value}" needs a valid URL.`);
+      setError(
+        t("tasks.modal.errors.invalidLink", {
+          label: invalidLink.label || invalidLink.value,
+        }),
+      );
       return;
     }
 
@@ -270,10 +280,7 @@ export function TaskModal({
       tags: normalizedTags,
       status: formState.status,
       priority: formState.priority,
-      goalId:
-        formState.goalConnection === "linked"
-          ? formState.selectedGoalId
-          : undefined,
+      goalId: formState.goalConnection === "linked" ? formState.selectedGoalId : undefined,
       dueDate: formState.dueDate || undefined,
       estimatedDurationMinutes: formState.estimatedDurationMinutes
         ? Number(formState.estimatedDurationMinutes)
@@ -312,8 +319,8 @@ export function TaskModal({
     } catch {
       setError(
         mode === "edit"
-          ? "The task could not be updated locally right now."
-          : "The task could not be saved locally right now.",
+          ? t("tasks.modal.errors.updateFailed")
+          : t("tasks.modal.errors.saveFailed"),
       );
     } finally {
       setIsSubmitting(false);
@@ -325,7 +332,7 @@ export function TaskModal({
   }
 
   async function handleAddNestedSubtask(parentTask: Task): Promise<void> {
-    const title = window.prompt("Subtask title");
+    const title = window.prompt(t("tasks.modal.prompts.subtaskTitle"));
 
     if (!title?.trim()) {
       return;
@@ -353,7 +360,7 @@ export function TaskModal({
   }
 
   async function handleEditNestedTask(task: Task): Promise<void> {
-    const title = window.prompt("Task title", task.title);
+    const title = window.prompt(t("tasks.modal.prompts.taskTitle"), task.title);
 
     if (!title?.trim() || title.trim() === task.title) {
       return;
@@ -374,64 +381,72 @@ export function TaskModal({
       <ModalShell
         description={
           mode === "edit"
-            ? "Update this task without losing its linked sources, subtasks, or progress context."
+            ? t("tasks.modal.descriptionEdit")
             : goalTitle
-              ? `Create a new task for ${goalTitle} with richer context, sources, and subtasks.`
-              : "Create a new task with attachments, subtasks, and scheduling details."
+              ? t("tasks.modal.descriptionCreateGoal", { goalTitle })
+              : t("tasks.modal.descriptionCreate")
         }
         footer={
           <div className="modal-action-row">
             <Button onClick={requestClose} type="button" variant="ghost">
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button disabled={isSubmitting} onClick={() => void handleSubmit()} type="button">
-              {isSubmitting ? "Saving..." : mode === "edit" ? "Save changes" : "Save task"}
+              {isSubmitting
+                ? t("common.saving")
+                : mode === "edit"
+                  ? t("goals.edit.saveChanges")
+                  : t("tasks.modal.saveTask")}
             </Button>
           </div>
         }
         isOpen={isOpen}
         onRequestClose={requestClose}
         size="wide"
-        title={mode === "edit" ? "Edit Task" : goalTitle ? `Add Task to ${goalTitle}` : "Add Task"}
+        title={
+          mode === "edit"
+            ? t("tasks.modal.editTitle")
+            : goalTitle
+              ? t("tasks.modal.addTaskToGoalTitle", { goalTitle })
+              : t("tasks.modal.addTaskTitle")
+        }
       >
         <div className="task-modal-layout">
           <section className="task-editor-section task-editor-section--surface">
             <div className="task-editor-section__header">
               <div>
-                <h3 className="task-editor-section__title">Basic info</h3>
-                <p className="task-editor-section__description">
-                  Capture the task clearly now so execution later feels lighter.
-                </p>
+                <h3 className="task-editor-section__title">{t("tasks.modal.sections.basicInfo")}</h3>
+                <p className="task-editor-section__description">{t("tasks.modal.sections.basicInfoDescription")}</p>
               </div>
             </div>
 
             <div className="task-form-grid">
               <label className="auth-form__field task-form-grid__wide">
-                <span className="auth-form__label">Task title</span>
+                <span className="auth-form__label">{t("tasks.modal.taskTitle")}</span>
                 <input
                   className="auth-form__input"
                   onChange={(event) =>
                     setFormState((current) => ({ ...current, title: event.target.value }))
                   }
-                  placeholder="Ship the goal's next meaningful step"
+                  placeholder={t("tasks.modal.placeholders.title")}
                   value={formState.title}
                 />
               </label>
 
               <label className="auth-form__field task-form-grid__wide">
-                <span className="auth-form__label">Description</span>
+                <span className="auth-form__label">{t("tasks.modal.description")}</span>
                 <textarea
                   className="auth-form__input task-modal-textarea"
                   onChange={(event) =>
                     setFormState((current) => ({ ...current, description: event.target.value }))
                   }
-                  placeholder="Optional context, definition of done, or notes for future you"
+                  placeholder={t("tasks.modal.placeholders.description")}
                   value={formState.description}
                 />
               </label>
 
               <div className="auth-form__field task-form-grid__wide">
-                <span className="auth-form__label">Tags</span>
+                <span className="auth-form__label">{t("tasks.modal.tags")}</span>
                 <div className="task-tag-editor">
                   <div className="task-select-wrap task-tag-editor__input-wrap">
                     <Tags size={16} />
@@ -444,25 +459,21 @@ export function TaskModal({
                           commitTag(tagDraft);
                         }
                       }}
-                      placeholder="Add a tag like design, urgent, or research"
+                      placeholder={t("tasks.modal.placeholders.tag")}
                       value={tagDraft}
                     />
                   </div>
-                  <Button
-                    onClick={() => commitTag(tagDraft)}
-                    type="button"
-                    variant="secondary"
-                  >
-                    Add tag
+                  <Button onClick={() => commitTag(tagDraft)} type="button" variant="secondary">
+                    {t("tasks.modal.addTag")}
                   </Button>
                 </div>
                 {formState.tags.length > 0 ? (
-                  <div className="task-tag-list" role="list" aria-label="Task tags">
+                  <div className="task-tag-list" role="list" aria-label={t("tasks.modal.tagsAriaLabel")}>
                     {formState.tags.map((tag) => (
                       <span className="task-tag" key={tag} role="listitem">
                         <span>{tag}</span>
                         <button
-                          aria-label={`Remove tag ${tag}`}
+                          aria-label={t("tasks.modal.removeTagAria", { tag })}
                           className="task-tag__remove"
                           onClick={() => removeTag(tag)}
                           type="button"
@@ -473,23 +484,23 @@ export function TaskModal({
                     ))}
                   </div>
                 ) : (
-                  <p className="task-tag-editor__hint">
-                    Tags help cluster work quickly without adding visual noise.
-                  </p>
+                  <p className="task-tag-editor__hint">{t("tasks.modal.tagsHint")}</p>
                 )}
               </div>
 
               <section className="task-form-grid__wide task-goal-link">
                 <div className="task-editor-section__header">
                   <div>
-                    <h4 className="task-editor-section__title">Goal connection</h4>
-                    <p className="task-editor-section__description">
-                      Keep this task standalone or link it to a goal.
-                    </p>
+                    <h4 className="task-editor-section__title">{t("tasks.modal.goalConnection")}</h4>
+                    <p className="task-editor-section__description">{t("tasks.modal.goalConnectionDescription")}</p>
                   </div>
                 </div>
 
-                <div className="task-goal-link__options" role="radiogroup" aria-label="Task goal connection">
+                <div
+                  className="task-goal-link__options"
+                  role="radiogroup"
+                  aria-label={t("tasks.modal.goalConnection")}
+                >
                   <button
                     aria-pressed={formState.goalConnection === "standalone"}
                     className={`task-goal-link__option${
@@ -506,7 +517,7 @@ export function TaskModal({
                     }
                     type="button"
                   >
-                    Standalone
+                    {t("tasks.modal.standalone")}
                   </button>
                   <button
                     aria-pressed={formState.goalConnection === "linked"}
@@ -520,19 +531,18 @@ export function TaskModal({
                       setFormState((current) => ({
                         ...current,
                         goalConnection: "linked",
-                        selectedGoalId:
-                          current.selectedGoalId || goalId || goals?.[0]?.id || "",
+                        selectedGoalId: current.selectedGoalId || goalId || goals?.[0]?.id || "",
                       }))
                     }
                     type="button"
                   >
-                    Linked to goal
+                    {t("tasks.modal.linkedToGoal")}
                   </button>
                 </div>
 
                 {formState.goalConnection === "linked" ? (
                   <label className="auth-form__field">
-                    <span className="auth-form__label">Goal</span>
+                    <span className="auth-form__label">{t("navigation.goals")}</span>
                     <div className="task-select-wrap">
                       <Target size={16} />
                       <select
@@ -546,7 +556,7 @@ export function TaskModal({
                         }
                         value={formState.selectedGoalId}
                       >
-                        <option value="">Select a goal</option>
+                        <option value="">{t("tasks.modal.selectGoal")}</option>
                         {(goals ?? []).map((goal) => (
                           <option key={goal.id} value={goal.id}>
                             {goal.title}
@@ -557,15 +567,11 @@ export function TaskModal({
                   </label>
                 ) : null}
 
-                {!hasGoals ? (
-                  <p className="task-goal-link__hint">
-                    No goals available yet. Create a goal first.
-                  </p>
-                ) : null}
+                {!hasGoals ? <p className="task-goal-link__hint">{t("tasks.modal.noGoalsHint")}</p> : null}
               </section>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Status</span>
+                <span className="auth-form__label">{t("common.status")}</span>
                 <div className="task-select-wrap">
                   <ListTodo size={16} />
                   <select
@@ -578,15 +584,15 @@ export function TaskModal({
                     }
                     value={formState.status}
                   >
-                    <option value="todo">To do</option>
-                    <option value="in_progress">In progress</option>
-                    <option value="done">Done</option>
+                    <option value="todo">{t("tasks.todo")}</option>
+                    <option value="in_progress">{t("tasks.inProgress")}</option>
+                    <option value="done">{t("tasks.done")}</option>
                   </select>
                 </div>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Priority</span>
+                <span className="auth-form__label">{t("common.priority")}</span>
                 <div className="task-select-wrap">
                   <Flag size={16} />
                   <select
@@ -599,15 +605,15 @@ export function TaskModal({
                     }
                     value={formState.priority}
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                    <option value="low">{getGoalPriorityDisplayName("low", t)}</option>
+                    <option value="medium">{getGoalPriorityDisplayName("medium", t)}</option>
+                    <option value="high">{getGoalPriorityDisplayName("high", t)}</option>
                   </select>
                 </div>
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Due date</span>
+                <span className="auth-form__label">{t("common.dueDate")}</span>
                 <LocalizedDateInput
                   className="auth-form__input"
                   onChange={(nextValue) =>
@@ -618,7 +624,7 @@ export function TaskModal({
               </label>
 
               <label className="auth-form__field">
-                <span className="auth-form__label">Estimated duration</span>
+                <span className="auth-form__label">{t("tasks.modal.estimatedDuration")}</span>
                 <div className="task-select-wrap">
                   <Clock3 size={16} />
                   <input
@@ -630,7 +636,7 @@ export function TaskModal({
                         estimatedDurationMinutes: event.target.value.replace(/[^\d]/g, ""),
                       }))
                     }
-                    placeholder="90 minutes"
+                    placeholder={t("tasks.modal.placeholders.estimatedDuration")}
                     value={formState.estimatedDurationMinutes}
                   />
                 </div>
@@ -650,10 +656,15 @@ export function TaskModal({
               <div className="task-editor-section">
                 <div className="task-editor-section__header">
                   <div>
-                    <h3 className="task-editor-section__title">Subtasks</h3>
+                    <h3 className="task-editor-section__title">{t("tasks.modal.subtasks")}</h3>
                     <p className="task-editor-section__description">
-                      Break the task into smaller milestones. Progress shows{" "}
-                      {descendantTasks.filter((task) => task.status === "done").length}/{descendantTasks.length}.
+                      {t("tasks.modal.subtasksProgress", {
+                        completed: formatNumber(
+                          descendantTasks.filter((task) => task.status === "done").length,
+                          language,
+                        ),
+                        total: formatNumber(descendantTasks.length, language),
+                      })}
                     </p>
                   </div>
                   <Button
@@ -663,7 +674,7 @@ export function TaskModal({
                     type="button"
                     variant="secondary"
                   >
-                    Add subtask
+                    {t("tasks.modal.addSubtask")}
                   </Button>
                 </div>
                 {taskTree && taskTree.children.length > 0 ? (
@@ -682,9 +693,9 @@ export function TaskModal({
                   />
                 ) : (
                   <div className="task-editor-empty-state">
-                    <p className="task-editor-empty-state__title">No subtasks yet</p>
+                    <p className="task-editor-empty-state__title">{t("tasks.modal.noSubtasksYet")}</p>
                     <p className="task-editor-empty-state__description">
-                      Add a few crisp next actions now. Ordering can be layered in later without changing this structure.
+                      {t("tasks.modal.noSubtasksDescription")}
                     </p>
                   </div>
                 )}
@@ -702,16 +713,16 @@ export function TaskModal({
       </ModalShell>
 
       <ConfirmDialog
-        cancelLabel="Keep editing"
-        confirmLabel="Discard changes"
-        description="You have unsaved task edits. Close this modal and lose them?"
+        cancelLabel={t("tasks.modal.keepEditing")}
+        confirmLabel={t("tasks.modal.discardChanges")}
+        description={t("tasks.modal.discardDescription")}
         isOpen={showDiscardDialog}
         onCancel={() => setShowDiscardDialog(false)}
         onConfirm={() => {
           setShowDiscardDialog(false);
           onClose();
         }}
-        title="Discard task draft?"
+        title={t("tasks.modal.discardTitle")}
         tone="danger"
       />
     </>

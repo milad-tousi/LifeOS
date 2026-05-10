@@ -17,8 +17,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Square, SquareCheckBig, Trash2 } from "lucide-react";
 import { Button } from "@/components/common/Button";
-import { createId } from "@/lib/id";
 import { TaskSubtask } from "@/domains/tasks/types";
+import { useI18n } from "@/i18n";
+import { formatNumber } from "@/i18n/formatters";
+import { createId } from "@/lib/id";
 
 interface SubtasksEditorProps {
   subtasks: TaskSubtask[];
@@ -38,6 +40,7 @@ export function SubtasksEditor({
   onChange,
   subtasks,
 }: SubtasksEditorProps): JSX.Element {
+  const { language, t } = useI18n();
   const completedCount = subtasks.filter((subtask) => subtask.completed).length;
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -94,22 +97,25 @@ export function SubtasksEditor({
     <div className="task-editor-section">
       <div className="task-editor-section__header">
         <div>
-          <h3 className="task-editor-section__title">Subtasks</h3>
+          <h3 className="task-editor-section__title">{t("tasks.modal.subtasks")}</h3>
           <p className="task-editor-section__description">
-            Break the task into smaller milestones. Progress shows {completedCount}/{subtasks.length}.
+            {t("tasks.modal.subtasksProgress", {
+              completed: formatNumber(completedCount, language),
+              total: formatNumber(subtasks.length, language),
+            })}
           </p>
         </div>
         <Button onClick={addSubtask} type="button" variant="secondary">
           <Plus size={16} />
-          Add subtask
+          {t("tasks.modal.addSubtask")}
         </Button>
       </div>
 
       {subtasks.length === 0 ? (
         <div className="task-editor-empty-state">
-          <p className="task-editor-empty-state__title">No subtasks yet</p>
+          <p className="task-editor-empty-state__title">{t("tasks.modal.noSubtasksYet")}</p>
           <p className="task-editor-empty-state__description">
-            Add a few crisp next actions now. Ordering can be layered in later without changing this structure.
+            {t("tasks.modal.noSubtasksDescription")}
           </p>
         </div>
       ) : (
@@ -152,6 +158,7 @@ function SortableSubtaskCard({
   onUpdate,
   subtask,
 }: SortableSubtaskCardProps): JSX.Element {
+  const { t } = useI18n();
   const {
     attributes,
     isDragging,
@@ -173,7 +180,9 @@ function SortableSubtaskCard({
       style={style}
     >
       <button
-        aria-label={`Reorder ${subtask.title || `subtask ${index + 1}`}`}
+        aria-label={t("tasks.modal.reorderSubtaskAria", {
+          title: subtask.title || t("tasks.modal.subtaskNumber", { index: index + 1 }),
+        })}
         className="subtask-card__handle"
         ref={setActivatorNodeRef}
         type="button"
@@ -184,7 +193,14 @@ function SortableSubtaskCard({
       </button>
 
       <button
-        aria-label={`${subtask.completed ? "Mark incomplete" : "Mark complete"} ${subtask.title || `subtask ${index + 1}`}`}
+        aria-label={t(
+          subtask.completed
+            ? "tasks.modal.markSubtaskIncompleteAria"
+            : "tasks.modal.markSubtaskCompleteAria",
+          {
+            title: subtask.title || t("tasks.modal.subtaskNumber", { index: index + 1 }),
+          },
+        )}
         className="subtask-card__toggle"
         onClick={() =>
           onToggle(subtask.id, {
@@ -198,27 +214,27 @@ function SortableSubtaskCard({
 
       <div className="subtask-card__fields">
         <label className="auth-form__field">
-          <span className="auth-form__label">Title</span>
+          <span className="auth-form__label">{t("tasks.modal.taskTitle")}</span>
           <input
             className="auth-form__input"
             onChange={(event) => onUpdate(subtask.id, { title: event.target.value })}
-            placeholder="Outline the next step"
+            placeholder={t("tasks.modal.placeholders.subtaskTitle")}
             value={subtask.title}
           />
         </label>
         <label className="auth-form__field">
-          <span className="auth-form__label">Description</span>
+          <span className="auth-form__label">{t("tasks.modal.description")}</span>
           <textarea
             className="auth-form__input task-source-card__textarea"
             onChange={(event) => onUpdate(subtask.id, { description: event.target.value })}
-            placeholder="Optional supporting detail"
+            placeholder={t("tasks.modal.placeholders.subtaskDescription")}
             value={subtask.description ?? ""}
           />
         </label>
       </div>
 
       <button
-        aria-label={`Delete subtask ${index + 1}`}
+        aria-label={t("tasks.modal.deleteSubtaskAria", { index: index + 1 })}
         className="subtask-card__remove"
         onClick={() => onRemove(subtask.id)}
         type="button"

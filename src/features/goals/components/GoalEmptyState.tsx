@@ -1,16 +1,19 @@
 import { EmptyState } from "@/components/common/EmptyState";
+import { useI18n } from "@/i18n";
 
 interface GoalEmptyStateProps {
   onCreate?: () => void;
 }
 
 export function GoalEmptyState({ onCreate }: GoalEmptyStateProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <EmptyState
-      actionLabel={onCreate ? "Create your first goal" : undefined}
-      description="Start with one meaningful goal. LifeOS will help you build it step by step."
+      actionLabel={onCreate ? t("goals.empty.action") : undefined}
+      description={t("goals.empty.description")}
       onAction={onCreate}
-      title="No goals yet"
+      title={t("goals.empty.title")}
     />
   );
 }

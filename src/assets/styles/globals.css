@@ -3134,8 +3134,26 @@ a:focus-visible {
   z-index: 18;
 }
 
+.rtl .goals-page__header {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.rtl .goals-page__desktop-action,
+.rtl .goals-page__mobile-action {
+  align-self: flex-end;
+}
+
+.rtl .goals-page__desktop-grid {
+  direction: rtl;
+}
+
 .goal-create-button {
   box-shadow: var(--shadow);
+}
+
+.rtl .goal-create-button {
+  flex-direction: row-reverse;
 }
 
 .goal-create-button--compact {
@@ -3178,6 +3196,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
   gap: 0.75rem;
 }
 
@@ -3237,6 +3256,11 @@ a:focus-visible {
 }
 
 .goal-card__next-task {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text);
   font-weight: 500;
 }
@@ -3264,6 +3288,7 @@ a:focus-visible {
 
 .rtl .goal-card,
 .rtl .goal-detail-header {
+  direction: rtl;
   text-align: right;
 }
 
@@ -3279,15 +3304,114 @@ a:focus-visible {
 }
 
 .rtl .goal-card__footer-copy,
+.rtl .goal-card__content {
+  align-items: flex-end;
+}
+
+.rtl .goal-card__footer {
+  justify-content: space-between;
+}
+
+.rtl .goal-card__top,
 .rtl .goal-card__content,
+.rtl .goal-card__habit-progress,
+.rtl .goal-card__overall-progress,
+.rtl .goal-card__footer-copy {
+  width: 100%;
+  text-align: right;
+}
+
+.rtl .goal-card__footer-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rtl .goal-card__deadline {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .rtl .goal-detail-header__copy,
 .rtl .goal-detail-header__summary-item {
-  align-items: flex-end;
+  align-items: stretch;
+}
+
+.rtl .goal-detail-header__copy > * {
+  text-align: right;
+}
+
+.rtl .goal-card__category-pill,
+.rtl .goal-detail-header__title,
+.rtl .goal-detail-header__description {
+  text-align: right;
+}
+
+.rtl .goal-card__title,
+.rtl .goal-card__description,
+.rtl .goal-card__next-task,
+.rtl .goal-card__habit-progress-header span,
+.rtl .goal-card__habit-progress-header strong,
+.rtl .goal-card__habit-progress p,
+.rtl .goal-card__overall-progress span,
+.rtl .goal-card__overall-progress strong {
+  width: 100%;
+  text-align: right;
+}
+
+.rtl .goal-card__category-pill {
+  align-self: flex-end;
+}
+
+.rtl .goal-detail-header__meta {
+  width: auto;
+  align-self: flex-end;
+  justify-content: flex-start;
+}
+
+.rtl .goal-detail-header__summary {
+  direction: rtl;
+}
+
+.rtl .goal-detail-header__summary-label,
+.rtl .goal-detail-header__summary-helper {
+  width: 100%;
+  text-align: right;
+}
+
+.rtl .goal-detail-header__summary-item,
+.rtl .goal-detail-header__summary-value,
+.rtl .goal-detail-header__summary-notes {
+  text-align: right;
+}
+
+.rtl .goal-detail-header__meta-item {
+  width: auto;
+  justify-content: flex-start;
+  text-align: right;
+}
+
+.rtl .goal-detail-header__summary-item {
+  width: 100%;
+}
+
+.rtl .goal-detail-header__summary-value,
+.rtl .goal-detail-header__summary-notes,
+.rtl .goal-detail-header__deadline-chip {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.rtl .goal-detail-header__meta-item {
+  justify-content: flex-end;
 }
 
 .rtl .goal-card__habit-progress-header,
 .rtl .goal-card__linked-habits {
   direction: rtl;
+}
+
+.rtl .goal-card__linked-habits {
+  justify-content: flex-end;
 }
 
 .goal-card__habit-progress {
@@ -6412,6 +6536,17 @@ button.dashboard-mind-node {
 .dashboard-goal-select-list span {
   color: var(--muted);
   font-size: 0.84rem;
+}
+
+.rtl .dashboard-goal-select-list button {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.rtl .dashboard-goal-select-list button strong,
+.rtl .dashboard-goal-select-list button span {
+  width: 100%;
+  text-align: right;
 }
 
 .dashboard-modal-backdrop {

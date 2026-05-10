@@ -1,4 +1,6 @@
 import { Goal } from "@/domains/goals/types";
+import { formatAppDate, formatNumber } from "@/i18n/formatters";
+import { Language, TranslationKey } from "@/i18n/i18n.types";
 
 export interface GoalDeadlineState {
   hasDeadline: boolean;
@@ -17,6 +19,8 @@ export interface GoalDeadlineState {
 const DAY_MS = 24 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
+type Translate = (key: TranslationKey, values?: Record<string, string | number>) => string;
+
 function parseDeadline(deadline?: string): Date | null {
   if (!deadline?.trim()) {
     return null;
@@ -33,16 +37,10 @@ function parseDeadline(deadline?: string): Date | null {
   return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
 }
 
-function formatDeadline(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
 export function computeGoalDeadlineState(
   goal: Goal,
+  t: Translate,
+  language: Language,
   now = new Date(),
 ): GoalDeadlineState {
   const deadlineDate = parseDeadline(goal.deadline);
@@ -56,9 +54,9 @@ export function computeGoalDeadlineState(
       isWarning: false,
       daysRemaining: null,
       hoursRemaining: null,
-      statusLabel: "No deadline",
+      statusLabel: t("goals.noDeadline"),
       tone: "neutral",
-      helperText: "No deadline set yet.",
+      helperText: t("goals.deadlineState.noDeadlineHelper"),
       formattedDeadline: null,
     };
   }
@@ -78,7 +76,7 @@ export function computeGoalDeadlineState(
     now.getDate() === deadlineDate.getDate() &&
     !isOverdue;
   const isWarning = !isOverdue && !isDueToday && diffMs <= 7 * DAY_MS;
-  const formattedDeadline = formatDeadline(deadlineDate);
+  const formattedDeadline = formatAppDate(deadlineDate, language);
 
   if (isCompleted) {
     const completedOnTime = goal.updatedAt <= deadlineDate.getTime();
@@ -91,11 +89,13 @@ export function computeGoalDeadlineState(
       isWarning: false,
       daysRemaining: null,
       hoursRemaining: null,
-      statusLabel: completedOnTime ? "Completed on time" : "Completed",
+      statusLabel: completedOnTime
+        ? t("goals.deadlineState.completedOnTime")
+        : t("goals.statuses.completed"),
       tone: "success",
       helperText: completedOnTime
-        ? "This goal was completed before the deadline."
-        : "This goal is completed.",
+        ? t("goals.deadlineState.completedOnTimeHelper")
+        : t("goals.deadlineState.completedHelper"),
       formattedDeadline,
     };
   }
@@ -111,10 +111,14 @@ export function computeGoalDeadlineState(
       hoursRemaining,
       statusLabel:
         hoursRemaining < 24
-          ? `Overdue by ${hoursRemaining} hour${hoursRemaining === 1 ? "" : "s"}`
-          : `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} overdue`,
+          ? t("goals.deadlineState.overdueHours", {
+              count: formatNumber(hoursRemaining, language),
+            })
+          : t("goals.deadlineState.overdueDays", {
+              count: formatNumber(daysRemaining, language),
+            }),
       tone: "danger",
-      helperText: "This goal is overdue.",
+      helperText: t("goals.deadlineState.overdueHelper"),
       formattedDeadline,
     };
   }
@@ -128,9 +132,9 @@ export function computeGoalDeadlineState(
       isWarning: true,
       daysRemaining: 0,
       hoursRemaining,
-      statusLabel: "Due today",
+      statusLabel: t("goals.deadlineState.dueToday"),
       tone: "warning",
-      helperText: "Stay focused — deadline is approaching.",
+      helperText: t("goals.deadlineState.approachingHelper"),
       formattedDeadline,
     };
   }
@@ -145,12 +149,16 @@ export function computeGoalDeadlineState(
     hoursRemaining,
     statusLabel:
       hoursRemaining < 24
-        ? `Due in ${hoursRemaining} hour${hoursRemaining === 1 ? "" : "s"}`
-        : `${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left`,
+        ? t("goals.deadlineState.dueInHours", {
+            count: formatNumber(hoursRemaining, language),
+          })
+        : t("goals.deadlineState.daysLeft", {
+            count: formatNumber(daysRemaining, language),
+          }),
     tone: isWarning ? "warning" : "info",
     helperText: isWarning
-      ? "Stay focused — deadline is approaching."
-      : "The deadline is comfortably ahead.",
+      ? t("goals.deadlineState.approachingHelper")
+      : t("goals.deadlineState.comfortableHelper"),
     formattedDeadline,
   };
 }

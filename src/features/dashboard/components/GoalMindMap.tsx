@@ -37,6 +37,7 @@ import { LinkExistingTaskModal } from "@/features/dashboard/components/LinkExist
 import { CreateMindMapTaskModal } from "@/features/dashboard/components/CreateMindMapTaskModal";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
 import { useI18n } from "@/i18n";
+import { formatNumber } from "@/i18n/formatters";
 import {
   CreateMindMapTaskInput,
   GoalMindMapEdge,
@@ -55,6 +56,7 @@ import {
   wouldCreateCycle,
 } from "@/features/dashboard/utils/goalMindMapRules";
 import { GoalCardData } from "@/features/goals/hooks/useGoals";
+import { getGoalStatusDisplayName } from "@/features/goals/utils/goals.i18n";
 import {
   createRealSubtaskFromMindMap,
   createRealTaskFromMindMap,
@@ -105,7 +107,7 @@ function GoalMindMapInner({
   selectedGoalId,
   tasks,
 }: GoalMindMapProps): JSX.Element {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const [isLinkOpen, setIsLinkOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isGoalSelectOpen, setIsGoalSelectOpen] = useState(false);
@@ -242,11 +244,14 @@ function GoalMindMapInner({
   const refreshMindMap = useCallback((taskSnapshot: Task[] = linkedTasks): void => {
     const layout = loadGoalMindMapLayout();
     const nextNodes = buildNodes({
+      emptyGoalSubtitle: t("dashboard.chooseGoalForMap"),
+      emptyGoalTitle: t("dashboard.selectGoal"),
       goalNodeId,
       linkedTasks: taskSnapshot,
       onEditTask: openTaskEditor,
       onRemoveTask: openTaskRemoveDialog,
       onSelectGoal: openGoalSelector,
+      selectedGoalSubtitle: t("dashboard.changeSelectedGoal"),
       selectedGoal,
       todayKey,
     });
@@ -1038,21 +1043,27 @@ function GoalMindMapInner({
 }
 
 interface BuildNodesInput {
+  emptyGoalSubtitle: string;
+  emptyGoalTitle: string;
   goalNodeId: string;
   linkedTasks: Task[];
   onEditTask: (taskId: string) => void;
   onRemoveTask: (taskId: string) => void;
   onSelectGoal: () => void;
+  selectedGoalSubtitle: string;
   selectedGoal?: GoalCardData;
   todayKey: string;
 }
 
 function buildNodes({
+  emptyGoalSubtitle,
+  emptyGoalTitle,
   goalNodeId,
   linkedTasks,
   onEditTask,
   onRemoveTask,
   onSelectGoal,
+  selectedGoalSubtitle,
   selectedGoal,
   todayKey,
 }: BuildNodesInput): GoalMindMapNode[] {
@@ -1067,14 +1078,14 @@ function buildNodes({
           onSelectGoal,
           progress: selectedGoal.overallProgress,
           status: selectedGoal.goal.status,
-          subtitle: "Click to change goal",
+          subtitle: selectedGoalSubtitle,
           title: selectedGoal.goal.title,
         }
       : {
           kind: "goal",
           onSelectGoal,
-          subtitle: "Click to choose a goal",
-          title: "Select Goal",
+          subtitle: emptyGoalSubtitle,
+          title: emptyGoalTitle,
         },
   };
   const taskNodes = linkedTasks.map((task) => ({
@@ -1381,16 +1392,18 @@ function GoalSelectorModal({
   onSelect: (goalId: string) => void;
   selectedGoalId: string;
 }): JSX.Element | null {
+  const { language, t } = useI18n();
+
   if (!isOpen) {
     return null;
   }
 
   return (
     <ModalShell
-      description="Choose the goal that sits at the center of this workspace."
+      description={t("dashboard.goalSelectDescription")}
       isOpen={isOpen}
       onRequestClose={onClose}
-      title="Select Goal"
+      title={t("dashboard.selectGoal")}
     >
       {goals.length > 0 ? (
         <div className="dashboard-goal-select-list">
@@ -1403,13 +1416,16 @@ function GoalSelectorModal({
             >
               <strong>{goal.goal.title}</strong>
               <span>
-                {goal.goal.status} - {goal.overallProgress}% progress
+                {t("dashboard.goalSelectStatusProgress", {
+                  progress: formatNumber(goal.overallProgress, language),
+                  status: getGoalStatusDisplayName(goal.goal.status, t),
+                })}
               </span>
             </button>
           ))}
         </div>
       ) : (
-        <p className="dashboard-modal__empty">Create a goal first to build a mind map.</p>
+        <p className="dashboard-modal__empty">{t("dashboard.goalSelectEmpty")}</p>
       )}
     </ModalShell>
   );

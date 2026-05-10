@@ -1,7 +1,11 @@
 import { CreateGoalInput, Goal, GoalProgressType, GoalTargetType } from "@/domains/goals/types";
+import { formatNumber } from "@/i18n/formatters";
+import { Language, TranslationKey } from "@/i18n/i18n.types";
 
 const DEFAULT_GOAL_TARGET_TYPE: GoalTargetType = "none";
 const DEFAULT_GOAL_PROGRESS_TYPE: GoalProgressType = "tasks";
+
+type Translate = (key: TranslationKey, values?: Record<string, string | number>) => string;
 
 function normalizeGoalTargetType(value?: string): GoalTargetType {
   switch (value) {
@@ -124,52 +128,47 @@ export function getGoalProgressPercentFromMode(goal: Goal): number | null {
   return null;
 }
 
-export function getGoalProgressModeName(goal: Goal): string {
+export function getGoalProgressModeName(goal: Goal, t: Translate): string {
+  return t(`goals.progressTypes.${goal.progressType}`);
+}
+
+export function getGoalProgressModeHelperText(goal: Goal, t: Translate): string {
   switch (goal.progressType) {
-    case "manual":
-      return "Manual";
-    case "target":
-      return "Target";
     case "subtasks":
-      return "Subtasks";
+      return t("goals.progressModeHelpers.subtasks");
+    case "manual":
+      return t("goals.progressModeHelpers.manual");
+    case "target":
+      return t("goals.progressModeHelpers.target");
     case "tasks":
     default:
-      return "Tasks";
+      return t("goals.progressModeHelpers.tasks");
   }
 }
 
-export function getGoalProgressModeHelperText(goal: Goal): string {
-  switch (goal.progressType) {
-    case "subtasks":
-      return "Progress is based on completed subtasks across all tasks.";
-    case "manual":
-      return "Progress is set manually.";
-    case "target":
-      return "Progress is based on current value versus target value.";
-    case "tasks":
-    default:
-      return "Progress is based on completed tasks. Subtasks alone do not change goal progress.";
-  }
-}
-
-export function getGoalTargetSummary(goal: Goal): string | null {
+export function getGoalTargetSummary(goal: Goal, t: Translate, language: Language): string | null {
   if (goal.progressType !== "target") {
     return null;
   }
 
+  const currentValue = formatNumber(goal.currentValue ?? 0, language);
+  const targetValue = goal.targetValue ? formatNumber(goal.targetValue, language) : null;
+
   switch (goal.targetType) {
     case "count":
-      return goal.targetValue ? `Count target: ${goal.currentValue ?? 0} / ${goal.targetValue}` : null;
+      return targetValue
+        ? t("goals.targetSummary.count", { current: currentValue, target: targetValue })
+        : null;
     case "binary":
-      return "Binary target";
+      return t("goals.targetSummary.binary");
     case "milestone":
-      return goal.targetValue
-        ? `Milestone target: ${goal.currentValue ?? 0} / ${goal.targetValue}`
-        : "Milestone target";
+      return targetValue
+        ? t("goals.targetSummary.milestone", { current: currentValue, target: targetValue })
+        : t("goals.targetTypes.milestone");
     case "percentage":
-      return goal.targetValue
-        ? `Percentage target: ${goal.currentValue ?? 0} / ${goal.targetValue}`
-        : "Percentage target";
+      return targetValue
+        ? t("goals.targetSummary.percentage", { current: currentValue, target: targetValue })
+        : t("goals.targetTypes.percentage");
     case "none":
     default:
       return null;
