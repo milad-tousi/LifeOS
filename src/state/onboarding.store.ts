@@ -38,7 +38,7 @@ export interface OnboardingStoreState {
   isCompleted: boolean;
   isSkipped: boolean;
   isLoading: boolean;
-  startOnboarding: (input: { displayName: string }) => Promise<void>;
+  startOnboarding: (input: { displayName: string; language: string }) => Promise<void>;
   nextStep: () => Promise<void>;
   previousStep: () => Promise<void>;
   saveStep: (input: SaveStepInput) => Promise<void>;

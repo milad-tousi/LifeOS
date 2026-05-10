@@ -2702,6 +2702,30 @@ a:focus-visible {
   flex-direction: row-reverse;
 }
 
+.onboarding-page--rtl .onboarding-question,
+.onboarding-page--rtl .onboarding-question__copy,
+.onboarding-page--rtl .onboarding-question__control,
+.onboarding-page--rtl .onboarding-form-grid,
+.onboarding-page--rtl .onboarding-field,
+.onboarding-page--rtl .onboarding-choice-group,
+.onboarding-page--rtl .onboarding-copy {
+  text-align: right;
+}
+
+.onboarding-page--rtl .onboarding-choice-group legend {
+  text-align: right;
+}
+
+.onboarding-page--rtl .onboarding-choice-grid,
+.onboarding-page--rtl .onboarding-choice-grid--triple {
+  direction: rtl;
+}
+
+.onboarding-page--rtl .onboarding-choice,
+.onboarding-page--rtl .onboarding-toggle {
+  text-align: right;
+}
+
 .onboarding-progress {
   display: flex;
   flex-direction: column;
@@ -6907,7 +6931,7 @@ button.dashboard-mind-node {
 
 .finance-recurring-form__field--start-date,
 .finance-recurring-form__field--end-date {
-  grid-column: span 2;
+  grid-column: span 3;
 }
 
 .finance-recurring-form__field--merchant {
@@ -6929,7 +6953,8 @@ button.dashboard-mind-node {
 
 .finance-recurring-form__date {
   min-width: 0;
-  padding-right: 0.75rem;
+  width: 100%;
+  padding-inline: 0.95rem 0.75rem;
 }
 
 .finance-recurring-form__textarea {
@@ -8028,10 +8053,28 @@ button.dashboard-mind-node {
 .localized-date-input__trigger {
   display: flex;
   width: 100%;
+  min-height: 3rem;
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
   text-align: start;
+}
+
+.localized-date-input__trigger span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.rtl .localized-date-input__trigger {
+  flex-direction: row-reverse;
+}
+
+.rtl .localized-date-input__trigger span {
+  text-align: right;
 }
 
 .localized-date-input__trigger--empty {

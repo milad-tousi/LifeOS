@@ -5,6 +5,7 @@ import { StepCompletion } from "@/features/onboarding/components/StepCompletion"
 import { OnboardingLayout } from "@/features/onboarding/components/OnboardingLayout";
 import { StepSingleQuestion } from "@/features/onboarding/components/StepSingleQuestion";
 import { useOnboarding } from "@/features/onboarding/hooks/useOnboarding";
+import { applyDocumentLanguage, LANGUAGE_STORAGE_KEY, useI18n } from "@/i18n";
 import { FIRST_ONBOARDING_STEP_INDEX, ONBOARDING_STEP_IDS } from "@/state/onboarding.store";
 import { createLogger } from "@/utils/logger";
 
@@ -13,6 +14,7 @@ const onboardingLogger = createLogger("onboarding");
 
 export function OnboardingPage(): JSX.Element {
   const navigate = useNavigate();
+  const { language, setLanguage, t } = useI18n();
   const {
     completeOnboarding,
     currentStep,
@@ -35,6 +37,18 @@ export function OnboardingPage(): JSX.Element {
   }, [draft, restoreOnboarding]);
 
   useEffect(() => {
+    const onboardingLanguage = draft?.profile.language === "fa" ? "fa" : draft?.profile.language === "en" ? "en" : null;
+
+    if (!onboardingLanguage || onboardingLanguage === language) {
+      return;
+    }
+
+    setLanguage(onboardingLanguage);
+    applyDocumentLanguage(onboardingLanguage);
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, onboardingLanguage);
+  }, [draft?.profile.language, language, setLanguage]);
+
+  useEffect(() => {
     if (isLoading || !draft) {
       return;
     }
@@ -49,11 +63,11 @@ export function OnboardingPage(): JSX.Element {
   }, [currentStep, draft, isLoading, isStarted, navigate]);
 
   if (isLoading || !draft) {
-    return <div className="route-loading">Loading setup...</div>;
+    return <div className="route-loading">{t("onboarding.loading.setup")}</div>;
   }
 
   if (!isStarted || currentStep < FIRST_ONBOARDING_STEP_INDEX) {
-    return <div className="route-loading">Preparing your workspace...</div>;
+    return <div className="route-loading">{t("onboarding.loading.workspace")}</div>;
   }
 
   const currentStepId = ONBOARDING_STEP_IDS[currentStep];
@@ -71,12 +85,12 @@ export function OnboardingPage(): JSX.Element {
                 onChange={(event) =>
                   void saveStep({ profile: { currentFocus: event.target.value } })
                 }
-                placeholder="What matters most in this season?"
+                placeholder={t("onboarding.steps.focus.placeholder")}
                 value={draft.profile.currentFocus ?? ""}
               />
             }
-            description="This helps future goals, dashboard summaries, and assistant-like prompts stay relevant."
-            title="What is your current focus?"
+            description={t("onboarding.steps.focus.description")}
+            title={t("onboarding.steps.focus.title")}
           />
         );
       case "work_style":
@@ -85,12 +99,12 @@ export function OnboardingPage(): JSX.Element {
             control={
               <div className="onboarding-choice-grid onboarding-choice-grid--triple">
                 {[
-                  ["fixed", "Fixed"],
-                  ["flexible", "Flexible"],
-                  ["remote", "Remote"],
-                  ["hybrid", "Hybrid"],
-                  ["onsite", "On-site"],
-                  ["shift", "Shift"],
+                  ["fixed", t("onboarding.options.workStyle.fixed")],
+                  ["flexible", t("onboarding.options.workStyle.flexible")],
+                  ["remote", t("onboarding.options.workStyle.remote")],
+                  ["hybrid", t("onboarding.options.workStyle.hybrid")],
+                  ["onsite", t("onboarding.options.workStyle.onsite")],
+                  ["shift", t("onboarding.options.workStyle.shift")],
                 ].map(([value, label]) => (
                   <button
                     className={`onboarding-choice ${
@@ -105,8 +119,8 @@ export function OnboardingPage(): JSX.Element {
                 ))}
               </div>
             }
-            description="A light work-style signal helps planning surfaces feel more realistic."
-            title="Which work style fits your week best?"
+            description={t("onboarding.steps.workStyle.description")}
+            title={t("onboarding.steps.workStyle.title")}
           />
         );
       case "wake_time":
@@ -120,8 +134,8 @@ export function OnboardingPage(): JSX.Element {
                 value={draft.profile.wakeTime ?? ""}
               />
             }
-            description="Wake time helps future reminders arrive when they feel natural."
-            title="When do you usually wake up?"
+            description={t("onboarding.steps.wakeTime.description")}
+            title={t("onboarding.steps.wakeTime.title")}
           />
         );
       case "sleep_time":
@@ -137,8 +151,8 @@ export function OnboardingPage(): JSX.Element {
                 value={draft.profile.sleepTime ?? ""}
               />
             }
-            description="This keeps evening planning calm and avoids late nudges later on."
-            title="When do you usually wind down for sleep?"
+            description={t("onboarding.steps.sleepTime.description")}
+            title={t("onboarding.steps.sleepTime.title")}
           />
         );
       case "energy_type":
@@ -147,9 +161,9 @@ export function OnboardingPage(): JSX.Element {
             control={
               <div className="onboarding-choice-grid onboarding-choice-grid--triple">
                 {[
-                  ["early_bird", "Early bird"],
-                  ["balanced", "Balanced"],
-                  ["night_owl", "Night owl"],
+                  ["early_bird", t("onboarding.options.energyType.early_bird")],
+                  ["balanced", t("onboarding.options.energyType.balanced")],
+                  ["night_owl", t("onboarding.options.energyType.night_owl")],
                 ].map(([value, label]) => (
                   <button
                     className={`onboarding-choice ${
@@ -164,8 +178,8 @@ export function OnboardingPage(): JSX.Element {
                 ))}
               </div>
             }
-            description="A small energy preference gives LifeOS better context for future routines."
-            title="How does your energy usually feel?"
+            description={t("onboarding.steps.energyType.description")}
+            title={t("onboarding.steps.energyType.title")}
           />
         );
       case "preferred_pace":
@@ -174,9 +188,9 @@ export function OnboardingPage(): JSX.Element {
             control={
               <div className="onboarding-choice-grid onboarding-choice-grid--triple">
                 {[
-                  ["gentle", "Gentle"],
-                  ["balanced", "Balanced"],
-                  ["ambitious", "Ambitious"],
+                  ["gentle", t("onboarding.options.preferredPace.gentle")],
+                  ["balanced", t("onboarding.options.preferredPace.balanced")],
+                  ["ambitious", t("onboarding.options.preferredPace.ambitious")],
                 ].map(([value, label]) => (
                   <button
                     className={`onboarding-choice ${
@@ -193,8 +207,8 @@ export function OnboardingPage(): JSX.Element {
                 ))}
               </div>
             }
-            description="Pace helps future planning stay supportive instead of overwhelming."
-            title="What pace feels best for your goals?"
+            description={t("onboarding.steps.preferredPace.description")}
+            title={t("onboarding.steps.preferredPace.title")}
           />
         );
       case "reminder_style":
@@ -203,10 +217,10 @@ export function OnboardingPage(): JSX.Element {
             control={
               <div className="onboarding-choice-grid onboarding-choice-grid--triple">
                 {[
-                  ["gentle", "Gentle"],
-                  ["motivating", "Motivating"],
-                  ["structured", "Structured"],
-                  ["minimal", "Minimal"],
+                  ["gentle", t("onboarding.options.reminderStyle.gentle")],
+                  ["motivating", t("onboarding.options.reminderStyle.motivating")],
+                  ["structured", t("onboarding.options.reminderStyle.structured")],
+                  ["minimal", t("onboarding.options.reminderStyle.minimal")],
                 ].map(([value, label]) => (
                   <button
                     className={`onboarding-choice ${
@@ -223,8 +237,8 @@ export function OnboardingPage(): JSX.Element {
                 ))}
               </div>
             }
-            description="Reminder style keeps future nudges aligned with how you like to be approached."
-            title="How should reminders feel?"
+            description={t("onboarding.steps.reminderStyle.description")}
+            title={t("onboarding.steps.reminderStyle.title")}
           />
         );
       case "tone_preference":
@@ -233,10 +247,10 @@ export function OnboardingPage(): JSX.Element {
             control={
               <div className="onboarding-choice-grid onboarding-choice-grid--triple">
                 {[
-                  ["friendly", "Friendly"],
-                  ["coach", "Coach"],
-                  ["calm", "Calm"],
-                  ["direct", "Direct"],
+                  ["friendly", t("onboarding.options.tonePreference.friendly")],
+                  ["coach", t("onboarding.options.tonePreference.coach")],
+                  ["calm", t("onboarding.options.tonePreference.calm")],
+                  ["direct", t("onboarding.options.tonePreference.direct")],
                 ].map(([value, label]) => (
                   <button
                     className={`onboarding-choice ${
@@ -255,8 +269,8 @@ export function OnboardingPage(): JSX.Element {
                 ))}
               </div>
             }
-            description="This will shape future copy in a way that feels more personal and human."
-            title="What tone should LifeOS use with you?"
+            description={t("onboarding.steps.tonePreference.description")}
+            title={t("onboarding.steps.tonePreference.title")}
           />
         );
       case "preferred_currency":
@@ -268,12 +282,12 @@ export function OnboardingPage(): JSX.Element {
                 onChange={(event) =>
                   void saveStep({ preferences: { preferredCurrency: event.target.value } })
                 }
-                placeholder="USD"
+                placeholder={t("onboarding.steps.preferredCurrency.placeholder")}
                 value={draft.preferences.preferredCurrency ?? ""}
               />
             }
-            description="A preferred currency keeps finance summaries ready when you need them."
-            title="Which currency should LifeOS use by default?"
+            description={t("onboarding.steps.preferredCurrency.description")}
+            title={t("onboarding.steps.preferredCurrency.title")}
           />
         );
       case "completion":
@@ -287,12 +301,12 @@ export function OnboardingPage(): JSX.Element {
                 onChange={(event) =>
                   void saveStep({ profile: { currentFocus: event.target.value } })
                 }
-                placeholder="Share what matters most right now"
+                placeholder={t("onboarding.steps.default.placeholder")}
                 value={draft.profile.currentFocus ?? ""}
               />
             }
-            description="A little context now helps the rest of LifeOS feel more supportive."
-            title="What is your current focus?"
+            description={t("onboarding.steps.default.description")}
+            title={t("onboarding.steps.default.title")}
           />
         );
     }
@@ -326,18 +340,18 @@ export function OnboardingPage(): JSX.Element {
       actions={
         showSkip ? (
           <Button onClick={() => void handleSkip()} type="button" variant="ghost">
-            Skip for now
+            {t("onboarding.actions.skip")}
           </Button>
         ) : undefined
       }
       currentStep={currentStep}
-      description="Each step is short, optional, and saved locally on this device."
-      nextLabel={isCompletionStep ? "Enter LifeOS" : "Next"}
+      description={t("onboarding.description")}
+      nextLabel={isCompletionStep ? t("onboarding.actions.enter") : t("onboarding.actions.next")}
       onBack={() => void previousStep()}
       onNext={() => void handleNext()}
       showBack={currentStep > FIRST_ONBOARDING_STEP_INDEX}
       stepKey={currentStepId}
-      title="Personalize your LifeOS"
+      title={t("onboarding.title")}
       totalSteps={ONBOARDING_STEP_IDS.length}
     >
       {renderStepContent()}

@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { OnboardingLayout } from "@/features/onboarding/components/OnboardingLayout";
 import { StepAccount } from "@/features/onboarding/components/StepAccount";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useI18n } from "@/i18n";
+import { applyDocumentLanguage, LANGUAGE_STORAGE_KEY, useI18n } from "@/i18n";
+import { Language } from "@/i18n/i18n.types";
 import { useOnboarding } from "@/features/onboarding/hooks/useOnboarding";
 import { createLogger } from "@/utils/logger";
 
@@ -17,8 +18,18 @@ export function SignupPage(): JSX.Element {
   const [error, setError] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  function setLanguagePreference(nextLanguage: Language): void {
+    setLanguage(nextLanguage);
+    applyDocumentLanguage(nextLanguage);
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
+  }
+
   useEffect(() => {
-    setLanguage("en");
+    const hasPersistedLanguage = Boolean(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+
+    if (!hasPersistedLanguage) {
+      setLanguagePreference("en");
+    }
   }, [setLanguage]);
 
   useEffect(() => {
@@ -48,7 +59,7 @@ export function SignupPage(): JSX.Element {
     try {
       setError("");
       setIsRedirecting(true);
-      await startOnboarding({ displayName: input.displayName });
+      await startOnboarding({ displayName: input.displayName, language });
       routerLogger.info("redirect started", { destination: "/onboarding", source: "signup" });
       window.location.replace("/onboarding");
     } catch (error) {
@@ -81,7 +92,7 @@ export function SignupPage(): JSX.Element {
         <select
           className="auth-language-switch__select auth-form__input"
           id="signup-language"
-          onChange={(event) => setLanguage(event.target.value === "fa" ? "fa" : "en")}
+          onChange={(event) => setLanguagePreference(event.target.value === "fa" ? "fa" : "en")}
           value={language}
         >
           <option value="en">{t("language.english")}</option>

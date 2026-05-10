@@ -1,19 +1,22 @@
 import { UserProfile } from "@/domains/onboarding/types";
+import { useI18n } from "@/i18n";
 
 interface StepCompletionProps {
   profile: UserProfile;
 }
 
 export function StepCompletion({ profile }: StepCompletionProps): JSX.Element {
+  const { t } = useI18n();
+
   return (
     <div className="onboarding-copy">
       <p>
-        {profile.displayName ? `${profile.displayName}, your` : "Your"} setup is ready. LifeOS can
-        now shape reminders, pacing, and future planning around the rhythms you shared.
+        {t("onboarding.completion.ready", {
+          name: profile.displayName ? `${profile.displayName}، ` : "",
+        })}
       </p>
       <p>
-        You can update any of these preferences later, but this is enough to start with a more
-        personal experience.
+        {t("onboarding.completion.updateLater")}
       </p>
     </div>
   );

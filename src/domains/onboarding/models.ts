@@ -4,17 +4,24 @@ import {
   UserPreferences,
   UserProfile,
 } from "@/domains/onboarding/types";
+import { LANGUAGE_STORAGE_KEY } from "@/i18n";
 
 function getDefaultTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 }
 
 function getDefaultLanguage(): string {
-  if (typeof navigator === "undefined") {
+  if (typeof window === "undefined") {
     return "en";
   }
 
-  return navigator.language || "en";
+  const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+
+  if (storedLanguage === "fa" || storedLanguage === "en") {
+    return storedLanguage;
+  }
+
+  return "en";
 }
 
 export function createDefaultUserProfile(id: string): UserProfile {

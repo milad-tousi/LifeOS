@@ -56,7 +56,7 @@ export const onboardingService = {
     });
     return draft;
   },
-  async startOnboarding(params: { displayName: string }): Promise<OnboardingDraft> {
+  async startOnboarding(params: { displayName: string; language: string }): Promise<OnboardingDraft> {
     onboardingLogger.info("onboarding state creation started");
     const userId = await resolveUserId();
     const existingDraft = await this.getDraft();
@@ -65,6 +65,7 @@ export const onboardingService = {
     const profile: UserProfile = {
       ...existingDraft.profile,
       displayName: params.displayName.trim(),
+      language: params.language,
       updatedAt: timestamp,
     };
     const preferences: UserPreferences = {
