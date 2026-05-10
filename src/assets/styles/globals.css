@@ -5,27 +5,50 @@
 }
 
 @font-face {
-  font-family: "LifeOS Persian";
-  src: url("/fonts/irsans.ttf") format("truetype");
-  font-weight: 400 700;
+  font-family: "IRANSansWeb";
+  src:
+    url("/fonts/IRANSansWeb.woff2") format("woff2"),
+    url("/fonts/IRANSansWeb.woff") format("woff"),
+    url("/fonts/IRANSansWeb.ttf") format("truetype"),
+    url("/fonts/IRANSansWeb.eot") format("embedded-opentype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "LifeOS Persian";
-  src: url("/fonts/irsansb.ttf") format("truetype");
-  font-weight: 800 900;
+  font-family: "IRANSansWeb";
+  src:
+    url("/fonts/IRANSansWeb.woff2") format("woff2"),
+    url("/fonts/IRANSansWeb.woff") format("woff"),
+    url("/fonts/IRANSansWeb.ttf") format("truetype"),
+    url("/fonts/IRANSansWeb.eot") format("embedded-opentype");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
-.rtl body,
-.rtl input,
-.rtl textarea,
-.rtl select,
-.rtl button {
-  font-family: "LifeOS Persian", var(--font-sans);
+html[lang="fa"] body,
+html[lang="fa"] input,
+html[lang="fa"] textarea,
+html[lang="fa"] select,
+html[lang="fa"] button,
+html[lang="fa"] option {
+  font-family: "IRANSansWeb", "Segoe UI", Tahoma, sans-serif;
+}
+
+html[lang="fa"] .page-greeting,
+html[lang="fa"] .screen-header__title,
+html[lang="fa"] .screen-header__description,
+html[lang="fa"] .card__title,
+html[lang="fa"] .card__subtitle,
+html[lang="fa"] .empty-state__title,
+html[lang="fa"] .empty-state__description,
+html[lang="fa"] .sidebar__brand,
+html[lang="fa"] .sidebar__label,
+html[lang="fa"] .topbar,
+html[lang="fa"] .text-muted {
+  font-family: "IRANSansWeb", "Segoe UI", Tahoma, sans-serif;
 }
 
 .habits-page {
@@ -2473,8 +2496,29 @@ a:focus-visible {
   padding: 1.5rem;
 }
 
+.auth-page--ltr {
+  direction: ltr;
+  text-align: left;
+}
+
 .auth-page .card {
   width: min(100%, 420px);
+}
+
+.auth-page--ltr .card,
+.auth-page--ltr .card__header,
+.auth-page--ltr .auth-page__intro,
+.auth-page--ltr .auth-form,
+.auth-page--ltr .auth-form__field,
+.auth-page--ltr .auth-form__label,
+.auth-page--ltr .auth-form__error {
+  direction: ltr;
+  text-align: left;
+}
+
+.auth-page--ltr .auth-form__input {
+  direction: ltr;
+  text-align: left;
 }
 
 .auth-page__intro {
@@ -2498,6 +2542,11 @@ a:focus-visible {
   margin: 1rem 0 0;
   color: var(--muted);
   text-align: center;
+}
+
+.auth-page--ltr .auth-page__secondary {
+  direction: ltr;
+  text-align: left;
 }
 
 .auth-page__secondary--center {
@@ -2552,8 +2601,50 @@ a:focus-visible {
   padding: 1.5rem;
 }
 
+.onboarding-page--ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+.onboarding-page--rtl {
+  direction: rtl;
+  text-align: right;
+}
+
 .onboarding-page .card {
   width: min(100%, 720px);
+}
+
+.onboarding-page--ltr .card,
+.onboarding-page--ltr .card__header,
+.onboarding-page--ltr .onboarding-layout,
+.onboarding-page--ltr .onboarding-layout__header,
+.onboarding-page--ltr .onboarding-layout__body,
+.onboarding-page--ltr .onboarding-layout__description,
+.onboarding-page--ltr .auth-form,
+.onboarding-page--ltr .auth-form__field,
+.onboarding-page--ltr .auth-form__label,
+.onboarding-page--ltr .auth-form__error,
+.onboarding-page--ltr .auth-page__secondary,
+.onboarding-page--ltr .auth-language-switch {
+  direction: ltr;
+  text-align: left;
+}
+
+.onboarding-page--rtl .card,
+.onboarding-page--rtl .card__header,
+.onboarding-page--rtl .onboarding-layout,
+.onboarding-page--rtl .onboarding-layout__header,
+.onboarding-page--rtl .onboarding-layout__body,
+.onboarding-page--rtl .onboarding-layout__description,
+.onboarding-page--rtl .auth-form,
+.onboarding-page--rtl .auth-form__field,
+.onboarding-page--rtl .auth-form__label,
+.onboarding-page--rtl .auth-form__error,
+.onboarding-page--rtl .auth-page__secondary,
+.onboarding-page--rtl .auth-language-switch {
+  direction: rtl;
+  text-align: right;
 }
 
 .onboarding-layout {
@@ -2603,6 +2694,14 @@ a:focus-visible {
   gap: 0.75rem;
 }
 
+.onboarding-page--rtl .onboarding-layout__actions {
+  flex-direction: row-reverse;
+}
+
+.onboarding-page--rtl .onboarding-layout__actions-right {
+  flex-direction: row-reverse;
+}
+
 .onboarding-progress {
   display: flex;
   flex-direction: column;
@@ -2616,6 +2715,10 @@ a:focus-visible {
   font-size: 0.88rem;
 }
 
+.onboarding-page--rtl .onboarding-progress__meta {
+  direction: rtl;
+}
+
 .onboarding-progress__track {
   overflow: hidden;
   height: 0.55rem;
@@ -2627,6 +2730,55 @@ a:focus-visible {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.onboarding-page--rtl .onboarding-progress__fill {
+  margin-left: auto;
+}
+
+.auth-language-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.25rem;
+}
+
+.auth-language-switch__label {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.auth-language-switch__select {
+  max-width: 220px;
+  width: 220px;
+}
+
+.auth-language-switch--rtl {
+  align-items: flex-end;
+}
+
+.auth-language-switch--ltr {
+  align-items: flex-start;
+}
+
+.auth-language-switch--center {
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-language-switch--center .auth-language-switch__label {
+  width: 220px;
+}
+
+.auth-language-switch--center.auth-language-switch--ltr .auth-language-switch__label,
+.auth-language-switch--center.auth-language-switch--ltr .auth-language-switch__select {
+  text-align: left;
+}
+
+.auth-language-switch--center.auth-language-switch--rtl .auth-language-switch__label,
+.auth-language-switch--center.auth-language-switch--rtl .auth-language-switch__select {
+  text-align: right;
 }
 
 .onboarding-copy {
@@ -3042,12 +3194,14 @@ a:focus-visible {
 }
 
 .rtl input,
-.rtl textarea {
+.rtl textarea,
+.rtl select {
   text-align: right;
 }
 
 .ltr input,
-.ltr textarea {
+.ltr textarea,
+.ltr select {
   text-align: left;
 }
 

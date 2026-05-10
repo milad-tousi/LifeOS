@@ -2,6 +2,7 @@ import { PropsWithChildren, ReactNode } from "react";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { OnboardingProgress } from "@/features/onboarding/components/OnboardingProgress";
+import { useI18n } from "@/i18n";
 
 interface OnboardingLayoutProps extends PropsWithChildren {
   actions?: ReactNode;
@@ -31,9 +32,11 @@ export function OnboardingLayout({
   title,
   totalSteps,
 }: OnboardingLayoutProps): JSX.Element {
+  const { direction, t } = useI18n();
+
   return (
-    <div className="onboarding-page">
-      <Card title="LifeOS" subtitle="Personal setup">
+    <div className={`onboarding-page onboarding-page--${direction}`}>
+      <Card title="LifeOS" subtitle={t("onboarding.brandSubtitle")}>
         <div className="onboarding-layout">
           <OnboardingProgress currentStep={currentStep} totalSteps={totalSteps} />
           <div className="onboarding-layout__header">
@@ -46,7 +49,7 @@ export function OnboardingLayout({
           <div className="onboarding-layout__actions">
             {showBack ? (
               <Button onClick={onBack} type="button" variant="secondary">
-                Back
+                {t("onboarding.actions.back")}
               </Button>
             ) : (
               <span />

@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/common/Button";
 import { CreateAccountInput } from "@/domains/auth/types";
+import { useI18n } from "@/i18n";
 
 interface StepAccountProps {
   error?: string;
@@ -13,6 +14,7 @@ export function StepAccount({
   isLoading = false,
   onSubmit,
 }: StepAccountProps): JSX.Element {
+  const { t } = useI18n();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,17 +24,17 @@ export function StepAccount({
     event.preventDefault();
 
     if (!displayName.trim() || !email.trim() || !password.trim()) {
-      setValidationError("Display name, email, and password are required.");
+      setValidationError(t("signup.errors.required"));
       return;
     }
 
     if (!email.includes("@")) {
-      setValidationError("Enter a valid email address.");
+      setValidationError(t("signup.errors.invalidEmail"));
       return;
     }
 
     if (password.trim().length < 6) {
-      setValidationError("Use at least 6 characters for the password.");
+      setValidationError(t("signup.errors.passwordLength"));
       return;
     }
 
@@ -48,28 +50,28 @@ export function StepAccount({
     <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
       <div className="auth-form__field">
         <label className="auth-form__label" htmlFor="signup-display-name">
-          Display name
+          {t("signup.fields.displayName")}
         </label>
         <input
           autoComplete="name"
           className="auth-form__input"
           id="signup-display-name"
           onChange={(event) => setDisplayName(event.target.value)}
-          placeholder="What should LifeOS call you?"
+          placeholder={t("signup.placeholders.displayName")}
           value={displayName}
         />
       </div>
 
       <div className="auth-form__field">
         <label className="auth-form__label" htmlFor="signup-email">
-          Email
+          {t("signup.fields.email")}
         </label>
         <input
           autoComplete="email"
           className="auth-form__input"
           id="signup-email"
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@example.com"
+          placeholder={t("signup.placeholders.email")}
           type="email"
           value={email}
         />
@@ -77,7 +79,7 @@ export function StepAccount({
 
       <div className="auth-form__field">
         <label className="auth-form__label" htmlFor="signup-password">
-          Password
+          {t("signup.fields.password")}
         </label>
         <input
           autoComplete="new-password"
@@ -94,7 +96,7 @@ export function StepAccount({
       ) : null}
 
       <Button fullWidth disabled={isLoading} type="submit">
-        {isLoading ? "Creating account..." : "Create account"}
+        {isLoading ? t("signup.actions.creatingAccount") : t("signup.actions.createAccount")}
       </Button>
     </form>
   );

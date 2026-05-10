@@ -50,16 +50,10 @@ export function LoginPage({ isAuthenticated = false }: LoginPageProps): JSX.Elem
   }
 
   return (
-    <div className="auth-page">
-      <Card title="LifeOS" subtitle="Local-first sign in">
+    <div className="auth-page auth-page--ltr" dir="ltr">
+      <Card title="LifeOS">
         <div className="auth-page__intro">
           <h1 className="auth-page__title">Welcome back</h1>
-          <p className="text-muted">
-            Sign in with your local account to access LifeOS on this device.
-          </p>
-          <p className="auth-page__hint">
-            Default dev login: admin or admin@lifeos.local / admin123
-          </p>
         </div>
         <LoginForm error={error} isLoading={isLoading} onSubmit={handleLogin} />
         <p className="auth-page__secondary">
