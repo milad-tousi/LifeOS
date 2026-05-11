@@ -217,7 +217,12 @@ function migrateTransactions(
     })
     .filter((transaction): transaction is FinanceTransaction => transaction !== null);
 
-  return transactions.length > 0 ? transactions : createDefaultTransactions();
+  // Return the validated list as-is (including empty).
+  // Only the very first run (no key in storage) should get demo data — that
+  // is handled by passing createDefaultTransactions() as the fallback in
+  // loadFromStorage().  An explicitly empty array means the user has cleared
+  // their data and we must respect that.
+  return transactions;
 }
 
 function migrateCategories(value: unknown): FinanceCategory[] {

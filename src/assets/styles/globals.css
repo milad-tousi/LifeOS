@@ -4699,7 +4699,7 @@ a:focus-visible {
 .finance-assistant__score-card {
   display: grid;
   grid-template-columns: minmax(0, 10rem) minmax(0, 1fr);
-  gap: 1.25rem;
+  gap: 2.25rem;
   align-items: center;
 }
 
@@ -4856,6 +4856,54 @@ a:focus-visible {
 
 .finance-assistant__ask-field {
   flex: 1 1 16rem;
+}
+
+.finance-assistant__ask-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.finance-assistant__ask-input {
+  padding-inline-end: 2.8rem !important;
+  width: 100%;
+}
+
+.finance-assistant__ask-send {
+  position: absolute;
+  inset-inline-end: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm, 6px);
+  border: none;
+  background: var(--primary, #2563eb);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.finance-assistant__ask-send:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.finance-assistant__ask-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes fa-spin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+
+.finance-assistant__ask-spinner {
+  animation: fa-spin 0.8s linear infinite;
+  transform-origin: center;
 }
 
 .finance-assistant__message {
@@ -9518,6 +9566,10 @@ button.dashboard-mind-node {
     width: 100%;
   }
 
+  .finance-assistant__ask-input-wrap {
+    width: 100%;
+  }
+
   .review-tabs {
     width: 100%;
     display: flex;
@@ -10365,87 +10417,456 @@ button.dashboard-mind-node {
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: var(--muted);
   text-align: center;
   padding: 1rem;
 }
 
-/* Selected summary row */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Dark-mode component overrides
+   These override hardcoded light-mode colors used in specific components.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-.ev-location__summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+/* ── Task view switcher tabs ─────────────────────────────────────────────── */
+[data-theme="dark"] .task-view-switcher__item {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--muted);
 }
 
-.ev-location__summary--rtl {
-  flex-direction: row-reverse;
+[data-theme="dark"] .task-view-switcher__item:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
-.ev-location__coords {
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
+[data-theme="dark"] .task-view-switcher__item--active {
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.35);
+  color: var(--primary);
 }
 
-.ev-location__gmaps-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 0.75rem;
-  height: 32px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-surface-raised, var(--color-surface));
-  color: var(--color-accent);
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.14s, border-color 0.14s;
+/* ── Finance tabs ────────────────────────────────────────────────────────── */
+[data-theme="dark"] .finance-tabs {
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
 
-.ev-location__gmaps-btn:hover:not(:disabled) {
-  background: var(--color-accent-soft, rgba(99,102,241,0.08));
-  border-color: var(--color-accent);
+[data-theme="dark"] .finance-tabs__item {
+  color: var(--muted);
 }
 
-.ev-location__gmaps-btn--disabled {
-  opacity: 0.38;
-  cursor: not-allowed;
+[data-theme="dark"] .finance-tabs__item:hover {
+  color: var(--text);
 }
 
-/* ── All Day toggle — LTR/RTL ────────────────────────────────────────────── */
-
-.task-event-modal__toggle--ltr {
-  justify-content: flex-start;
+[data-theme="dark"] .finance-tabs__item--active {
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--primary);
 }
 
-.task-event-modal__toggle--rtl {
-  justify-content: flex-end;
-  flex-direction: row-reverse;
+/* ── Review / daily-review tabs ─────────────────────────────────────────── */
+[data-theme="dark"] .review-tabs {
+  background: var(--surface-hover);
 }
 
-/* ── Mobile ──────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .review-tabs__item {
+  color: var(--muted);
+}
 
-@media (max-width: 640px) {
-  .ev-location__map {
-    height: 220px;
-  }
+[data-theme="dark"] .review-tabs__item--active {
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.4);
+}
 
-  .ev-location__summary {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* ── Dashboard tabs ──────────────────────────────────────────────────────── */
+[data-theme="dark"] .dashboard-tabs__item--active {
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--primary);
+}
 
-  .ev-location__summary--rtl {
-    align-items: flex-end;
-  }
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .button--secondary {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
 
-  .ev-location__gmaps-btn {
-    width: 100%;
-    justify-content: center;
-  }
+[data-theme="dark"] .button--secondary:hover {
+  background: var(--surface-hover);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+[data-theme="dark"] .button--ghost:hover {
+  background: var(--surface-hover);
+}
+
+/* ── Cards and panels with hardcoded white backgrounds ───────────────────── */
+[data-theme="dark"] .habit-overview-row {
+  background: var(--surface);
+}
+
+[data-theme="dark"] .auth-filter-chip {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="dark"] .auth-filter-chip--active {
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.35);
+  color: var(--primary);
+}
+
+/* ── Icon button ─────────────────────────────────────────────────────────── */
+[data-theme="dark"] .icon-button {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="dark"] .icon-button:hover {
+  background: var(--surface-hover);
+}
+
+/* ── Habit calendar day partial ──────────────────────────────────────────── */
+[data-theme="dark"] .habit-calendar-day--partial {
+  background: rgba(96, 165, 250, 0.14);
+  color: var(--primary);
+}
+
+/* ── Goal/habit tag chips (light-blue hardcoded) ─────────────────────────── */
+[data-theme="dark"] .goal-tag,
+[data-theme="dark"] .habit-tag {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.25);
+  color: var(--primary);
+}
+
+/* ── body background gradient ────────────────────────────────────────────── */
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(circle at top left, rgba(96, 165, 250, 0.05), transparent 30%),
+    radial-gradient(circle at top right, rgba(52, 211, 153, 0.04), transparent 24%),
+    linear-gradient(180deg, #0f172a, #0f172a);
+}
+
+/* ── Dashboard cards & date card ─────────────────────────────────────────── */
+[data-theme="dark"] .dashboard-date-card,
+[data-theme="dark"] .dashboard-card,
+[data-theme="dark"] .dashboard-summary-card {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+[data-theme="dark"] .dashboard-tabs {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .dashboard-tabs__item--active {
+  background: rgba(96, 165, 250, 0.15);
+  color: var(--primary);
+  box-shadow: none;
+}
+
+/* ── Habit components ────────────────────────────────────────────────────── */
+[data-theme="dark"] .habit-overview-row {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .habit-empty {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .habit-detail-drawer {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .habit-reminder-popup {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ── Modal shell ─────────────────────────────────────────────────────────── */
+[data-theme="dark"] .modal-shell {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .modal-shell__footer {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .modal-shell__close {
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+
+/* ── Task editor & task components ───────────────────────────────────────── */
+[data-theme="dark"] .task-editor-section--surface {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .task-ai-action-button {
+  background: rgba(96, 165, 250, 0.1);
+  color: var(--primary);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .task-ai-chip {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .task-chip-button {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .task-tag {
+  background: rgba(96, 165, 250, 0.1);
+  color: var(--primary);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .task-goal-link__option {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .task-goal-link__option--active {
+  background: rgba(96, 165, 250, 0.12);
+  color: var(--primary);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+[data-theme="dark"] .task-editor-empty-state {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .task-tree__item {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .subtask-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .subtask-card--dragging {
+  background: var(--surface-hover);
+}
+
+/* ── Goal cards ──────────────────────────────────────────────────────────── */
+[data-theme="dark"] .goal-card {
+  background: linear-gradient(180deg, var(--surface), var(--surface));
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .goal-detail-header__summary-item--info {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.2);
+  color: var(--primary);
+}
+
+[data-theme="dark"] .goal-task-list__content-button {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .goal-task-list__tag-chip {
+  background: rgba(96, 165, 250, 0.1);
+  color: var(--primary);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .task-resource-badge:hover {
+  background: rgba(96, 165, 250, 0.1);
+  color: var(--primary);
+}
+
+/* ── Finance components ──────────────────────────────────────────────────── */
+[data-theme="dark"] .finance-assistant__score-ring {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .finance-assistant__answer {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .finance-settings-entry {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .finance-quick-capture__mic {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .finance-transactions--embedded .finance-transaction-card,
+[data-theme="dark"] .finance-transactions--manager .finance-transaction-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .finance-voice-aliases-shell {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .finance-voice-training-card__preview {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .finance-analytics-hero,
+[data-theme="dark"] .finance-dashboard-card {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-soft);
+}
+
+[data-theme="dark"] .finance-quick-capture__correction,
+[data-theme="dark"] .finance-quick-capture__status-chip--live,
+[data-theme="dark"] .finance-form__hint {
+  color: var(--primary);
+}
+
+[data-theme="dark"] .finance-filter-panel__badge {
+  color: var(--primary);
+}
+
+[data-theme="dark"] .finance-summary-card--balance .finance-summary-card__icon {
+  color: var(--primary);
+}
+
+/* ── Goal detail header chips ────────────────────────────────────────────── */
+[data-theme="dark"] .goal-detail-header__deadline-chip--info {
+  color: var(--primary);
+}
+
+[data-theme="dark"] .goal-task-list__status-chip--in_progress {
+  color: var(--primary);
+}
+
+/* ── Forms & inputs ──────────────────────────────────────────────────────── */
+[data-theme="dark"] .auth-form__input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="dark"] .auth-form__input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+}
+
+/* ── Habit stat cards & today-habit cards ────────────────────────────────── */
+[data-theme="dark"] .habit-stat-card,
+[data-theme="dark"] .today-habit-card,
+[data-theme="dark"] .habit-overview-row {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ── Tasks quick-add & group sections ────────────────────────────────────── */
+[data-theme="dark"] .tasks-quick-add {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .tasks-group-section {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ── Finance transaction cards (base rule) ───────────────────────────────── */
+[data-theme="dark"] .finance-transaction-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ── Task AI field/suggestion cards ─────────────────────────────────────── */
+[data-theme="dark"] .task-ai-field-card,
+[data-theme="dark"] .task-ai-suggestion-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ── Goal detail header summary items ────────────────────────────────────── */
+[data-theme="dark"] .goal-detail-header__summary-item {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .goal-detail-header__summary-item--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+[data-theme="dark"] .goal-detail-header__summary-item--danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+[data-theme="dark"] .goal-detail-header__summary-item--success {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.25);
+}
+
+/* ── Goal card habit progress block ─────────────────────────────────────── */
+[data-theme="dark"] .goal-card__habit-progress {
+  background: var(--surface-hover);
+  border-color: var(--border);
+}
+
+/* ── Settings AI toggle row ─────────────────────────────────────────────── */
+[data-theme="dark"] .settings-ai__toggle-row {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ── Sidebar nav items with light hover state ────────────────────────────── */
+[data-theme="dark"] .sidebar__nav-item:hover {
+  background: var(--surface-hover);
+}
+
+[data-theme="dark"] .sidebar__nav-item--active {
+  background: rgba(96, 165, 250, 0.12);
+  color: var(--primary);
+}
+
+/* ── Status-based light bg items (goal deadline chips) ───────────────────── */
+[data-theme="dark"] .goal-detail-header__deadline-chip {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* ── Light surface rows (notifications, sidebar items) ───────────────────── */
+[data-theme="dark"] .notification-item {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .notification-item:hover {
+  background: var(--surface-hover);
+}
+
+[data-theme="dark"] .notification-item--unread {
+  background: rgba(96, 165, 250, 0.06);
 }

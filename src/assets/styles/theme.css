@@ -15,13 +15,14 @@
 
 :root[data-theme="dark"] {
   --background: #0f172a;
-  --surface: #111827;
-  --surface-hover: #182236;
+  --surface: #1a2234;
+  --surface-hover: #1f2d42;
   --primary: #60a5fa;
   --primary-soft: rgba(96, 165, 250, 0.14);
   --accent: #34d399;
-  --text: #f3f4f6;
+  --text: #f1f5f9;
   --muted: #94a3b8;
-  --border: #1f2937;
-  --shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+  --border: #2a3a52;
+  --shadow: 0 10px 30px rgba(2, 6, 23, 0.45);
+  --shadow-soft: 0 8px 18px rgba(2, 6, 23, 0.3);
 }

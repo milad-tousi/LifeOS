@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { TaskModal } from "@/features/tasks/components/AddTaskModal";
@@ -48,6 +49,7 @@ export function FinancialAssistantTab({
   transactions,
 }: FinancialAssistantTabProps): JSX.Element {
   const { language, t } = useI18n();
+  const navigate = useNavigate();
   const { settings: aiSettings } = useAiSettings();
 
   // ── Deterministic engine ─────────────────────────────────────────────────
@@ -413,15 +415,13 @@ export function FinancialAssistantTab({
                   {t("finance.assistant.createTask")}
                 </Button>
                 <Button
-                  disabled
-                  title={t("finance.assistant.habitActionUnavailable")}
+                  onClick={() => navigate("/habits")}
                   type="button"
                   variant="ghost"
                 >
                   {t("finance.assistant.createHabit")}
                 </Button>
                 <Button
-                  disabled={insight.actionType !== "budget"}
                   onClick={onOpenSettings}
                   type="button"
                   variant="ghost"
@@ -510,23 +510,33 @@ export function FinancialAssistantTab({
           <div className="finance-assistant__ask-row">
             <label className="auth-form__field finance-assistant__ask-field">
               <span className="auth-form__label">{t("finance.assistant.askLabel")}</span>
-              <input
-                className="auth-form__input"
-                onChange={(event) => setQuestion(event.target.value)}
-                placeholder={t("finance.assistant.askPlaceholder")}
-                type="text"
-                value={question}
-              />
+              <div className="finance-assistant__ask-input-wrap">
+                <input
+                  className="auth-form__input finance-assistant__ask-input"
+                  disabled={questionStatus === "loading"}
+                  onChange={(event) => setQuestion(event.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && question.trim() && questionStatus !== "loading") {
+                      void handleAskAssistant();
+                    }
+                  }}
+                  placeholder={t("finance.assistant.askPlaceholder")}
+                  type="text"
+                  value={question}
+                />
+                <button
+                  className="finance-assistant__ask-send"
+                  disabled={questionStatus === "loading" || question.trim() === ""}
+                  onClick={() => { void handleAskAssistant(); }}
+                  type="button"
+                  aria-label={t("finance.assistant.askButton")}
+                >
+                  {questionStatus === "loading"
+                    ? <Loader2 size={16} className="finance-assistant__ask-spinner" />
+                    : <Send size={16} />}
+                </button>
+              </div>
             </label>
-            <Button
-              disabled={questionStatus === "loading" || question.trim() === ""}
-              onClick={() => { void handleAskAssistant(); }}
-              type="button"
-            >
-              {questionStatus === "loading"
-                ? t("finance.assistant.askLoading")
-                : t("finance.assistant.askButton")}
-            </Button>
           </div>
 
           {!aiSettings.enabled ? (
