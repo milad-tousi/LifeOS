@@ -5,6 +5,7 @@
 }
 
 :root {
+  /* ── Z-index scale ─────────────────────────────────────────────────────── */
   --z-base-page: 0;
   --z-layout-chrome: 20;
   --z-dropdown: 1000;
@@ -14,6 +15,21 @@
   --z-modal-content: 2100;
   --z-modal-popover: 2200;
   --z-toast: 3000;
+
+  /* ── Color aliases (map --color-* to theme tokens defined in theme.css) ── */
+  /* These ensure components that reference --color-surface etc. get a solid  */
+  /* value instead of falling back to transparent.                             */
+  --color-surface: var(--surface, #ffffff);
+  --color-surface-raised: var(--surface, #ffffff);
+  --color-border: var(--border, #e5e7eb);
+  --color-text-primary: var(--text, #111827);
+  --color-text-secondary: var(--text, #374151);
+  --color-text-muted: var(--muted, #6b7280);
+  --color-accent: var(--primary, #2563eb);
+  --color-accent-soft: var(--primary-soft, rgba(37, 99, 235, 0.1));
+  --color-hover: var(--surface-hover, #f5f8ff);
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
 }
 
 @font-face {
@@ -875,7 +891,7 @@ html[lang="fa"] .text-muted {
 .habit-detail-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: var(--z-modal-backdrop);
   display: flex;
   justify-content: flex-end;
   background: rgba(15, 23, 42, 0.38);
@@ -1177,7 +1193,7 @@ html[lang="fa"] .text-muted {
 .habit-reminder-popup-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: var(--z-modal-backdrop);
   display: grid;
   place-items: center;
   padding: 1rem;
@@ -7684,7 +7700,7 @@ button.dashboard-mind-node {
 
 .dashboard-modal-backdrop {
   position: fixed;
-  z-index: 60;
+  z-index: var(--z-modal-backdrop);
   inset: 0;
   display: grid;
   place-items: center;
@@ -8791,7 +8807,7 @@ button.dashboard-mind-node {
 
 .task-calendar__context-menu {
   position: fixed;
-  z-index: 40;
+  z-index: var(--z-dropdown);
   display: flex;
   min-width: 180px;
   flex-direction: column;
@@ -9250,7 +9266,7 @@ button.dashboard-mind-node {
 
 .localized-date-input__popover {
   position: absolute;
-  z-index: 55;
+  z-index: var(--z-modal-popover);
   top: calc(100% + 0.5rem);
   inset-inline-start: 0;
   display: flex;
@@ -10315,16 +10331,17 @@ button.dashboard-mind-node {
 
 .ev-location__map-wrap {
   border-radius: var(--radius-md, 8px);
-  overflow: hidden;
   border: 1px solid var(--color-border);
   position: relative;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--color-surface);
+  /* Do NOT set overflow:hidden here — it clips Leaflet tile layers */
 }
 
 .ev-location__map {
   height: 260px;
   width: 100%;
   cursor: crosshair;
+  border-radius: calc(var(--radius-md, 8px) - 1px);
 }
 
 .ev-location__map-hint {

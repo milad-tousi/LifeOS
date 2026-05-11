@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -58,7 +58,13 @@ export function GoalDetailPage(): JSX.Element {
     setGoalState(goal ?? null);
   }, [goal]);
 
+  // Guard: only update task list when content actually changes (prevents infinite
+  // re-render loops when useLiveQuery emits a new array reference with the same data)
+  const prevLinkedTasksKeyRef = useRef<string>("");
   useEffect(() => {
+    const key = linkedTasks.map((t) => `${t.id}:${t.updatedAt}`).join(",");
+    if (key === prevLinkedTasksKeyRef.current) return;
+    prevLinkedTasksKeyRef.current = key;
     setTaskListState(sortTasksByOrder(linkedTasks));
   }, [linkedTasks]);
 

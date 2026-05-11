@@ -13,7 +13,8 @@ export function NotificationButton(): JSX.Element {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [panelStyle, setPanelStyle] = useState<{
     top: number;
-    right: number;
+    left?: number;
+    right?: number;
     width: number;
   } | null>(null);
   const portalTarget = typeof document === "undefined" ? null : document.body;
@@ -25,21 +26,30 @@ export function NotificationButton(): JSX.Element {
 
     function updatePanelPosition(): void {
       const button = buttonRef.current;
-
-      if (!button) {
-        return;
-      }
+      if (!button) return;
 
       const rect = button.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const desiredWidth = Math.min(360, viewportWidth - 16);
-      const desktopRight = Math.max(8, viewportWidth - rect.right);
+      const top = rect.bottom + 8;
 
-      setPanelStyle({
-        top: rect.bottom + 8,
-        right: viewportWidth <= 640 ? 8 : desktopRight,
-        width: desiredWidth,
-      });
+      if (viewportWidth <= 640) {
+        // Mobile: center under the button, clamped to viewport
+        const leftEdge = Math.max(8, Math.min(rect.left, viewportWidth - desiredWidth - 8));
+        setPanelStyle({ top, left: leftEdge, width: desiredWidth });
+      } else if (direction === "rtl") {
+        // RTL: the bell sits on the left side of the header — anchor the
+        // panel's left edge to the button's left edge, clamped so it never
+        // bleeds off the right side of the viewport.
+        const leftEdge = Math.max(8, Math.min(rect.left, viewportWidth - desiredWidth - 8));
+        setPanelStyle({ top, left: leftEdge, width: desiredWidth });
+      } else {
+        // LTR: anchor the panel's right edge to the button's right edge,
+        // clamped so it never bleeds off the left side of the viewport.
+        const rightEdge = Math.max(8, viewportWidth - rect.right);
+        const clampedRight = Math.min(rightEdge, viewportWidth - desiredWidth - 8);
+        setPanelStyle({ top, right: Math.max(8, clampedRight), width: desiredWidth });
+      }
     }
 
     updatePanelPosition();
@@ -112,7 +122,9 @@ export function NotificationButton(): JSX.Element {
               className={`notif-panel-wrap notif-panel-wrap--${direction}`}
               style={{
                 top: `${panelStyle.top}px`,
-                right: `${panelStyle.right}px`,
+                ...(panelStyle.left !== undefined
+                  ? { left: `${panelStyle.left}px` }
+                  : { right: `${panelStyle.right ?? 8}px` }),
                 width: `${panelStyle.width}px`,
               }}
             >
