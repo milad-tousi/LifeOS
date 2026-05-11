@@ -1,4 +1,5 @@
 import { CheckCircle2, CircleDollarSign, Flag, Repeat2, ScrollText, SquarePlus } from "lucide-react";
+import { useI18n } from "@/i18n";
 import { DashboardEmptyState } from "@/features/dashboard/components/EmptyState";
 import { DashboardActivityItem } from "@/features/dashboard/types/dashboard.types";
 
@@ -11,12 +12,14 @@ export function RecentActivityTimeline({
   items,
   onNavigate,
 }: RecentActivityTimelineProps): JSX.Element {
+  const { t, language } = useI18n();
+
   return (
     <section className="dashboard-card dashboard-activity">
       <div className="dashboard-card__header">
         <div>
-          <h2>Recent Activity</h2>
-          <p>Recent changes derived from local LifeOS records.</p>
+          <h2>{t("dashboard.recentActivity.title")}</h2>
+          <p>{t("dashboard.recentActivity.subtitle")}</p>
         </div>
       </div>
       {items.length > 0 ? (
@@ -35,7 +38,9 @@ export function RecentActivityTimeline({
                 </span>
                 <div>
                   <strong>{item.text}</strong>
-                  <span>{item.module} • {formatActivityDate(item.date)}</span>
+                  <span>
+                    {translateModule(item.module, t)} • {formatActivityDate(item.date, language)}
+                  </span>
                 </div>
               </button>
             );
@@ -43,15 +48,17 @@ export function RecentActivityTimeline({
         </div>
       ) : (
         <DashboardEmptyState
-          title="No recent activity"
-          description="Create tasks, complete habits, update goals, add transactions, or save reviews to build a timeline."
+          title={t("dashboard.recentActivity.empty")}
+          description={t("dashboard.recentActivity.emptyDescription")}
         />
       )}
     </section>
   );
 }
 
-function getActivityIcon(module: DashboardActivityItem["module"]) {
+type ActivityModule = DashboardActivityItem["module"];
+
+function getActivityIcon(module: ActivityModule) {
   switch (module) {
     case "Tasks":
       return CheckCircle2;
@@ -68,17 +75,33 @@ function getActivityIcon(module: DashboardActivityItem["module"]) {
   }
 }
 
-function formatActivityDate(value: string): string {
+function translateModule(
+  module: ActivityModule,
+  t: ReturnType<typeof useI18n>["t"],
+): string {
+  const keyMap: Record<ActivityModule, Parameters<typeof t>[0]> = {
+    Tasks: "dashboard.recentActivity.module.tasks",
+    Habits: "dashboard.recentActivity.module.habits",
+    Goals: "dashboard.recentActivity.module.goals",
+    Finance: "dashboard.recentActivity.module.finance",
+    Reviews: "dashboard.recentActivity.module.reviews",
+  };
+  return t(keyMap[module] ?? "dashboard.recentActivity.module.tasks");
+}
+
+function formatActivityDate(value: string, language: string): string {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "Date unavailable";
+    return "";
   }
 
-  return new Intl.DateTimeFormat("en-US", {
+  const locale = language === "fa" ? "fa-IR" : "en-US";
+
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
+    month: "short",
     hour: "2-digit",
     minute: "2-digit",
-    month: "short",
   }).format(date);
 }

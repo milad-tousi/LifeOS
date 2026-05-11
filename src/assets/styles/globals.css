@@ -108,7 +108,7 @@ html[lang="fa"] .text-muted {
 .today-habit-card,
 .habit-overview-row {
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
 
@@ -485,7 +485,7 @@ html[lang="fa"] .text-muted {
   padding: 0.42rem;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(248, 250, 252, 0.9);
+  background: var(--surface);
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
 }
 
@@ -527,7 +527,7 @@ html[lang="fa"] .text-muted {
   padding: 2.25rem 1.5rem;
   border: 1px dashed var(--border);
   border-radius: 1.2rem;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--surface);
   text-align: center;
 }
 
@@ -641,7 +641,7 @@ html[lang="fa"] .text-muted {
   padding: 0.9rem;
   border: 1px solid var(--border);
   border-radius: 0.9rem;
-  background: rgba(248, 250, 252, 0.56);
+  background: var(--surface);
 }
 
 .habit-form__section-header {
@@ -677,7 +677,7 @@ html[lang="fa"] .text-muted {
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 0.8rem;
-  background: rgba(248, 250, 252, 0.8);
+  background: var(--surface);
   line-height: 1.2;
 }
 
@@ -782,7 +782,7 @@ html[lang="fa"] .text-muted {
   padding: 0.9rem;
   border: 1px solid var(--border);
   border-radius: 0.9rem;
-  background: rgba(248, 250, 252, 0.56);
+  background: var(--surface);
 }
 
 .habit-settings__header {
@@ -873,7 +873,7 @@ html[lang="fa"] .text-muted {
   padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.7);
+  background: var(--surface);
 }
 
 .habit-category-swatch {
@@ -907,7 +907,7 @@ html[lang="fa"] .text-muted {
   overflow-y: auto;
   padding: 1.15rem;
   border-left: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--surface);
   box-shadow: -24px 0 60px rgba(15, 23, 42, 0.2);
 }
 
@@ -979,7 +979,7 @@ html[lang="fa"] .text-muted {
   padding: 0.95rem;
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.62);
+  background: var(--surface);
 }
 
 .habit-detail-meta {
@@ -1080,7 +1080,7 @@ html[lang="fa"] .text-muted {
 
 .habit-calendar-day--partial {
   background: rgba(37, 99, 235, 0.14);
-  color: #1d4ed8;
+  color: var(--primary);
 }
 
 .habit-calendar-day--missed {
@@ -1096,7 +1096,7 @@ html[lang="fa"] .text-muted {
 
 .habit-calendar-day--future,
 .habit-calendar-day--scheduled {
-  background: rgba(248, 250, 252, 0.95);
+  background: var(--surface);
 }
 
 .habit-calendar-day--today {
@@ -1145,7 +1145,7 @@ html[lang="fa"] .text-muted {
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--border);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.8);
+  background: var(--surface);
   font-weight: 700;
 }
 
@@ -1210,7 +1210,7 @@ html[lang="fa"] .text-muted {
   padding: 1.35rem;
   border: 1px solid rgba(203, 213, 225, 0.9);
   border-radius: 1.35rem;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--surface);
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
   text-align: center;
   animation: habit-reminder-popup-in 180ms ease-out;
@@ -1404,7 +1404,7 @@ body::before {
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 30%),
     radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 248, 251, 0.96));
+    var(--body-overlay);
   content: "";
 }
 
@@ -1846,9 +1846,7 @@ button {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 1.5rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98)),
-    var(--surface);
+  background: var(--surface);
   box-shadow: 0 32px 80px rgba(15, 23, 42, 0.28);
   animation: modal-panel-enter 220ms cubic-bezier(0.22, 1, 0.36, 1);
   transform-origin: center;
@@ -1869,7 +1867,7 @@ button {
   justify-content: space-between;
   gap: 1rem;
   padding: 1.15rem 1.25rem;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--surface);
   flex-shrink: 0;
 }
 
@@ -1908,7 +1906,7 @@ button {
   flex-shrink: 0;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-hover);
   color: var(--text);
 }
 
@@ -1962,7 +1960,7 @@ button {
   padding: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1.2rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.92));
+  background: var(--surface);
 }
 
 .task-editor-section__header {
@@ -1998,8 +1996,8 @@ button {
   gap: 0.45rem;
   border: 1px solid rgba(37, 99, 235, 0.14);
   border-radius: 999px;
-  background: rgba(239, 246, 255, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
   padding: 0.55rem 0.8rem;
   font-size: 0.82rem;
   font-weight: 700;
@@ -2014,7 +2012,7 @@ button {
 .task-ai-action-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.22);
-  background: rgba(219, 234, 254, 0.96);
+  background: var(--primary-soft);
 }
 
 .task-ai-action-button:disabled {
@@ -2066,7 +2064,7 @@ button {
 .task-ai-suggestion-card {
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.78);
+  background: var(--surface);
 }
 
 .task-ai-field-card {
@@ -2106,7 +2104,7 @@ button {
   padding: 0.5rem 0.75rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface);
 }
 
 .task-ai-chip__input {
@@ -2216,7 +2214,7 @@ button {
 .task-chip-button {
   border: 1px solid rgba(148, 163, 184, 0.24);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface);
   color: var(--text);
   padding: 0.55rem 0.8rem;
   font-weight: 600;
@@ -2246,8 +2244,8 @@ button {
   gap: 0.45rem;
   border: 1px solid rgba(37, 99, 235, 0.16);
   border-radius: 999px;
-  background: rgba(239, 246, 255, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
   padding: 0.45rem 0.72rem;
   font-size: 0.88rem;
   font-weight: 600;
@@ -2279,7 +2277,7 @@ button {
   padding: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
 }
 
 .task-goal-link__options {
@@ -2295,7 +2293,7 @@ button {
   min-height: 2.7rem;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   color: var(--text);
   padding: 0.65rem 0.95rem;
   font-weight: 600;
@@ -2314,8 +2312,8 @@ button {
 
 .task-goal-link__option--active {
   border-color: rgba(37, 99, 235, 0.18);
-  background: rgba(239, 246, 255, 0.96);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .task-goal-link__hint {
@@ -2331,7 +2329,7 @@ button {
   padding: 1rem;
   border: 1px dashed rgba(148, 163, 184, 0.32);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--surface);
 }
 
 .task-editor-empty-state__title {
@@ -2364,7 +2362,7 @@ button {
 
 .task-tree__item {
   align-items: center;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface);
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 8px;
   display: grid;
@@ -2447,7 +2445,7 @@ button {
 .subtask-card {
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface);
   padding: 0.95rem;
 }
 
@@ -2456,7 +2454,7 @@ button {
 }
 
 .subtask-card--dragging {
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--surface);
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
 }
 
@@ -2533,7 +2531,7 @@ button {
   overflow: hidden;
   border: 1px dashed rgba(148, 163, 184, 0.45);
   border-radius: 0.95rem;
-  background: rgba(248, 250, 252, 0.9);
+  background: var(--surface);
   padding: 0.8rem 0.95rem;
   color: var(--text);
 }
@@ -3528,7 +3526,7 @@ a:focus-visible {
   padding: 1rem;
   border: 1px solid var(--border);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface-hover);
 }
 
 .settings-ai__toggle-copy {
@@ -3676,7 +3674,7 @@ a:focus-visible {
   padding: 1.1rem;
   border: 1px solid var(--border);
   border-radius: 1.35rem;
-  background: linear-gradient(180deg, var(--surface), rgba(255, 255, 255, 0.96));
+  background: var(--surface);
   box-shadow: var(--shadow);
   text-align: left;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
@@ -3926,7 +3924,7 @@ a:focus-visible {
   padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: 0.95rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
 }
 
 .goal-card__habit-progress-header,
@@ -4123,12 +4121,12 @@ a:focus-visible {
   padding: 0.85rem 0.95rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.86);
+  background: var(--surface);
 }
 
 .goal-detail-header__summary-item--info {
   border-color: rgba(59, 130, 246, 0.18);
-  background: rgba(239, 246, 255, 0.9);
+  background: var(--primary-soft);
 }
 
 .goal-detail-header__summary-item--warning {
@@ -4203,8 +4201,8 @@ a:focus-visible {
 }
 
 .goal-detail-header__deadline-chip--info {
-  background: rgba(219, 234, 254, 0.9);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .goal-detail-header__deadline-chip--warning {
@@ -4320,7 +4318,7 @@ a:focus-visible {
   gap: 0.45rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 999px;
-  background: rgba(248, 250, 252, 0.95);
+  background: var(--surface);
   color: #475569;
   padding: 0.38rem 0.72rem;
   font: inherit;
@@ -4337,7 +4335,7 @@ a:focus-visible {
 
 .task-resource-badge:hover {
   border-color: rgba(59, 130, 246, 0.18);
-  background: rgba(239, 246, 255, 0.96);
+  background: var(--primary-soft);
   transform: translateY(-1px);
 }
 
@@ -4358,7 +4356,7 @@ a:focus-visible {
   flex: 1;
   border: 0;
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface);
   padding: 0.2rem 0.35rem;
   color: inherit;
   text-align: left;
@@ -4394,7 +4392,7 @@ a:focus-visible {
   padding: 0.95rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--surface);
 }
 
 .task-resource-modal__card-header {
@@ -4494,8 +4492,8 @@ a:focus-visible {
 }
 
 .goal-task-list__status-chip--in_progress {
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .goal-task-list__status-chip--done {
@@ -4532,13 +4530,13 @@ a:focus-visible {
 }
 
 .goal-task-list__meta-chip {
-  background: rgba(248, 250, 252, 0.95);
+  background: var(--surface);
   color: #475569;
   border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .goal-task-list__meta-chip--priority {
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface);
 }
 
 .goal-task-list__meta-chip--success {
@@ -4547,8 +4545,8 @@ a:focus-visible {
 }
 
 .goal-task-list__tag-chip {
-  background: rgba(239, 246, 255, 0.96);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
   border: 1px solid rgba(59, 130, 246, 0.12);
 }
 
@@ -4772,7 +4770,7 @@ a:focus-visible {
   gap: 0.8rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -5317,7 +5315,7 @@ a:focus-visible {
   padding: 0.3rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
 
@@ -5345,8 +5343,8 @@ a:focus-visible {
 }
 
 .finance-tabs__item--active {
-  background: rgba(239, 246, 255, 0.95);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .finance-settings-entry {
@@ -5356,7 +5354,7 @@ a:focus-visible {
   min-height: 2.75rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 0.95rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   color: var(--text);
   padding: 0.75rem 0.95rem;
   font-weight: 600;
@@ -5394,8 +5392,8 @@ a:focus-visible {
 }
 
 .finance-summary-card--balance .finance-summary-card__icon {
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .finance-summary-card--income .finance-summary-card__icon {
@@ -5458,7 +5456,7 @@ a:focus-visible {
   margin-bottom: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -5483,7 +5481,7 @@ a:focus-visible {
   flex-shrink: 0;
   border-radius: 0.95rem;
   border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--surface);
   color: #334155;
   transition: transform 160ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
@@ -5518,7 +5516,7 @@ a:focus-visible {
 
 .finance-quick-capture__correction {
   margin: 0;
-  color: #1d4ed8;
+  color: var(--primary);
   font-size: 0.84rem;
   line-height: 1.45;
 }
@@ -5535,8 +5533,8 @@ a:focus-visible {
 }
 
 .finance-quick-capture__status-chip--live {
-  background: rgba(219, 234, 254, 0.95);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .finance-form__note {
@@ -5546,7 +5544,7 @@ a:focus-visible {
 
 .finance-form__hint {
   margin: 0;
-  color: #1d4ed8;
+  color: var(--primary);
   font-size: 0.88rem;
 }
 
@@ -5572,7 +5570,7 @@ a:focus-visible {
 }
 
 .finance-transactions--embedded .finance-transaction-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--surface);
 }
 
 .finance-transaction-card {
@@ -5581,7 +5579,7 @@ a:focus-visible {
   gap: 0.7rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--surface);
   padding: 0.95rem 1rem;
 }
 
@@ -5721,7 +5719,7 @@ a:focus-visible {
   gap: 0.9rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.7);
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -5757,8 +5755,8 @@ a:focus-visible {
   align-items: center;
   min-height: 1.8rem;
   border-radius: 999px;
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
   padding: 0.2rem 0.65rem;
   font-size: 0.8rem;
   font-weight: 700;
@@ -5846,7 +5844,7 @@ a:focus-visible {
 }
 
 .finance-transactions--manager .finance-transaction-card {
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface);
 }
 
 .finance-budget-list,
@@ -5863,7 +5861,7 @@ a:focus-visible {
 .finance-empty-inline {
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -6017,7 +6015,7 @@ a:focus-visible {
 .finance-voice-aliases-shell {
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1.15rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 250, 252, 0.78));
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -6034,7 +6032,7 @@ a:focus-visible {
   gap: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--surface);
   padding: 1rem 1rem 1.05rem;
 }
 
@@ -6090,7 +6088,7 @@ a:focus-visible {
   gap: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--surface);
   padding: 1rem 1rem 1.05rem;
 }
 
@@ -6123,7 +6121,7 @@ a:focus-visible {
   gap: 0.6rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 0.95rem;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface);
   padding: 0.85rem 0.9rem;
 }
 
@@ -6143,8 +6141,8 @@ a:focus-visible {
 .finance-dashboard-card {
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .finance-analytics-hero {
@@ -6202,7 +6200,7 @@ a:focus-visible {
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 0.9rem;
-  background: rgba(248, 250, 252, 0.82);
+  background: var(--surface);
   padding: 0.85rem;
 }
 
@@ -6266,7 +6264,7 @@ a:focus-visible {
   gap: 0.25rem;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.88);
+  background: var(--surface);
   padding: 0.25rem;
 }
 
@@ -6288,7 +6286,7 @@ a:focus-visible {
 }
 
 .finance-range-toggle__item--active {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--primary);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
 }
@@ -6319,7 +6317,7 @@ a:focus-visible {
   justify-content: center;
   border: 1px dashed rgba(148, 163, 184, 0.34);
   border-radius: 0.95rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   padding: 1rem;
   text-align: center;
 }
@@ -6503,8 +6501,8 @@ a:focus-visible {
   max-width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
   padding: 0.3rem;
 }
 
@@ -6533,9 +6531,9 @@ a:focus-visible {
 }
 
 .review-tabs__item--active {
-  background: #ffffff;
+  background: var(--surface-hover);
   color: var(--primary);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-soft);
 }
 
 .reviews-page__period {
@@ -6545,7 +6543,7 @@ a:focus-visible {
   gap: 0.75rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--surface);
   padding: 0.85rem 1rem;
 }
 
@@ -6574,7 +6572,7 @@ a:focus-visible {
 .review-card {
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
 }
 
@@ -6666,7 +6664,7 @@ a:focus-visible {
   resize: vertical;
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.7);
+  background: var(--surface);
   color: var(--foreground);
   font: inherit;
   line-height: 1.5;
@@ -6680,7 +6678,7 @@ a:focus-visible {
 .review-form__field textarea:focus {
   outline: 0;
   border-color: rgba(37, 99, 235, 0.42);
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
@@ -6694,7 +6692,7 @@ a:focus-visible {
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 0.9rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   margin: 0;
   padding: 0.8rem;
 }
@@ -6717,7 +6715,7 @@ a:focus-visible {
   place-items: center;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 0.7rem;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--muted);
   cursor: pointer;
   font: inherit;
@@ -6764,7 +6762,7 @@ a:focus-visible {
   justify-content: center;
   border: 1px dashed rgba(148, 163, 184, 0.34);
   border-radius: 0.95rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   padding: 1rem;
   text-align: center;
 }
@@ -6783,7 +6781,7 @@ a:focus-visible {
 .review-history__filter {
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 999px;
-  background: rgba(248, 250, 252, 0.82);
+  background: var(--surface);
   color: var(--muted);
   cursor: pointer;
   font: inherit;
@@ -6808,7 +6806,7 @@ a:focus-visible {
   overflow: hidden;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 0.9rem;
-  background: rgba(248, 250, 252, 0.58);
+  background: var(--surface);
 }
 
 .review-history__summary {
@@ -6872,7 +6870,7 @@ a:focus-visible {
   gap: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
   padding: 1rem;
 }
@@ -6906,7 +6904,7 @@ a:focus-visible {
   gap: 0.25rem;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.88);
+  background: var(--surface);
   padding: 0.25rem;
 }
 
@@ -6923,7 +6921,7 @@ a:focus-visible {
 }
 
 .reflection-insights__range-item--active {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--primary);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
 }
@@ -6940,7 +6938,7 @@ a:focus-visible {
   gap: 0.8rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
   padding: 1rem;
 }
@@ -7016,7 +7014,7 @@ a:focus-visible {
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 0.9rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   padding: 0.9rem;
 }
 
@@ -7077,10 +7075,10 @@ a:focus-visible {
 .dashboard-date-card,
 .dashboard-card,
 .dashboard-summary-card {
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  border: 1px solid var(--border);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
 }
 
 .dashboard-date-card {
@@ -7122,8 +7120,8 @@ a:focus-visible {
   gap: 0.35rem;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
   padding: 0.38rem;
 }
 
@@ -7152,9 +7150,9 @@ a:focus-visible {
 }
 
 .dashboard-tabs__item--active {
-  background: #ffffff;
+  background: var(--surface-hover);
   color: var(--primary);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-soft);
 }
 
 .dashboard-tab-panel {
@@ -7285,7 +7283,7 @@ a:focus-visible {
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   padding: 0.75rem;
 }
 
@@ -7302,7 +7300,7 @@ a:focus-visible {
   gap: 0.65rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.74);
+  background: var(--surface);
   color: var(--foreground);
   cursor: pointer;
   font: inherit;
@@ -7329,7 +7327,7 @@ a:focus-visible {
   gap: 0.75rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   padding: 0.8rem;
 }
 
@@ -7354,7 +7352,7 @@ a:focus-visible {
   justify-content: center;
   border: 1px dashed rgba(148, 163, 184, 0.34);
   border-radius: 0.95rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   padding: 1rem;
   text-align: center;
 }
@@ -7377,7 +7375,7 @@ a:focus-visible {
   width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 0.75rem;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--foreground);
   font: inherit;
   padding: 0.7rem 0.8rem;
@@ -7391,9 +7389,9 @@ a:focus-visible {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  border: 1px solid var(--border);
   border-radius: 1rem;
-  background: #f8fafc;
+  background: var(--background);
 }
 
 .dashboard-mind-map__flow {
@@ -7421,7 +7419,7 @@ a:focus-visible {
   padding: 0.5rem;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 0.85rem;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(12px);
   scrollbar-width: none;
@@ -7480,7 +7478,7 @@ a:focus-visible {
   max-width: 240px;
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 0.7rem;
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
   padding: 0.8rem;
   color: var(--foreground);
@@ -7542,7 +7540,7 @@ button.dashboard-mind-node {
   justify-content: center;
   border: 1px solid rgba(148, 163, 184, 0.26);
   border-radius: 0.45rem;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   color: #475569;
   cursor: pointer;
   transition:
@@ -7554,7 +7552,7 @@ button.dashboard-mind-node {
 .dashboard-mind-node__action:hover {
   border-color: rgba(37, 99, 235, 0.38);
   background: #eff6ff;
-  color: #1d4ed8;
+  color: var(--primary);
 }
 
 .dashboard-mind-node__badge {
@@ -7584,7 +7582,7 @@ button.dashboard-mind-node {
 
 .dashboard-mind-node--goal {
   border-color: rgba(37, 99, 235, 0.28);
-  background: rgba(239, 246, 255, 0.96);
+  background: var(--primary-soft);
   border-left: 4px solid #2563eb;
 }
 
@@ -7595,7 +7593,7 @@ button.dashboard-mind-node {
 .dashboard-mind-node--subtask {
   min-width: 165px;
   max-width: 220px;
-  background: rgba(248, 250, 252, 0.97);
+  background: var(--surface);
   border-left-color: #94a3b8;
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
 }
@@ -7674,7 +7672,7 @@ button.dashboard-mind-node {
   gap: 0.85rem;
   border: 1px dashed rgba(148, 163, 184, 0.32);
   border-radius: 0.85rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface);
   color: var(--muted);
   padding: 1rem;
   text-align: center;
@@ -7718,7 +7716,7 @@ button.dashboard-mind-node {
   gap: 0.25rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 0.75rem;
-  background: #ffffff;
+  background: var(--surface);
   color: var(--foreground);
   padding: 0.85rem;
   text-align: left;
@@ -7727,7 +7725,7 @@ button.dashboard-mind-node {
 .dashboard-goal-select-list button:hover,
 .dashboard-goal-select-list__item--active {
   border-color: rgba(37, 99, 235, 0.28);
-  background: rgba(239, 246, 255, 0.92);
+  background: var(--primary-soft);
 }
 
 .dashboard-goal-select-list span {
@@ -7759,7 +7757,7 @@ button.dashboard-mind-node {
 .dashboard-modal {
   width: min(560px, 100%);
   border-radius: 1rem;
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
   padding: 1rem;
 }
@@ -7824,7 +7822,7 @@ button.dashboard-mind-node {
   gap: 0.8rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 0.9rem;
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -7932,7 +7930,7 @@ button.dashboard-mind-node {
 .finance-recurring-form-card {
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1.15rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.94));
+  background: var(--surface);
   padding: 1rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
@@ -8003,7 +8001,7 @@ button.dashboard-mind-node {
   align-items: center;
   border: 1px solid rgba(148, 163, 184, 0.18);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   padding: 0.7rem 0.8rem;
   cursor: pointer;
   justify-content: flex-start;
@@ -8076,7 +8074,7 @@ button.dashboard-mind-node {
   height: 2.25rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 0.8rem;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   color: var(--text);
   cursor: pointer;
 }
@@ -8099,7 +8097,7 @@ button.dashboard-mind-node {
   gap: 0.9rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.82);
+  background: var(--surface);
   padding: 0.95rem 1rem;
 }
 
@@ -8191,7 +8189,7 @@ button.dashboard-mind-node {
   flex-direction: column;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
@@ -8203,7 +8201,7 @@ button.dashboard-mind-node {
 
 .task-board-column--over {
   border-color: rgba(37, 99, 235, 0.18);
-  background: rgba(239, 246, 255, 0.92);
+  background: var(--primary-soft);
   box-shadow: 0 16px 30px rgba(37, 99, 235, 0.08);
 }
 
@@ -8295,7 +8293,7 @@ button.dashboard-mind-node {
   border: 1px dashed rgba(148, 163, 184, 0.24);
   border-radius: 1rem;
   color: var(--muted);
-  background: rgba(248, 250, 252, 0.7);
+  background: var(--surface);
   font-size: 0.92rem;
 }
 
@@ -8311,7 +8309,7 @@ button.dashboard-mind-node {
   gap: 0.8rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--surface);
   padding: 0.9rem;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
@@ -8430,7 +8428,7 @@ button.dashboard-mind-node {
   min-width: 0;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   color: var(--text);
   padding: 0.7rem 1rem;
   font-weight: 600;
@@ -8452,8 +8450,8 @@ button.dashboard-mind-node {
 
 .task-view-switcher__item--active {
   border-color: rgba(37, 99, 235, 0.18);
-  background: rgba(239, 246, 255, 0.95);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .task-view-switcher__badge {
@@ -8483,7 +8481,7 @@ button.dashboard-mind-node {
 .task-calendar__header {
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   padding: 1rem 1.1rem;
 }
 
@@ -8519,7 +8517,7 @@ button.dashboard-mind-node {
   min-height: 2.75rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 0.95rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface);
   color: var(--text);
   padding: 0.7rem 0.95rem;
   font-weight: 600;
@@ -8541,7 +8539,7 @@ button.dashboard-mind-node {
 .task-calendar__panel {
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1.2rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
 
@@ -8577,7 +8575,7 @@ button.dashboard-mind-node {
   flex-direction: column;
   gap: 0.45rem;
   border: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface);
   padding: 0.7rem;
   text-align: left;
   transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
@@ -8589,7 +8587,7 @@ button.dashboard-mind-node {
 }
 
 .task-calendar__day--outside {
-  background: rgba(248, 250, 252, 0.72);
+  background: var(--surface);
   color: var(--muted);
 }
 
@@ -8599,7 +8597,7 @@ button.dashboard-mind-node {
 
 .task-calendar__day--selected {
   border-color: rgba(37, 99, 235, 0.24);
-  background: rgba(239, 246, 255, 0.9);
+  background: var(--primary-soft);
   box-shadow: 0 14px 28px rgba(37, 99, 235, 0.1);
 }
 
@@ -8612,7 +8610,7 @@ button.dashboard-mind-node {
 }
 
 .task-calendar__day--due-soon {
-  background: rgba(239, 246, 255, 0.88);
+  background: var(--primary-soft);
 }
 
 .task-calendar__day--holiday {
@@ -8652,8 +8650,8 @@ button.dashboard-mind-node {
 }
 
 .task-calendar__panel-due {
-  background: rgba(239, 246, 255, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .task-calendar__day-body {
@@ -8714,8 +8712,8 @@ button.dashboard-mind-node {
 }
 
 .task-calendar__day-indicator--info {
-  background: rgba(219, 234, 254, 0.95);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .task-calendar__day-indicator--task {
@@ -8797,7 +8795,7 @@ button.dashboard-mind-node {
   gap: 0.35rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.78);
+  background: var(--surface);
   padding: 0.85rem 0.95rem;
   text-align: left;
 }
@@ -8808,7 +8806,7 @@ button.dashboard-mind-node {
 
 .task-calendar__event-item:hover {
   border-color: rgba(37, 99, 235, 0.18);
-  background: rgba(239, 246, 255, 0.92);
+  background: var(--primary-soft);
   transform: translateY(-1px);
 }
 
@@ -8831,8 +8829,8 @@ button.dashboard-mind-node {
 }
 
 .task-calendar__event-time {
-  background: rgba(219, 234, 254, 0.95);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .task-calendar__holiday-badge {
@@ -8862,7 +8860,7 @@ button.dashboard-mind-node {
   gap: 0.25rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--surface);
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
   padding: 0.4rem;
 }
@@ -8900,7 +8898,7 @@ button.dashboard-mind-node {
   gap: 0.85rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1.1rem;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--surface);
   padding: 1rem;
 }
 
@@ -8928,7 +8926,7 @@ button.dashboard-mind-node {
   padding: 1rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
 
@@ -8953,7 +8951,7 @@ button.dashboard-mind-node {
   gap: 0.35rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   color: var(--muted);
   padding: 0.34rem 0.62rem;
   font-size: 0.82rem;
@@ -8962,8 +8960,8 @@ button.dashboard-mind-node {
 
 .tasks-list-row__scope-chip--goal {
   border-color: rgba(37, 99, 235, 0.14);
-  background: rgba(239, 246, 255, 0.96);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .goal-task-list__quick-actions {
@@ -8989,7 +8987,7 @@ button.dashboard-mind-node {
   gap: 0.35rem;
   padding: 0.55rem 0.7rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 600;
@@ -9009,7 +9007,7 @@ button.dashboard-mind-node {
   z-index: 2;
   border-top-color: transparent;
   border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--surface);
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
   opacity: 0.96;
 }
@@ -9108,8 +9106,8 @@ button.dashboard-mind-node {
   gap: 0.45rem;
   border: 1px solid rgba(37, 99, 235, 0.14);
   border-radius: 999px;
-  background: rgba(239, 246, 255, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
   padding: 0.55rem 0.8rem;
   font-size: 0.82rem;
   font-weight: 700;
@@ -9124,7 +9122,7 @@ button.dashboard-mind-node {
 .goal-create-step__ai-action:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.22);
-  background: rgba(219, 234, 254, 0.96);
+  background: var(--primary-soft);
 }
 
 .goal-create-step__ai-action:disabled {
@@ -9158,8 +9156,8 @@ button.dashboard-mind-node {
   gap: 0.45rem;
   border: 1px solid rgba(37, 99, 235, 0.14);
   border-radius: 999px;
-  background: rgba(239, 246, 255, 0.92);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
   padding: 0.55rem 0.8rem;
   font-size: 0.82rem;
   font-weight: 700;
@@ -9174,7 +9172,7 @@ button.dashboard-mind-node {
 .goal-detail-ai-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(37, 99, 235, 0.22);
-  background: rgba(219, 234, 254, 0.96);
+  background: var(--primary-soft);
 }
 
 .goal-detail-ai-button:disabled {
@@ -9200,7 +9198,7 @@ button.dashboard-mind-node {
   padding: 0.95rem;
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 1rem;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--surface);
 }
 
 .goal-ai-suggestion-card__select,
@@ -9325,7 +9323,7 @@ button.dashboard-mind-node {
   padding: 0.95rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.98);
+  background: var(--surface);
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
 }
 
@@ -9346,7 +9344,7 @@ button.dashboard-mind-node {
 .localized-date-input__action,
 .localized-date-input__day {
   border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   color: var(--text);
   transition:
     background-color 140ms ease,
@@ -9420,8 +9418,8 @@ button.dashboard-mind-node {
 
 .localized-date-input__day--selected {
   border-color: rgba(37, 99, 235, 0.22);
-  background: rgba(239, 246, 255, 0.95);
-  color: #1d4ed8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .localized-date-input__day--today {
@@ -10423,450 +10421,281 @@ button.dashboard-mind-node {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Dark-mode component overrides
-   These override hardcoded light-mode colors used in specific components.
+   DARK MODE — component-level tweaks
+   All bg/color values now use CSS variables. These overrides handle the
+   remaining cases: borders, shadows, inputs, and status chips.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Task view switcher tabs ─────────────────────────────────────────────── */
-[data-theme="dark"] .task-view-switcher__item {
+/* ── Forms & inputs ──────────────────────────────────────────────────────── */
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
   background: var(--surface);
   border-color: var(--border);
-  color: var(--muted);
-}
-
-[data-theme="dark"] .task-view-switcher__item:hover:not(:disabled) {
-  background: var(--surface-hover);
   color: var(--text);
 }
-
-[data-theme="dark"] .task-view-switcher__item--active {
-  background: rgba(96, 165, 250, 0.15);
-  border-color: rgba(96, 165, 250, 0.35);
-  color: var(--primary);
-}
-
-/* ── Finance tabs ────────────────────────────────────────────────────────── */
-[data-theme="dark"] .finance-tabs {
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-
-[data-theme="dark"] .finance-tabs__item {
-  color: var(--muted);
-}
-
-[data-theme="dark"] .finance-tabs__item:hover {
-  color: var(--text);
-}
-
-[data-theme="dark"] .finance-tabs__item--active {
-  background: rgba(96, 165, 250, 0.15);
-  color: var(--primary);
-}
-
-/* ── Review / daily-review tabs ─────────────────────────────────────────── */
-[data-theme="dark"] .review-tabs {
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
   background: var(--surface-hover);
+  border-color: var(--primary);
 }
-
-[data-theme="dark"] .review-tabs__item {
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
   color: var(--muted);
-}
-
-[data-theme="dark"] .review-tabs__item--active {
-  background: var(--surface);
-  color: var(--primary);
-  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.4);
-}
-
-/* ── Dashboard tabs ──────────────────────────────────────────────────────── */
-[data-theme="dark"] .dashboard-tabs__item--active {
-  background: rgba(96, 165, 250, 0.15);
-  color: var(--primary);
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 [data-theme="dark"] .button--secondary {
   background: var(--surface);
   border-color: var(--border);
-  color: var(--text);
 }
-
 [data-theme="dark"] .button--secondary:hover {
   background: var(--surface-hover);
-  border-color: rgba(96, 165, 250, 0.3);
+  border-color: var(--primary);
 }
-
 [data-theme="dark"] .button--ghost:hover {
   background: var(--surface-hover);
 }
-
-/* ── Cards and panels with hardcoded white backgrounds ───────────────────── */
-[data-theme="dark"] .habit-overview-row {
-  background: var(--surface);
-}
-
-[data-theme="dark"] .auth-filter-chip {
-  background: var(--surface);
-  border-color: var(--border);
-  color: var(--text);
-}
-
-[data-theme="dark"] .auth-filter-chip--active {
-  background: rgba(96, 165, 250, 0.15);
-  border-color: rgba(96, 165, 250, 0.35);
-  color: var(--primary);
-}
-
-/* ── Icon button ─────────────────────────────────────────────────────────── */
 [data-theme="dark"] .icon-button {
   background: var(--surface);
   border-color: var(--border);
-  color: var(--text);
 }
-
 [data-theme="dark"] .icon-button:hover {
   background: var(--surface-hover);
 }
 
-/* ── Habit calendar day partial ──────────────────────────────────────────── */
-[data-theme="dark"] .habit-calendar-day--partial {
-  background: rgba(96, 165, 250, 0.14);
-  color: var(--primary);
-}
-
-/* ── Goal/habit tag chips (light-blue hardcoded) ─────────────────────────── */
-[data-theme="dark"] .goal-tag,
-[data-theme="dark"] .habit-tag {
-  background: rgba(96, 165, 250, 0.12);
-  border-color: rgba(96, 165, 250, 0.25);
-  color: var(--primary);
-}
-
-/* ── body background gradient ────────────────────────────────────────────── */
-[data-theme="dark"] body::before {
-  background:
-    radial-gradient(circle at top left, rgba(96, 165, 250, 0.05), transparent 30%),
-    radial-gradient(circle at top right, rgba(52, 211, 153, 0.04), transparent 24%),
-    linear-gradient(180deg, #0f172a, #0f172a);
-}
-
-/* ── Dashboard cards & date card ─────────────────────────────────────────── */
-[data-theme="dark"] .dashboard-date-card,
-[data-theme="dark"] .dashboard-card,
-[data-theme="dark"] .dashboard-summary-card {
-  background: var(--surface);
+/* ── Cards & surfaces that still need help ───────────────────────────────── */
+[data-theme="dark"] .card {
   border-color: var(--border);
-  box-shadow: var(--shadow-soft);
 }
-
-[data-theme="dark"] .dashboard-tabs {
+[data-theme="dark"] .task-board-column {
   background: var(--surface);
   border-color: var(--border);
 }
-
-[data-theme="dark"] .dashboard-tabs__item--active {
-  background: rgba(96, 165, 250, 0.15);
-  color: var(--primary);
-  box-shadow: none;
-}
-
-/* ── Habit components ────────────────────────────────────────────────────── */
-[data-theme="dark"] .habit-overview-row {
+[data-theme="dark"] .task-board-card {
   background: var(--surface);
   border-color: var(--border);
 }
-
-[data-theme="dark"] .habit-empty {
+[data-theme="dark"] .dashboard-modal {
   background: var(--surface);
   border-color: var(--border);
 }
-
-[data-theme="dark"] .habit-detail-drawer {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .habit-reminder-popup {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-/* ── Modal shell ─────────────────────────────────────────────────────────── */
-[data-theme="dark"] .modal-shell {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .modal-shell__footer {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .modal-shell__close {
-  background: var(--surface-hover);
-  border-color: var(--border);
-}
-
-/* ── Task editor & task components ───────────────────────────────────────── */
-[data-theme="dark"] .task-editor-section--surface {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .task-ai-action-button {
-  background: rgba(96, 165, 250, 0.1);
-  color: var(--primary);
-  border-color: rgba(96, 165, 250, 0.2);
-}
-
-[data-theme="dark"] .task-ai-chip {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .task-chip-button {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .task-tag {
-  background: rgba(96, 165, 250, 0.1);
-  color: var(--primary);
-  border-color: rgba(96, 165, 250, 0.2);
-}
-
-[data-theme="dark"] .task-goal-link__option {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .task-goal-link__option--active {
-  background: rgba(96, 165, 250, 0.12);
-  color: var(--primary);
-  border-color: rgba(96, 165, 250, 0.3);
-}
-
-[data-theme="dark"] .task-editor-empty-state {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .task-tree__item {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .subtask-card {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .subtask-card--dragging {
-  background: var(--surface-hover);
-}
-
-/* ── Goal cards ──────────────────────────────────────────────────────────── */
-[data-theme="dark"] .goal-card {
-  background: linear-gradient(180deg, var(--surface), var(--surface));
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .goal-detail-header__summary-item--info {
-  background: rgba(96, 165, 250, 0.1);
-  border-color: rgba(96, 165, 250, 0.2);
-  color: var(--primary);
-}
-
-[data-theme="dark"] .goal-task-list__content-button {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-[data-theme="dark"] .goal-task-list__tag-chip {
-  background: rgba(96, 165, 250, 0.1);
-  color: var(--primary);
-  border-color: rgba(96, 165, 250, 0.2);
-}
-
-[data-theme="dark"] .task-resource-badge:hover {
-  background: rgba(96, 165, 250, 0.1);
-  color: var(--primary);
-}
-
-/* ── Finance components ──────────────────────────────────────────────────── */
-[data-theme="dark"] .finance-assistant__score-ring {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .finance-assistant__answer {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .finance-settings-entry {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .finance-quick-capture__mic {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .finance-transactions--embedded .finance-transaction-card,
-[data-theme="dark"] .finance-transactions--manager .finance-transaction-card {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .finance-voice-aliases-shell {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .finance-voice-training-card__preview {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .finance-analytics-hero,
-[data-theme="dark"] .finance-dashboard-card {
-  background: var(--surface);
-  border-color: var(--border);
-  box-shadow: var(--shadow-soft);
-}
-
-[data-theme="dark"] .finance-quick-capture__correction,
-[data-theme="dark"] .finance-quick-capture__status-chip--live,
-[data-theme="dark"] .finance-form__hint {
-  color: var(--primary);
-}
-
-[data-theme="dark"] .finance-filter-panel__badge {
-  color: var(--primary);
-}
-
-[data-theme="dark"] .finance-summary-card--balance .finance-summary-card__icon {
-  color: var(--primary);
-}
-
-/* ── Goal detail header chips ────────────────────────────────────────────── */
-[data-theme="dark"] .goal-detail-header__deadline-chip--info {
-  color: var(--primary);
-}
-
-[data-theme="dark"] .goal-task-list__status-chip--in_progress {
-  color: var(--primary);
-}
-
-/* ── Forms & inputs ──────────────────────────────────────────────────────── */
-[data-theme="dark"] .auth-form__input,
-[data-theme="dark"] select,
-[data-theme="dark"] textarea {
+[data-theme="dark"] .dashboard-modal-form select,
+[data-theme="dark"] .dashboard-goal-select-list button {
   background: var(--surface);
   border-color: var(--border);
   color: var(--text);
 }
 
-[data-theme="dark"] .auth-form__input:focus,
-[data-theme="dark"] select:focus,
-[data-theme="dark"] textarea:focus {
-  border-color: var(--primary);
-  background: var(--surface-hover);
-}
-
-/* ── Habit stat cards & today-habit cards ────────────────────────────────── */
-[data-theme="dark"] .habit-stat-card,
-[data-theme="dark"] .today-habit-card,
-[data-theme="dark"] .habit-overview-row {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-/* ── Tasks quick-add & group sections ────────────────────────────────────── */
-[data-theme="dark"] .tasks-quick-add {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .tasks-group-section {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-/* ── Finance transaction cards (base rule) ───────────────────────────────── */
-[data-theme="dark"] .finance-transaction-card {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-/* ── Task AI field/suggestion cards ─────────────────────────────────────── */
-[data-theme="dark"] .task-ai-field-card,
-[data-theme="dark"] .task-ai-suggestion-card {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-/* ── Goal detail header summary items ────────────────────────────────────── */
-[data-theme="dark"] .goal-detail-header__summary-item {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .goal-detail-header__summary-item--warning {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.25);
-}
-
-[data-theme="dark"] .goal-detail-header__summary-item--danger {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.25);
-}
-
-[data-theme="dark"] .goal-detail-header__summary-item--success {
-  background: rgba(52, 211, 153, 0.1);
-  border-color: rgba(52, 211, 153, 0.25);
-}
-
-/* ── Goal card habit progress block ─────────────────────────────────────── */
-[data-theme="dark"] .goal-card__habit-progress {
-  background: var(--surface-hover);
-  border-color: var(--border);
-}
-
-/* ── Settings AI toggle row ─────────────────────────────────────────────── */
-[data-theme="dark"] .settings-ai__toggle-row {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-/* ── Sidebar nav items with light hover state ────────────────────────────── */
-[data-theme="dark"] .sidebar__nav-item:hover {
-  background: var(--surface-hover);
-}
-
+/* ── Sidebar nav ─────────────────────────────────────────────────────────── */
 [data-theme="dark"] .sidebar__nav-item--active {
   background: rgba(96, 165, 250, 0.12);
   color: var(--primary);
 }
-
-/* ── Status-based light bg items (goal deadline chips) ───────────────────── */
-[data-theme="dark"] .goal-detail-header__deadline-chip {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-/* ── Light surface rows (notifications, sidebar items) ───────────────────── */
-[data-theme="dark"] .notification-item {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .notification-item:hover {
+[data-theme="dark"] .sidebar__nav-item:not(.sidebar__nav-item--active):hover {
   background: var(--surface-hover);
 }
 
-[data-theme="dark"] .notification-item--unread {
-  background: rgba(96, 165, 250, 0.06);
+/* ── Status chips — keep colored but adjust opacity for dark ─────────────── */
+[data-theme="dark"] .goal-detail-header__summary-item--warning {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.28);
 }
+[data-theme="dark"] .goal-detail-header__summary-item--danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+[data-theme="dark"] .goal-detail-header__summary-item--success {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.28);
+}
+
+/* ── Tab active states ───────────────────────────────────────────────────── */
+[data-theme="dark"] .task-view-switcher__item {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--muted);
+}
+[data-theme="dark"] .task-view-switcher__item--active {
+  background: var(--primary-soft);
+  border-color: rgba(96, 165, 250, 0.35);
+  color: var(--primary);
+}
+[data-theme="dark"] .dashboard-tabs__item--active,
+[data-theme="dark"] .finance-tabs__item--active,
+[data-theme="dark"] .review-tabs__item--active,
+[data-theme="dark"] .finance-range-toggle__item--active,
+[data-theme="dark"] .reflection-insights__range-item--active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  box-shadow: none;
+}
+
+/* ── Notification panel ──────────────────────────────────────────────────── */
+[data-theme="dark"] .notification-panel {
+  background: var(--surface);
+  border-color: var(--border);
+}
+[data-theme="dark"] .notification-item {
+  border-color: var(--border);
+}
+[data-theme="dark"] .notification-item--unread {
+  background: var(--primary-soft);
+}
+
+/* ── Finance toggle thumb stays white ────────────────────────────────────── */
+[data-theme="dark"] .finance-toggle__thumb {
+  background: #ffffff;
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────────────────── */
+[data-theme="dark"] * {
+  scrollbar-color: var(--border) transparent;
+}
+[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+[data-theme="dark"] *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+/* ── React Flow / Mind Map dark mode ─────────────────────────────────────── */
+
+/* Canvas background dots pattern */
+[data-theme="dark"] .dashboard-mind-map__canvas .react-flow__background {
+  background: var(--background) !important;
+}
+[data-theme="dark"] .dashboard-mind-map__canvas .react-flow__background pattern circle,
+[data-theme="dark"] .dashboard-mind-map__canvas .react-flow__background pattern rect {
+  fill: rgba(96, 165, 250, 0.18) !important;
+}
+
+/* Controls (zoom +/-/fit/lock buttons) */
+[data-theme="dark"] .react-flow__controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+[data-theme="dark"] .react-flow__controls-button {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--muted);
+  fill: var(--muted);
+}
+[data-theme="dark"] .react-flow__controls-button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  fill: var(--text);
+}
+[data-theme="dark"] .react-flow__controls-button svg {
+  fill: var(--muted);
+}
+[data-theme="dark"] .react-flow__controls-button:hover svg {
+  fill: var(--text);
+}
+
+/* Edges */
+[data-theme="dark"] .react-flow__edge path {
+  stroke: var(--border);
+}
+[data-theme="dark"] .react-flow__edge.selected path,
+[data-theme="dark"] .react-flow__edge:hover path {
+  stroke: var(--primary);
+}
+[data-theme="dark"] .react-flow__edge-path {
+  stroke: var(--border);
+}
+[data-theme="dark"] .react-flow__connection-path {
+  stroke: var(--primary);
+}
+
+/* Selection box */
+[data-theme="dark"] .react-flow__selection {
+  background: rgba(96, 165, 250, 0.06);
+  border-color: var(--primary);
+}
+
+/* Node handles (connection dots) */
+[data-theme="dark"] .react-flow__handle {
+  background: var(--primary);
+  border-color: var(--surface);
+}
+
+/* Node wrapper default */
+[data-theme="dark"] .react-flow__node {
+  color: var(--text);
+}
+
+/* Mind-map node base */
+[data-theme="dark"] .dashboard-mind-node {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.4);
+  color: var(--text);
+}
+[data-theme="dark"] .dashboard-mind-node:hover {
+  border-color: rgba(96, 165, 250, 0.35);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.5);
+}
+
+/* Node action buttons */
+[data-theme="dark"] .dashboard-mind-node__action {
+  background: var(--surface-hover);
+  border-color: var(--border);
+  color: var(--muted);
+}
+[data-theme="dark"] .dashboard-mind-node__action:hover {
+  background: var(--primary-soft);
+  border-color: rgba(96, 165, 250, 0.4);
+  color: var(--primary);
+}
+
+/* Node badge */
+[data-theme="dark"] .dashboard-mind-node__badge {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--muted);
+}
+
+/* Goal node */
+[data-theme="dark"] .dashboard-mind-node--goal {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.35);
+  border-left-color: var(--primary);
+}
+
+/* Done node (green) */
+[data-theme="dark"] .dashboard-mind-node--done {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.3);
+  border-left-color: #34d399;
+}
+
+/* Overdue node (red) */
+[data-theme="dark"] .dashboard-mind-node--overdue {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  border-left-color: #f87171;
+}
+
+/* Selected node */
+[data-theme="dark"] .dashboard-mind-node--selected {
+  border-color: rgba(96, 165, 250, 0.7);
+  box-shadow:
+    0 0 0 3px rgba(96, 165, 250, 0.18),
+    0 12px 28px rgba(2, 6, 23, 0.4);
+}
+
+/* Goal node card (the placeholder "برای انتخاب هدف کلیک کنید") */
+[data-theme="dark"] .dashboard-mind-map__canvas .react-flow__node-default,
+[data-theme="dark"] .dashboard-mind-map__canvas .react-flow__node-input,
+[data-theme="dark"] .dashboard-mind-map__canvas .react-flow__node-output {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
