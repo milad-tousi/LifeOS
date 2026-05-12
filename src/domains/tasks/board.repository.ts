@@ -8,6 +8,8 @@ import {
 import { normalizeTask } from "@/domains/tasks/task.utils";
 
 export const taskBoardColumnsRepository = {
+  // getAll: reads + seeds/normalizes (writes). Safe to call from useEffect,
+  // event handlers, mutations — NOT safe inside useLiveQuery.
   async getAll(): Promise<TaskBoardColumn[]> {
     await ensureDatabaseReady();
     const storedColumns = await db.taskBoardColumns.toArray();
@@ -30,6 +32,21 @@ export const taskBoardColumnsRepository = {
 
     return normalizedColumns;
   },
+
+  // getForLiveQuery: read-only, safe inside useLiveQuery / liveQuery contexts.
+  // Returns persisted columns, or in-memory defaults when the table is empty
+  // (does NOT write — seeding must happen outside via getAll()).
+  async getForLiveQuery(): Promise<TaskBoardColumn[]> {
+    await ensureDatabaseReady();
+    const storedColumns = await db.taskBoardColumns.toArray();
+
+    if (storedColumns.length === 0) {
+      return createDefaultBoardColumns();
+    }
+
+    return normalizeBoardColumns(storedColumns);
+  },
+
   async add(title: string): Promise<TaskBoardColumn[]> {
     await ensureDatabaseReady();
     const existingColumns = await this.getAll();

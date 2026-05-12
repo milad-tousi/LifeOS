@@ -20,32 +20,22 @@ export function NotificationButton(): JSX.Element {
   const portalTarget = typeof document === "undefined" ? null : document.body;
 
   useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
+    if (!isOpen) return;
 
     function updatePanelPosition(): void {
       const button = buttonRef.current;
       if (!button) return;
-
       const rect = button.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const desiredWidth = Math.min(360, viewportWidth - 16);
       const top = rect.bottom + 8;
-
       if (viewportWidth <= 640) {
-        // Mobile: center under the button, clamped to viewport
         const leftEdge = Math.max(8, Math.min(rect.left, viewportWidth - desiredWidth - 8));
         setPanelStyle({ top, left: leftEdge, width: desiredWidth });
       } else if (direction === "rtl") {
-        // RTL: the bell sits on the left side of the header — anchor the
-        // panel's left edge to the button's left edge, clamped so it never
-        // bleeds off the right side of the viewport.
         const leftEdge = Math.max(8, Math.min(rect.left, viewportWidth - desiredWidth - 8));
         setPanelStyle({ top, left: leftEdge, width: desiredWidth });
       } else {
-        // LTR: anchor the panel's right edge to the button's right edge,
-        // clamped so it never bleeds off the left side of the viewport.
         const rightEdge = Math.max(8, viewportWidth - rect.right);
         const clampedRight = Math.min(rightEdge, viewportWidth - desiredWidth - 8);
         setPanelStyle({ top, right: Math.max(8, clampedRight), width: desiredWidth });
@@ -55,17 +45,14 @@ export function NotificationButton(): JSX.Element {
     updatePanelPosition();
     window.addEventListener("resize", updatePanelPosition);
     window.addEventListener("scroll", updatePanelPosition, true);
-
     return () => {
       window.removeEventListener("resize", updatePanelPosition);
       window.removeEventListener("scroll", updatePanelPosition, true);
     };
   }, [direction, isOpen]);
 
-  // Close panel on outside click
   useEffect(() => {
     if (!isOpen) return;
-
     function handleOutsideClick(e: MouseEvent): void {
       if (
         panelRef.current &&
@@ -76,14 +63,12 @@ export function NotificationButton(): JSX.Element {
         setIsOpen(false);
       }
     }
-
     function handleEscape(e: KeyboardEvent): void {
       if (e.key === "Escape") {
         setIsOpen(false);
         buttonRef.current?.focus();
       }
     }
-
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("keydown", handleEscape);
     return () => {
@@ -114,19 +99,17 @@ export function NotificationButton(): JSX.Element {
           </span>
         )}
       </button>
-
       {isOpen && portalTarget && panelStyle
         ? createPortal(
             <div
               ref={panelRef}
-              className={`notif-panel-wrap notif-panel-wrap--${direction}`}
-              style={{
-                top: `${panelStyle.top}px`,
-                ...(panelStyle.left !== undefined
-                  ? { left: `${panelStyle.left}px` }
-                  : { right: `${panelStyle.right ?? 8}px` }),
-                width: `${panelStyle.width}px`,
-              }}
+              className={"notif-panel-wrap notif-panel-wrap--" + direction}
+              style={Object.assign(
+                { top: panelStyle.top + "px", width: panelStyle.width + "px" },
+                panelStyle.left !== undefined
+                  ? { left: panelStyle.left + "px" }
+                  : { right: (panelStyle.right ?? 8) + "px" },
+              )}
             >
               <NotificationPanel
                 notifications={notifications}

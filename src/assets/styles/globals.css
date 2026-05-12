@@ -3638,7 +3638,9 @@ a:focus-visible {
 }
 
 .rtl .goals-page__header {
-  align-items: flex-end;
+  /* stretch so ScreenHeader fills full width; text-align:right handles alignment */
+  /* flex-end on cross-axis in RTL column-flex = LEFT — wrong, use stretch instead */
+  align-items: stretch;
   text-align: right;
 }
 
@@ -10420,6 +10422,55 @@ button.dashboard-mind-node {
   padding: 1rem;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RTL — direction-aware overrides for task list items
+   Fixes text-align:left hardcoded on content buttons and descriptions,
+   and reverses the completed-strikethrough animation origin.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[dir="rtl"] .goal-task-list__content-button {
+  text-align: right;
+}
+
+[dir="rtl"] .task-board-card__body {
+  text-align: right;
+}
+
+/* Strikethrough animates from the inline-end edge in RTL */
+[dir="rtl"] .goal-task-list__title-text::after {
+  left: auto;
+  right: 0;
+}
+
+/* Badges row: start from the inline-start (right) side in RTL */
+[dir="rtl"] .goal-task-list__badges {
+  justify-content: flex-start;
+}
+
+/* Description text naturally aligns to start (right in RTL) */
+[dir="rtl"] .goal-task-list__description,
+[dir="rtl"] .task-board-card__description {
+  text-align: right;
+}
+
+/* Screen-header: title + description always right-aligned in RTL */
+[dir="rtl"] .screen-header__title,
+[dir="rtl"] .screen-header__description {
+  text-align: right;
+}
+
+/* Page header wrappers that use flex-direction:column: stretch children
+   so ScreenHeader is full-width and text-align:right handles placement */
+[dir="rtl"] .goals-page__header,
+[dir="rtl"] .finance-page__header,
+[dir="rtl"] .habits-page__header,
+[dir="rtl"] .reviews-page__header,
+[dir="rtl"] .settings-page__header,
+[dir="rtl"] .tasks-page-header {
+  align-items: stretch;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    DARK MODE — component-level tweaks
    All bg/color values now use CSS variables. These overrides handle the
@@ -10699,3 +10750,385 @@ button.dashboard-mind-node {
   color: var(--text);
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — global layout improvements (≤ 639px)
+   - Compact greeting (single line, no wrap)
+   - Hide screen-header description; shrink title
+   - Tighter app-shell and page-container spacing
+   - All pages inherit these rules automatically
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 639px) {
+
+  /* ── 1. App shell: tighter outer padding ─────────────────────────────── */
+  .app-shell--mobile {
+    padding:
+      calc(env(safe-area-inset-top) + 0.5rem)
+      0.75rem
+      calc(env(safe-area-inset-bottom) + 5.5rem);
+  }
+
+  .app-shell__main {
+    gap: 0.5rem;
+  }
+
+  /* ── 2. TopBar: compact vertical rhythm ──────────────────────────────── */
+  .topbar {
+    padding: 0.2rem 0;
+    gap: 0.5rem;
+    min-height: 0;
+  }
+
+  .topbar__left {
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .topbar__actions {
+    flex-shrink: 0;
+    gap: 0.35rem;
+  }
+
+  /* ── 3. Page greeting: single line, ellipsis ─────────────────────────── */
+  .page-greeting {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: min(calc(100vw - 7rem), 260px);
+  }
+
+  /* ── 4. Screen header: hide description, shrink title ───────────────── */
+  /* The page title wastes vertical space on mobile – show compact only  */
+  .screen-header__description {
+    display: none;
+  }
+
+  .screen-header__title {
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .screen-header {
+    gap: 0;
+    padding-bottom: 0.15rem;
+  }
+
+  /* ── 5. Page container: tighter gap between sections ────────────────── */
+  .page-container {
+    gap: 0.65rem;
+  }
+
+  /* ── 6. Dashboard: hide the date-card (large empty space on mobile) ── */
+  .dashboard-date-card {
+    display: none;
+  }
+
+  /* ── 7. Dashboard summary cards: 2-column instead of 5 ──────────────── */
+  .dashboard-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  /* ── 8. Dashboard page header: compact ──────────────────────────────── */
+  .dashboard-header {
+    gap: 0.35rem;
+  }
+
+  /* ── 9. Habit stats: 2-column ────────────────────────────────────────── */
+  .habit-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .habit-stat-card {
+    padding: 0.7rem;
+    gap: 0.55rem;
+  }
+
+  /* ── 10. Goals page: compact header ──────────────────────────────────── */
+  .goals-page__header {
+    gap: 0.5rem;
+  }
+
+  /* ── 11. General card padding reduction on mobile ────────────────────── */
+  .card {
+    padding: 0.85rem;
+  }
+
+  /* ── 12. Dashboard card padding ──────────────────────────────────────── */
+  .dashboard-card,
+  .dashboard-summary-card {
+    padding: 0.85rem;
+  }
+
+  /* ── 13. Tasks page shell ─────────────────────────────────────────────── */
+  .tasks-page-shell {
+    gap: 0.5rem;
+  }
+
+  .tasks-page-shell__top-row {
+    gap: 0.5rem;
+  }
+
+  /* ── 14. Finance page header ──────────────────────────────────────────── */
+  .finance-page__header {
+    gap: 0.5rem;
+  }
+
+  /* ── 15. Reviews page header ──────────────────────────────────────────── */
+  .reviews-page__header {
+    gap: 0.5rem;
+  }
+
+  /* ── 16. Settings page: compact sections ─────────────────────────────── */
+  .settings-section {
+    gap: 0.75rem;
+  }
+
+  /* ── 17. Icon button: consistent compact size ────────────────────────── */
+  .icon-button {
+    width: 2.2rem;
+    height: 2.2rem;
+    flex-shrink: 0;
+  }
+
+  /* ── 18. Tasks page header: title + button on same row (RTL-aware) ────── */
+  /* Override the @media (max-width: 767px) rule that sets flex-direction: column */
+  .tasks-page-header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  /* Let the screen-header shrink so the button always fits */
+  .tasks-page-header .screen-header {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .tasks-page-header .screen-header__title {
+    font-size: 1.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Button: never shrinks, always at the logical end of the row */
+  .tasks-page-header__actions {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  /* Quick-add: ensure normal document flow, no sticky/fixed */
+  .tasks-page-shell__quick-add {
+    position: static;
+  }
+
+  .tasks-quick-add {
+    border-radius: 0.85rem;
+    padding: 0.75rem;
+  }
+
+
+  /* ── 19. Task list row: polished mobile card ─────────────────────────── */
+
+  /* Tighter row item: less horizontal gap so content gets more room */
+  .goal-task-list__item {
+    gap: 0.35rem;
+    padding: 0.7rem 0;
+    align-items: flex-start;
+  }
+
+  /* Reduce toggle/action button size on mobile */
+  .goal-task-list__toggle,
+  .goal-task-list__drag-handle,
+  .goal-task-list__delete,
+  .goal-task-list__quick-action {
+    width: 2rem;
+    min-width: 2rem;
+    height: 2rem;
+    border-radius: 0.6rem;
+  }
+
+  /* Tighter internal column gap */
+  .goal-task-list__content {
+    gap: 0.3rem;
+  }
+
+  /* ── Topline: COLUMN layout on mobile ───────────────────────────────────
+     Row 1: full-width title (truncates with ellipsis)
+     Row 2: chip badges scrolling horizontally
+     This avoids all RTL flex-basis:0 + space-between collapse bugs.    ─── */
+  .goal-task-list__topline {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.25rem;
+  }
+
+  /* Title: full width, single line, truncate if too long */
+  .goal-task-list__title {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+    overflow: hidden;
+  }
+
+  .goal-task-list__title-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Badges: single scrollable row, no wrapping, hidden scrollbar */
+  .goal-task-list__badges {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    gap: 0.3rem;
+  }
+
+  .goal-task-list__badges::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Chips: compact size on mobile, never wrap */
+  .goal-task-list__status-chip,
+  .goal-task-list__priority-chip,
+  .goal-task-list__meta-chip,
+  .goal-task-list__tag-chip,
+  .tasks-list-row__scope-chip,
+  .task-resource-badge {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.74rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Meta row: horizontal scroll instead of wrap */
+  .goal-task-list__meta {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    gap: 0.3rem;
+  }
+
+  .goal-task-list__meta::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Description: full width, line-wrap friendly, RTL-safe */
+  .goal-task-list__description,
+  .task-board-card__description {
+    width: 100%;
+    max-width: none;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Board card: tighter internal layout */
+  .task-board-card {
+    gap: 0.55rem;
+    padding: 0.75rem;
+  }
+
+  .task-board-card__header,
+  .task-board-card__title-row,
+  .task-board-card__meta {
+    gap: 0.35rem;
+  }
+
+  .task-board-card__header {
+    flex-wrap: nowrap;
+  }
+
+  /* Subtasks progress: compact */
+  .goal-task-list__subtasks {
+    gap: 0.3rem;
+  }
+
+  .goal-task-list__subtasks-header {
+    font-size: 0.8rem;
+  }
+
+}
+
+/* ── Extra small (≤ 390px / iPhone SE, small Androids) ─────────────────── */
+@media (max-width: 390px) {
+  .app-shell--mobile {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+
+  .page-greeting {
+    font-size: 0.95rem;
+    max-width: min(calc(100vw - 6.5rem), 210px);
+  }
+
+  .screen-header__title {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .habit-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card {
+    padding: 0.75rem;
+  }
+}
+
+
+/* ── Error Boundary ──────────────────────────────────────────────────────── */
+.error-boundary-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: var(--spacing-xl);
+}
+
+.error-boundary-fallback__content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.error-boundary-fallback__title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.error-boundary-fallback__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-lg);
+  direction: ltr;
+  unicode-bidi: plaintext;
+}

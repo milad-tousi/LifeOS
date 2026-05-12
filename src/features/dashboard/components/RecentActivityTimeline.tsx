@@ -79,7 +79,7 @@ function translateModule(
   module: ActivityModule,
   t: ReturnType<typeof useI18n>["t"],
 ): string {
-  const keyMap: Record<ActivityModule, Parameters<typeof t>[0]> = {
+  const keyMap: Record<ActivityModule, string> = {
     Tasks: "dashboard.recentActivity.module.tasks",
     Habits: "dashboard.recentActivity.module.habits",
     Goals: "dashboard.recentActivity.module.goals",

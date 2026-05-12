@@ -19,7 +19,7 @@ import { Task } from "@/domains/tasks/types";
 import { sortTasksByOrder } from "@/domains/tasks/task.utils";
 
 export function TasksPage(): JSX.Element {
-  const { boardColumns, events, goals, loading, tasks } = useTasksPageData();
+  const { boardColumns, events, goals, loading, tasks, error } = useTasksPageData();
   const [activeTaskView, setActiveTaskView] = useState<TaskView>("list");
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [taskDraftDueDate, setTaskDraftDueDate] = useState<string | undefined>(undefined);
@@ -321,7 +321,13 @@ export function TasksPage(): JSX.Element {
       </Card>
 
       <div className={`tasks-page__view tasks-page__view--${activeTaskView}`}>
-        {loading ? <p className="text-muted">Loading tasks...</p> : renderActiveView()}
+        {loading ? (
+          <p className="text-muted">Loading tasks...</p>
+        ) : error ? (
+          <p className="text-muted">خطا در بارگذاری: {error.message}</p>
+        ) : (
+          renderActiveView()
+        )}
       </div>
 
       <TaskModal

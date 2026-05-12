@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
@@ -37,7 +38,14 @@ export function AppRoutes(): JSX.Element {
         }
       >
         <Route path="/" element={<DashboardPage />} />
-        <Route path="/tasks" element={<TasksPage />} />
+        <Route
+          path="/tasks"
+          element={
+            <ErrorBoundary>
+              <TasksPage />
+            </ErrorBoundary>
+          }
+        />
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/goals" element={<GoalsPage />} />
         <Route path="/goals/new" element={<CreateGoalPage />} />
