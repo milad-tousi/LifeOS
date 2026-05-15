@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { GoalCard } from "@/features/goals/components/GoalCard";
 import { useGoalTransitions } from "@/features/goals/hooks/useGoalTransitions";
 import { GoalCardData } from "@/features/goals/hooks/useGoals";
+import { useI18n } from "@/i18n";
 
 interface GoalCarouselProps {
   goals: GoalCardData[];
@@ -10,12 +11,15 @@ interface GoalCarouselProps {
 
 export function GoalCarousel({ goals, onOpenGoal }: GoalCarouselProps): JSX.Element {
   const transitions = useGoalTransitions(goals.length);
+  const { direction } = useI18n();
+  const isRtl = direction === "rtl";
 
   return (
     <section className="goal-carousel">
       <div className="goal-carousel__viewport">
         <div
           className={`goal-carousel__track goal-carousel__track--${transitions.direction}`}
+          dir="ltr"
           style={transitions.panelStyle}
         >
           {goals.map((goalData, index) => (
@@ -38,7 +42,7 @@ export function GoalCarousel({ goals, onOpenGoal }: GoalCarouselProps): JSX.Elem
             onClick={() => transitions.setActiveIndex(transitions.activeIndex - 1)}
             type="button"
           >
-            <ChevronLeft size={18} />
+            {isRtl ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
 
           <div className="goal-carousel__dots">
@@ -63,7 +67,7 @@ export function GoalCarousel({ goals, onOpenGoal }: GoalCarouselProps): JSX.Elem
             onClick={() => transitions.setActiveIndex(transitions.activeIndex + 1)}
             type="button"
           >
-            <ChevronRight size={18} />
+            {isRtl ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
           </button>
         </div>
       ) : null}

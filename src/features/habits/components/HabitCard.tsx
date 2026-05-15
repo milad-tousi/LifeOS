@@ -7,6 +7,7 @@ import { calculateHabitCompletion } from "@/features/habits/services/habits.stor
 import { calculateCurrentStreak } from "@/features/habits/utils/habit.utils";
 import { HabitProgressBar } from "@/features/habits/components/HabitProgressBar";
 import { StreakBadge } from "@/features/habits/components/StreakBadge";
+import { useI18n } from "@/i18n";
 
 interface HabitCardProps {
   categories: HabitCategory[];
@@ -20,69 +21,17 @@ interface HabitCardProps {
   onUpdateLog: (habitId: string, value: number) => void;
 }
 
-function getHabitCategoryName(habit: Habit, categories: HabitCategory[]): string {
-  if (!habit.category) {
-    return "Uncategorized";
-  }
-
-  return (
-    categories.find((category) => category.id === habit.category || category.name === habit.category)?.name ??
-    "Uncategorized"
-  );
-}
-
-function getLinkedGoalTitle(habit: Habit, goals: Goal[]): string | null {
-  if (!habit.goalId) {
-    return null;
-  }
-
-  return goals.find((goal) => goal.id === habit.goalId)?.title ?? "Not found";
-}
-
-function formatFrequency(habit: Habit): string {
-  if (habit.frequency !== "custom") {
-    return habit.frequency;
-  }
-
-  return "custom";
-}
-
-function formatUnit(unit?: string): string {
-  if (!unit) {
-    return "";
-  }
-
-  if (unit.toLowerCase() === "minutes") {
-    return "min";
-  }
-
-  if (unit.toLowerCase() === "hour") {
-    return "hr";
-  }
-
-  return unit;
-}
-
 function getProgressTone(percent: number, isCompleted: boolean): "gray" | "blue" | "green" {
-  if (isCompleted || percent >= 80) {
-    return "green";
-  }
-
-  if (percent >= 40) {
-    return "blue";
-  }
-
+  if (isCompleted || percent >= 80) return "green";
+  if (percent >= 40) return "blue";
   return "gray";
 }
 
-function getValueLabel(habit: Habit, value: number): string {
-  if (habit.type === "binary") {
-    return value >= 1 ? "Completed" : "Not completed";
-  }
-
-  const unit = formatUnit(habit.unit);
-
-  return `${value} of ${habit.target}${unit ? ` ${unit}` : ""}`;
+function formatUnit(unit?: string): string {
+  if (!unit) return "";
+  if (unit.toLowerCase() === "minutes") return "min";
+  if (unit.toLowerCase() === "hour") return "hr";
+  return unit;
 }
 
 export function HabitCard({
@@ -96,6 +45,8 @@ export function HabitCard({
   onUpdateLog,
   todayLog,
 }: HabitCardProps): JSX.Element {
+  const { t } = useI18n();
+
   const currentValue = todayLog?.value ?? 0;
   const isCompleted = calculateHabitCompletion(habit, todayLog);
   const target = habit.type === "binary" ? 1 : habit.target;
@@ -103,8 +54,30 @@ export function HabitCard({
   const progressTone = getProgressTone(progressPercent, isCompleted);
   const streak = calculateCurrentStreak(habit, logs);
   const step = habit.type === "duration" && habit.unit !== "hour" ? 5 : 1;
-  const categoryName = getHabitCategoryName(habit, categories);
-  const linkedGoalTitle = getLinkedGoalTitle(habit, goals);
+
+  const categoryName = habit.category
+    ? categories.find((c) => c.id === habit.category || c.name === habit.category)?.name ??
+      t("habits.uncategorizedLabel")
+    : t("habits.uncategorizedLabel");
+
+  const linkedGoalTitle = habit.goalId
+    ? goals.find((g) => g.id === habit.goalId)?.title ?? t("habits.notFoundLabel")
+    : null;
+
+  function getValueLabel(): string {
+    if (habit.type === "binary") {
+      return currentValue >= 1 ? t("habits.logCompleted") : t("habits.logNotCompleted");
+    }
+    const unit = formatUnit(habit.unit);
+    return `${currentValue} / ${habit.target}${unit ? ` ${unit}` : ""}`;
+  }
+
+  function getFrequencyLabel(): string {
+    if (habit.frequency === "daily") return t("habits.frequencyDaily");
+    if (habit.frequency === "weekly") return t("habits.frequencyWeekly");
+    if (habit.frequency === "custom") return t("habits.frequencyCustom");
+    return habit.frequency;
+  }
 
   return (
     <article
@@ -126,7 +99,7 @@ export function HabitCard({
                 </span>
               ) : null}
             </div>
-            <p className="today-habit-card__progress">{getValueLabel(habit, currentValue)}</p>
+            <p className="today-habit-card__progress">{getValueLabel()}</p>
           </div>
 
           {habit.description ? (
@@ -135,12 +108,16 @@ export function HabitCard({
 
           <div className="habit-badge-row">
             <span className="habit-badge">{categoryName}</span>
-            <span className="habit-badge habit-badge--soft">{formatFrequency(habit)}</span>
+            <span className="habit-badge habit-badge--soft">{getFrequencyLabel()}</span>
             {linkedGoalTitle ? (
-              <span className="habit-badge habit-badge--goal">Goal: {linkedGoalTitle}</span>
+              <span className="habit-badge habit-badge--goal">
+                {t("habits.goalPrefix").replace("{title}", linkedGoalTitle)}
+              </span>
             ) : null}
             <StreakBadge streak={streak} />
-            {isCompleted ? <span className="habit-completed-label">Completed today</span> : null}
+            {isCompleted ? (
+              <span className="habit-completed-label">{t("habits.completedTodayLabel")}</span>
+            ) : null}
           </div>
 
           <HabitProgressBar percent={isCompleted ? 100 : progressPercent} tone={progressTone} />
@@ -156,7 +133,7 @@ export function HabitCard({
             }}
           >
             <Pencil size={16} />
-            Edit
+            {t("habits.edit")}
           </button>
           <button
             className="habit-text-action"
@@ -167,7 +144,7 @@ export function HabitCard({
             }}
           >
             <Trash2 size={16} />
-            Remove
+            {t("habits.remove")}
           </button>
         </div>
       </div>
@@ -181,9 +158,9 @@ export function HabitCard({
               event.stopPropagation();
               onUpdateLog(habit.id, isCompleted ? 0 : 1);
             }}
-            aria-label={`${isCompleted ? "Undo completed" : "Mark done"} ${habit.title}`}
+            aria-label={`${isCompleted ? t("habits.completedLabel") : t("habits.markDone")} ${habit.title}`}
           >
-            {isCompleted ? "Completed" : "Mark Done"}
+            {isCompleted ? t("habits.completedLabel") : t("habits.markDone")}
             {isCompleted ? <Check size={16} /> : null}
           </Button>
         ) : (
@@ -192,23 +169,23 @@ export function HabitCard({
             aria-label={`${habit.title} value controls`}
           >
             <button
-            type="button"
-            aria-label={`Decrease ${habit.title}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onUpdateLog(habit.id, currentValue - step);
-            }}
+              type="button"
+              aria-label={`Decrease ${habit.title}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                onUpdateLog(habit.id, currentValue - step);
+              }}
             >
               <Minus size={16} />
             </button>
             <span aria-live="polite">{currentValue}</span>
             <button
-            type="button"
-            aria-label={`Increase ${habit.title}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onUpdateLog(habit.id, currentValue + step);
-            }}
+              type="button"
+              aria-label={`Increase ${habit.title}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                onUpdateLog(habit.id, currentValue + step);
+              }}
             >
               <Plus size={16} />
             </button>

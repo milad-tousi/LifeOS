@@ -1,6 +1,8 @@
 import { db, ensureDatabaseReady } from "@/db/dexie";
 import { createId } from "@/lib/id";
 import { AppNotification, buildDedupKey, NotificationType, NotificationEntityType, NotificationSeverity } from "@/features/notifications/types";
+import { nativeNotifications } from "@/services/notifications/native-notifications";
+
 
 export interface CreateNotificationInput {
   type: NotificationType;
@@ -61,6 +63,9 @@ export const notificationStore = {
       dismissedAt: null,
     };
     await db.notifications.add(notification as never);
+
+    // Fire native Android system notification
+    void nativeNotifications.send(input.title, input.message);
   },
 
   async markRead(id: string): Promise<void> {

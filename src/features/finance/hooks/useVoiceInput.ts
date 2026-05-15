@@ -49,6 +49,26 @@ export interface UseVoiceInputResult {
   transcript: string;
 }
 
+function getSpeechErrorMessage(errorCode: string): string {
+  switch (errorCode) {
+    case "not-allowed":
+    case "service-not-allowed":
+      return "دسترسی به میکروفون رد شد. لطفاً مجوز میکروفون را در تنظیمات دستگاه فعال کنید.";
+    case "audio-capture":
+      return "میکروفون در دسترس نیست. لطفاً مجوز میکروفون را بررسی کنید.";
+    case "no-speech":
+      return "صدایی تشخیص داده نشد. دوباره امتحان کنید.";
+    case "network":
+      return "برای تشخیص گفتار به اینترنت نیاز است. اتصال اینترنت را بررسی کنید.";
+    case "aborted":
+      return "ضبط صدا لغو شد.";
+    case "language-not-supported":
+      return "زبان انتخاب‌شده پشتیبانی نمی‌شود.";
+    default:
+      return `خطا در ورودی صوتی (${errorCode}). دوباره امتحان کنید.`;
+  }
+}
+
 export function useVoiceInput(language = "en-US"): UseVoiceInputResult {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -72,53 +92,44 @@ export function useVoiceInput(language = "en-US"): UseVoiceInputResult {
 
   const startListening = useCallback(() => {
     if (!SpeechRecognitionConstructor) {
-      setError("Voice input is not supported in this browser.");
+      setError("ورودی صوتی در این مرورگر/دستگاه پشتیبانی نمی‌شود.");
       return;
     }
 
-    if (!recognitionRef.current) {
-      const recognition = new SpeechRecognitionConstructor();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = language;
+    // Always create a fresh instance to avoid stale state after errors
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
 
-      recognition.onresult = (event) => {
-        const nextTranscript = Array.from({ length: event.results.length })
-          .map((_, index) => event.results[index]?.[0]?.transcript?.trim() ?? "")
-          .filter(Boolean)
-          .join(" ")
-          .trim();
+    const recognition = new SpeechRecognitionConstructor();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = language;
 
-        setTranscript(nextTranscript);
-        setIsProcessing(false);
-        setError(nextTranscript ? "" : "No speech was detected.");
-      };
+    recognition.onresult = (event) => {
+      const nextTranscript = Array.from({ length: event.results.length })
+        .map((_, index) => event.results[index]?.[0]?.transcript?.trim() ?? "")
+        .filter(Boolean)
+        .join(" ")
+        .trim();
 
-      recognition.onerror = (event) => {
-        setIsListening(false);
-        setIsProcessing(false);
+      setTranscript(nextTranscript);
+      setIsProcessing(false);
+      setError(nextTranscript ? "" : "صدایی تشخیص داده نشد.");
+    };
 
-        switch (event.error) {
-          case "not-allowed":
-          case "service-not-allowed":
-            setError("Microphone permission was denied.");
-            break;
-          case "no-speech":
-            setError("No speech was detected.");
-            break;
-          default:
-            setError("Voice input could not be completed.");
-            break;
-        }
-      };
+    recognition.onerror = (event) => {
+      setIsListening(false);
+      setIsProcessing(false);
+      setError(getSpeechErrorMessage(event.error));
+      recognitionRef.current = null;
+    };
 
-      recognition.onend = () => {
-        setIsListening(false);
-        setIsProcessing(false);
-      };
+    recognition.onend = () => {
+      setIsListening(false);
+      setIsProcessing(false);
+    };
 
-      recognitionRef.current = recognition;
-    }
+    recognitionRef.current = recognition;
 
     setTranscript("");
     setError("");
@@ -126,10 +137,13 @@ export function useVoiceInput(language = "en-US"): UseVoiceInputResult {
     setIsListening(true);
 
     try {
-      recognitionRef.current.start();
-    } catch {
+      recognition.start();
+    } catch (err) {
       setIsListening(false);
-      setError("Voice input could not be started.");
+      setIsProcessing(false);
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`خطا در شروع ضبط صدا: ${msg}`);
+      recognitionRef.current = null;
     }
   }, [SpeechRecognitionConstructor, language]);
 

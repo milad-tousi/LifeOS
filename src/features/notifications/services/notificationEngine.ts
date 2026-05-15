@@ -24,9 +24,8 @@ function tomorrowKey(): string {
 function getNextOccurrenceDates(rt: RecurringTransaction): string[] {
   const today = todayKey();
   const tomorrow = tomorrowKey();
-  const start = rt.startDate;
 
-  if (!start) return [];
+  if (!rt.startDate) return [];
 
   const results: string[] = [];
   for (const target of [today, tomorrow]) {
@@ -86,9 +85,10 @@ async function runTaskRules(
     await notificationStore.upsert({
       type: "task_overdue",
       title: t("notifications.type.taskOverdue"),
-      message: `${task.title} — ${t("notifications.dueDateWas", {
+      message: t("notifications.taskOverdueMsg", {
+        title: task.title,
         date: formatAppDate(task.dueDate, language),
-      })}`,
+      }),
       entityType: "task",
       entityId: task.id,
       severity: "critical",
@@ -120,9 +120,10 @@ async function runGoalRules(
     await notificationStore.upsert({
       type: "goal_overdue",
       title: t("notifications.type.goalOverdue"),
-      message: `${goal.title} — ${t("notifications.deadlineWas", {
+      message: t("notifications.goalOverdueMsg", {
+        title: goal.title,
         date: formatAppDate(goal.deadline, language),
-      })}`,
+      }),
       entityType: "goal",
       entityId: goal.id,
       severity: "warning",
@@ -177,11 +178,13 @@ async function runEventRules(
         if (eventEndDate >= today) {
           const fireKey = new Date(fireMs).toISOString().substring(0, 16);
           const dedupKey = buildDedupKey("event_reminder", event.id, `r:${fireKey}`);
-          const timeLabel = event.startTime ? ` ${t("notifications.at")} ${event.startTime}` : "";
+          const message = event.startTime
+            ? t("notifications.eventTodayAt", { title: event.title, time: event.startTime })
+            : t("notifications.eventToday", { title: event.title });
           await notificationStore.upsert({
             type: "event_reminder",
             title: t("notifications.type.eventReminder"),
-            message: `${event.title}${timeLabel}`,
+            message,
             entityType: "event",
             entityId: event.id,
             severity: "info",
@@ -197,11 +200,13 @@ async function runEventRules(
 
     if (startDate === today) {
       const dedupKey = buildDedupKey("event_reminder", event.id, today);
-      const timeLabel = event.startTime ? ` ${t("notifications.at")} ${event.startTime}` : "";
+      const message = event.startTime
+        ? t("notifications.eventTodayAt", { title: event.title, time: event.startTime })
+        : t("notifications.eventToday", { title: event.title });
       await notificationStore.upsert({
         type: "event_reminder",
         title: t("notifications.type.eventReminder"),
-        message: `${event.title}${timeLabel}`,
+        message,
         entityType: "event",
         entityId: event.id,
         severity: "info",
@@ -217,7 +222,7 @@ async function runEventRules(
       await notificationStore.upsert({
         type: "event_reminder",
         title: t("notifications.type.upcomingEvent"),
-        message: `${event.title} — ${t("notifications.tomorrow")}`,
+        message: t("notifications.eventTomorrowMsg", { title: event.title }),
         entityType: "event",
         entityId: event.id,
         severity: "info",
@@ -240,18 +245,19 @@ async function runPaymentRules(
     if (!rt.isActive || rt.type !== "expense") continue;
 
     const occurrences = getNextOccurrenceDates(rt);
+    const name = rt.merchant ?? rt.note ?? t("notifications.recurringPayment");
 
     for (const date of occurrences) {
       const isToday = date === today;
-      const title = isToday
-        ? t("notifications.type.paymentDueToday")
-        : t("notifications.type.paymentDueTomorrow");
-
       const dedupKey = buildDedupKey("payment_due", rt.id, date);
       await notificationStore.upsert({
         type: "payment_due",
-        title,
-        message: rt.merchant ?? rt.note ?? t("notifications.recurringPayment"),
+        title: isToday
+          ? t("notifications.type.paymentDueToday")
+          : t("notifications.type.paymentDueTomorrow"),
+        message: isToday
+          ? t("notifications.paymentTodayMsg", { name })
+          : t("notifications.paymentTomorrowMsg", { name }),
         entityType: "finance",
         entityId: rt.id,
         severity: isToday ? "critical" : "warning",
@@ -291,7 +297,10 @@ async function runHabitRules(
     await notificationStore.upsert({
       type: "habit_reminder",
       title: t("notifications.type.habitReminder"),
-      message: `${habit.title} — ${t("notifications.at")} ${habit.reminder.time}`,
+      message: t("notifications.habitReminderMsg", {
+        title: habit.title,
+        time: habit.reminder.time,
+      }),
       entityType: "habit",
       entityId: habit.id,
       severity: "info",

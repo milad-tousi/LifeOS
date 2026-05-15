@@ -19,7 +19,7 @@ import { Task } from "@/domains/tasks/types";
 import { sortTasksByOrder } from "@/domains/tasks/task.utils";
 
 export function TasksPage(): JSX.Element {
-  const { boardColumns, events, goals, loading, tasks, error } = useTasksPageData();
+  const { boardColumns, events, goals: rawGoals, loading, tasks, error } = useTasksPageData();
   const [activeTaskView, setActiveTaskView] = useState<TaskView>("list");
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [taskDraftDueDate, setTaskDraftDueDate] = useState<string | undefined>(undefined);
@@ -46,11 +46,11 @@ export function TasksPage(): JSX.Element {
 
   const goalTitlesById = useMemo(
     () =>
-      goals.reduce<Record<string, string>>((lookup, goal) => {
+      rawGoals.reduce<Record<string, string>>((lookup, goal) => {
         lookup[goal.id] = goal.title;
         return lookup;
       }, {}),
-    [goals],
+    [rawGoals],
   );
   const groupedTasks = useMemo(() => groupTasksForListView(taskListState), [taskListState]);
   const addTaskInitialValues = useMemo(
@@ -284,6 +284,8 @@ export function TasksPage(): JSX.Element {
     }
   }
 
+  const showQuickAdd = activeTaskView !== "calendar";
+
   return (
     <div className="tasks-page">
       <TasksPageHeader
@@ -303,7 +305,7 @@ export function TasksPage(): JSX.Element {
               ) : null}
             </div>
           </div>
-          {activeTaskView !== "calendar" ? (
+          {showQuickAdd ? (
             <div className="tasks-page-shell__quick-add">
               <TasksQuickAdd
                 isSubmitting={isQuickAdding}

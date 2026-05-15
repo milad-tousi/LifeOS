@@ -21,6 +21,7 @@ import {
   isPastDate,
   parseDateKey,
 } from "@/features/habits/utils/habit.utils";
+import { useI18n } from "@/i18n";
 
 interface HabitDetailDrawerProps {
   categories: HabitCategory[];
@@ -47,50 +48,72 @@ interface SummaryCard {
   subtext?: string;
 }
 
-const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-function getCategoryName(habit: Habit, categories: HabitCategory[]): string {
-  if (!habit.category) {
-    return "Uncategorized";
+// Shamsi helpers using built-in Intl API
+function formatShamsiMonth(date: Date): string {
+  try {
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  } catch {
+    return date.toLocaleString("en-US", { month: "long", year: "numeric" });
   }
+}
 
+function getShamsiDay(date: Date): string {
+  try {
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", { day: "numeric" }).format(date);
+  } catch {
+    return String(date.getDate());
+  }
+}
+
+function getCategoryName(habit: Habit, categories: HabitCategory[], uncategorized: string): string {
+  if (!habit.category) return uncategorized;
   return (
-    categories.find((category) => category.id === habit.category || category.name === habit.category)?.name ??
-    "Uncategorized"
+    categories.find(
+      (category) => category.id === habit.category || category.name === habit.category,
+    )?.name ?? uncategorized
   );
 }
 
-function formatTarget(habit: Habit): string {
-  if (habit.type === "binary") {
-    return "Done";
-  }
-
+function formatTarget(habit: Habit, doneLabel: string): string {
+  if (habit.type === "binary") return doneLabel;
   return `${habit.target}${habit.unit ? ` ${habit.unit}` : ""}`;
 }
 
-function formatSchedule(habit: Habit): string {
-  const end = habit.endDate ? ` until ${habit.endDate}` : "";
+function formatSchedule(
+  habit: Habit,
+  weekdayNames: string[],
+  t: (k: string, v?: Record<string, string | number>) => string,
+): string {
+  const end = habit.endDate ?? "";
+  const start = habit.startDate;
 
   if (habit.frequency === "daily") {
-    return `Daily from ${habit.startDate}${end}`;
+    return end
+      ? t("habits.scheduleDailyUntil", { date: start, end })
+      : t("habits.scheduleDaily", { date: start });
   }
 
   if (habit.frequency === "weekly") {
-    const weekday = weekdays[parseDateKey(habit.startDate).getDay()];
-    return `Weekly on ${weekday} from ${habit.startDate}${end}`;
+    const day = weekdayNames[parseDateKey(habit.startDate).getDay()];
+    return end
+      ? t("habits.scheduleWeeklyUntil", { day, date: start, end })
+      : t("habits.scheduleWeekly", { day, date: start });
   }
 
-  const days = habit.daysOfWeek?.map((day) => weekdays[day]).join(", ") || "No days selected";
-
-  return `Custom days: ${days}${end}`;
+  const days =
+    habit.daysOfWeek?.map((d) => weekdayNames[d]).join("، ") ||
+    t("habits.noDaysSelected");
+  return end
+    ? t("habits.scheduleCustomUntil", { days, end })
+    : t("habits.scheduleCustom", { days });
 }
 
 function getLogForDate(logs: HabitLog[], habit: Habit, dateKey: string): HabitLog | undefined {
   const periodKey = getHabitCurrentPeriodKey(habit, parseDateKey(dateKey)) ?? dateKey;
-
-  return logs.find(
-    (log) => log.habitId === habit.id && getHabitLogPeriodKey(log) === periodKey,
-  );
+  return logs.find((log) => log.habitId === habit.id && getHabitLogPeriodKey(log) === periodKey);
 }
 
 export function HabitDetailDrawer({
@@ -105,10 +128,21 @@ export function HabitDetailDrawer({
   onEditHabit,
   onSaveLog,
 }: HabitDetailDrawerProps): JSX.Element | null {
+  const { t } = useI18n();
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [selectedLog, setSelectedLog] = useState<SelectedLogState | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const todayKey = getDateKey(new Date());
+
+  const weekdayNames = [
+    t("habits.weekdaysSun"),
+    t("habits.weekdaysMon"),
+    t("habits.weekdaysTue"),
+    t("habits.weekdaysWed"),
+    t("habits.weekdaysThu"),
+    t("habits.weekdaysFri"),
+    t("habits.weekdaysSat"),
+  ];
 
   useEffect(() => {
     if (isOpen) {
@@ -127,15 +161,7 @@ export function HabitDetailDrawer({
 
   const summary = useMemo(() => {
     if (!habit) {
-      return {
-        completed: 0,
-        eligible: 0,
-        missed: 0,
-        partial: 0,
-        rate: 0,
-        scheduledThisMonth: 0,
-        scheduledSoFar: 0,
-      };
+      return { completed: 0, eligible: 0, missed: 0, partial: 0, rate: 0, scheduledThisMonth: 0, scheduledSoFar: 0 };
     }
 
     let completed = 0;
@@ -147,22 +173,13 @@ export function HabitDetailDrawer({
     const seenPeriods = new Set<string>();
 
     calendarDays.forEach((day) => {
-      if (!day.date || !day.dateKey || !isHabitActiveOnDate(habit, day.date)) {
-        return;
-      }
-
+      if (!day.date || !day.dateKey || !isHabitActiveOnDate(habit, day.date)) return;
       const periodKey = getHabitCurrentPeriodKey(habit, day.date);
-
-      if (!periodKey || seenPeriods.has(periodKey)) {
-        return;
-      }
+      if (!periodKey || seenPeriods.has(periodKey)) return;
 
       seenPeriods.add(periodKey);
       scheduledThisMonth += 1;
-
-      if (!isFutureDate(day.dateKey, todayKey)) {
-        scheduledSoFar += 1;
-      }
+      if (!isFutureDate(day.dateKey, todayKey)) scheduledSoFar += 1;
 
       const log = getLogForDate(habitLogs, habit, day.dateKey);
       const isCompleted = isHabitLogCompleted(habit, log);
@@ -173,21 +190,10 @@ export function HabitDetailDrawer({
       const hasStartedOpenPeriod =
         !isPeriodClosed && !isFutureDate(day.dateKey, todayKey) && (isCompleted || isPartial);
 
-      if (isCompleted) {
-        completed += 1;
-      }
-
-      if (isPartial) {
-        partial += 1;
-      }
-
-      if (isPeriodClosed || hasStartedOpenPeriod) {
-        eligible += 1;
-      }
-
-      if (isPeriodClosed && !isCompleted && !isPartial) {
-        missed += 1;
-      }
+      if (isCompleted) completed += 1;
+      if (isPartial) partial += 1;
+      if (isPeriodClosed || hasStartedOpenPeriod) eligible += 1;
+      if (isPeriodClosed && !isCompleted && !isPartial) missed += 1;
     });
 
     return {
@@ -201,96 +207,63 @@ export function HabitDetailDrawer({
     };
   }, [calendarDays, habit, habitLogs, todayKey]);
 
-  if (!isOpen || !habit) {
-    return null;
-  }
+  if (!isOpen || !habit) return null;
 
   const currentStreak = calculateCurrentStreak(habit, logs);
   const longestStreak = calculateLongestStreak(habit, logs);
   const linkedGoalTitle = habit.goalId
-    ? goals.find((goal) => goal.id === habit.goalId)?.title ?? "Not found"
-    : "None";
+    ? goals.find((goal) => goal.id === habit.goalId)?.title ?? t("habits.notFoundLabel")
+    : t("habits.noLinkedGoal");
+
   const selectedExistingLog = selectedLog
     ? getLogForDate(habitLogs, habit, selectedLog.dateKey)
     : undefined;
 
   function getDayState(date: Date, dateKey: string): string {
-    if (!isHabitActiveOnDate(habit, date)) {
-      return "not-scheduled";
-    }
-
+    if (!isHabitActiveOnDate(habit, date)) return "not-scheduled";
     const log = getLogForDate(habitLogs, habit, dateKey);
-
-    if (isHabitLogCompleted(habit, log)) {
-      return "completed";
-    }
-
-    if (isHabitLogPartial(habit, log)) {
-      return "partial";
-    }
-
+    if (isHabitLogCompleted(habit, log)) return "completed";
+    if (isHabitLogPartial(habit, log)) return "partial";
     const periodEndDate = getHabitPeriodEndDate(habit, date);
     const periodEndKey = periodEndDate ? getDateKey(periodEndDate) : dateKey;
-
-    if (isPastDate(periodEndKey, todayKey)) {
-      return "missed";
-    }
-
+    if (isPastDate(periodEndKey, todayKey)) return "missed";
     return isFutureDate(dateKey, todayKey) ? "future" : "scheduled";
   }
 
   function handleDayClick(date: Date, dateKey: string): void {
     if (!isHabitActiveOnDate(habit, date)) {
-      setMessage("This habit is not scheduled for this day.");
+      setMessage(t("habits.notScheduledThisDay"));
       setSelectedLog(null);
       return;
     }
-
     if (isFutureDate(dateKey, todayKey)) {
-      setMessage("Future days cannot be edited yet.");
+      setMessage(t("habits.futureDaysCantEdit"));
       setSelectedLog(null);
       return;
     }
-
     const log = getLogForDate(habitLogs, habit, dateKey);
     setMessage(null);
-    setSelectedLog({
-      dateKey,
-      note: log?.note ?? "",
-      value: String(log?.value ?? 0),
-    });
+    setSelectedLog({ dateKey, note: log?.note ?? "", value: String(log?.value ?? 0) });
   }
 
   function handleSaveLog(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-
-    if (!selectedLog) {
-      return;
-    }
-
-    const value = habit.type === "binary" ? Number(selectedLog.value) : Number(selectedLog.value);
+    if (!selectedLog) return;
+    const value = Number(selectedLog.value);
     onSaveLog(habit.id, selectedLog.dateKey, Math.max(0, Number.isFinite(value) ? value : 0), selectedLog.note);
     setSelectedLog(null);
   }
 
   const summaryCards: SummaryCard[] = [
-    { label: "Completion Rate", value: `${summary.rate}%` },
-    { label: "Completed Days", value: summary.completed },
-    { label: "Missed Days", value: summary.missed },
-    { label: "Partial Days", value: summary.partial },
+    { label: t("habits.completionRate"), value: `${summary.rate}%` },
+    { label: t("habits.completedDays"), value: summary.completed },
+    { label: t("habits.missedDays"), value: summary.missed },
+    { label: t("habits.partialDays"), value: summary.partial },
     habit.endDate
-      ? {
-          label: "Scheduled",
-          value: summary.scheduledThisMonth,
-          subtext: "active days this month",
-        }
-      : {
-          label: "Scheduled",
-          value: "Ongoing",
-          subtext: `${summary.scheduledSoFar} active days so far`,
-        },
-    { label: "Current Streak", value: currentStreak },
-    { label: "Longest Streak", value: longestStreak },
+      ? { label: t("habits.scheduledLabel"), value: summary.scheduledThisMonth, subtext: t("habits.activeDaysThisMonth", { n: summary.scheduledThisMonth }) }
+      : { label: t("habits.scheduledLabel"), value: t("habits.ongoing"), subtext: t("habits.activeDaysSoFar", { n: summary.scheduledSoFar }) },
+    { label: t("habits.currentStreak"), value: currentStreak },
+    { label: t("habits.longestStreak"), value: longestStreak },
   ];
 
   return (
@@ -302,7 +275,7 @@ export function HabitDetailDrawer({
       >
         <header className="habit-detail-header">
           <div>
-            <p className="habit-detail-kicker">Habit Details</p>
+            <p className="habit-detail-kicker">{t("habits.habitDetails")}</p>
             <h2>{habit.title}</h2>
             {habit.description ? <p>{habit.description}</p> : null}
           </div>
@@ -314,23 +287,23 @@ export function HabitDetailDrawer({
         <div className="habit-detail-actions">
           <Button variant="secondary" type="button" onClick={() => onEditHabit(habit)}>
             <Pencil size={16} />
-            Edit
+            {t("habits.edit")}
           </Button>
           <Button variant="danger" type="button" onClick={() => onArchiveHabit(habit.id)}>
             <Archive size={16} />
-            Archive
+            {t("habits.archive")}
           </Button>
         </div>
 
         <section className="habit-detail-section">
-          <h3>Overview</h3>
+          <h3>{t("habits.overview")}</h3>
           <div className="habit-detail-meta">
-            <span>Category <strong>{getCategoryName(habit, categories)}</strong></span>
-            <span>Frequency <strong>{habit.frequency}</strong></span>
-            <span>Target <strong>{formatTarget(habit)}</strong></span>
-            <span>Reminder <strong>{habit.reminder?.enabled ? habit.reminder.time ?? "Enabled" : "Off"}</strong></span>
-            <span>Goal <strong>{linkedGoalTitle}</strong></span>
-            <span className="habit-detail-meta__wide">Schedule <strong>{formatSchedule(habit)}</strong></span>
+            <span>{t("habits.category")} <strong>{getCategoryName(habit, categories, t("habits.uncategorizedLabel"))}</strong></span>
+            <span>{t("habits.frequency")} <strong>{t(`habits.frequency${habit.frequency.charAt(0).toUpperCase() + habit.frequency.slice(1)}` as never) || habit.frequency}</strong></span>
+            <span>{t("habits.target")} <strong>{formatTarget(habit, t("habits.targetDone"))}</strong></span>
+            <span>{t("habits.reminderTime")} <strong>{habit.reminder?.enabled ? habit.reminder.time ?? t("habits.reminderEnabledLabel") : t("habits.reminderOff")}</strong></span>
+            <span>{t("habits.linkedGoal")} <strong>{linkedGoalTitle}</strong></span>
+            <span className="habit-detail-meta__wide">{t("habits.schedule")} <strong>{formatSchedule(habit, weekdayNames, t)}</strong></span>
           </div>
         </section>
 
@@ -346,31 +319,27 @@ export function HabitDetailDrawer({
 
         <section className="habit-detail-section">
           <div className="habit-calendar-header">
-            <h3>
-              {visibleMonth.toLocaleString("en-US", { month: "long", year: "numeric" })}
-            </h3>
+            <h3>{formatShamsiMonth(visibleMonth)}</h3>
             <div>
               <button type="button" aria-label="Previous month" onClick={() => setVisibleMonth(addMonths(visibleMonth, -1))}>
-                <ChevronLeft size={17} />
+                <ChevronRight size={17} />
               </button>
               <button type="button" aria-label="Next month" onClick={() => setVisibleMonth(addMonths(visibleMonth, 1))}>
-                <ChevronRight size={17} />
+                <ChevronLeft size={17} />
               </button>
             </div>
           </div>
 
           <div className="habit-calendar-grid">
-            {weekdays.map((weekday) => (
+            {weekdayNames.map((weekday) => (
               <span className="habit-calendar-weekday" key={weekday}>{weekday}</span>
             ))}
             {calendarDays.map((day, index) => {
               if (!day.date || !day.dateKey) {
                 return <span className="habit-calendar-day habit-calendar-day--blank" key={`blank-${index}`} />;
               }
-
               const state = getDayState(day.date, day.dateKey);
               const isToday = day.dateKey === todayKey;
-
               return (
                 <button
                   className={`habit-calendar-day habit-calendar-day--${state}${isToday ? " habit-calendar-day--today" : ""}`}
@@ -378,17 +347,17 @@ export function HabitDetailDrawer({
                   type="button"
                   onClick={() => handleDayClick(day.date as Date, day.dateKey as string)}
                 >
-                  {day.date.getDate()}
+                  {getShamsiDay(day.date)}
                 </button>
               );
             })}
           </div>
 
           <div className="habit-calendar-legend">
-            <span><i className="legend-completed" />Completed</span>
-            <span><i className="legend-partial" />Partial</span>
-            <span><i className="legend-missed" />Missed</span>
-            <span><i className="legend-off" />Not scheduled</span>
+            <span><i className="legend-completed" />{t("habits.legendCompleted")}</span>
+            <span><i className="legend-partial" />{t("habits.legendPartial")}</span>
+            <span><i className="legend-missed" />{t("habits.legendMissed")}</span>
+            <span><i className="legend-off" />{t("habits.legendNotScheduled")}</span>
           </div>
         </section>
 
@@ -396,7 +365,7 @@ export function HabitDetailDrawer({
 
         {selectedLog ? (
           <form className="habit-log-editor" onSubmit={handleSaveLog}>
-            <h3>Edit Log</h3>
+            <h3>{t("habits.editLog")}</h3>
             <p>{selectedLog.dateKey}</p>
             {habit.type === "binary" ? (
               <label className="habit-log-toggle">
@@ -409,11 +378,11 @@ export function HabitDetailDrawer({
                     )
                   }
                 />
-                <span>{Number(selectedLog.value) >= 1 ? "Done" : "Not Done"}</span>
+                <span>{Number(selectedLog.value) >= 1 ? t("habits.logDone") : t("habits.logNotDone")}</span>
               </label>
             ) : (
               <label>
-                <span>Value</span>
+                <span>{t("habits.logValue")}</span>
                 <input
                   min={0}
                   type="number"
@@ -436,11 +405,11 @@ export function HabitDetailDrawer({
                 updatedAt: "",
                 value: Math.max(0, Number(selectedLog.value) || 0),
               })
-                ? "Completed"
-                : "Not completed"}
+                ? t("habits.logCompleted")
+                : t("habits.logNotCompleted")}
             </p>
             <label>
-              <span>Note</span>
+              <span>{t("habits.logNote")}</span>
               <input
                 value={selectedLog.note}
                 onChange={(event) =>
@@ -448,11 +417,11 @@ export function HabitDetailDrawer({
                     current ? { ...current, note: event.target.value } : current,
                   )
                 }
-                placeholder="Optional note"
+                placeholder={t("habits.logNotePlaceholder")}
               />
             </label>
             <div className="habit-log-editor__actions">
-              <Button type="submit">Save</Button>
+              <Button type="submit">{t("habits.save")}</Button>
               <Button
                 variant="secondary"
                 type="button"
@@ -461,7 +430,7 @@ export function HabitDetailDrawer({
                   setSelectedLog(null);
                 }}
               >
-                Clear Log
+                {t("habits.clearLog")}
               </Button>
             </div>
           </form>
