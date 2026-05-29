@@ -45,10 +45,10 @@ export function searchTransactions(
     const categoryName = getTransactionCategory(transaction, categories)?.name ?? "";
 
     return [
-      transaction.merchant,
+      transaction.merchant ?? "",
       transaction.note ?? "",
       categoryName,
-      transaction.type,
+      transaction.type ?? "",
     ].some((value) => value.toLowerCase().includes(normalizedQuery));
   });
 }

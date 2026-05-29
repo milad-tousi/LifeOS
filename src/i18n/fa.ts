@@ -1400,4 +1400,24 @@ export const fa: Translations = {
   "habits.scheduleCustom": "روزهای سفارشی: {days}",
   "habits.scheduleCustomUntil": "روزهای سفارشی: {days} تا {end}",
   "habits.noDaysSelected": "هیچ روزی انتخاب نشده",
+
+  // ── notification engine message keys ─────────────────────────────────────
+  "notifications.type.taskOverdue": "وظیفه سررسید گذشته",
+  "notifications.taskOverdueMsg": "وظیفه «{title}» در تاریخ {date} سررسید داشت و انجام نشده",
+  "notifications.type.goalOverdue": "هدف سررسید گذشته",
+  "notifications.goalOverdueMsg": "مهلت هدف «{title}» در تاریخ {date} به پایان رسیده",
+  "notifications.type.eventReminder": "یادآوری رویداد",
+  "notifications.eventToday": "رویداد «{title}» امروز برگزار می‌شود",
+  "notifications.eventTodayAt": "رویداد «{title}» امروز ساعت {time}",
+  "notifications.type.upcomingEvent": "رویداد پیش‌رو",
+  "notifications.eventTomorrowMsg": "رویداد «{title}» فردا برگزار می‌شود",
+  "notifications.type.paymentDueToday": "پرداخت امروز",
+  "notifications.type.paymentDueTomorrow": "پرداخت فردا",
+  "notifications.paymentTodayMsg": "پرداخت «{name}» امروز سررسید دارد",
+  "notifications.paymentTomorrowMsg": "پرداخت «{name}» فردا سررسید دارد",
+  "notifications.recurringPayment": "پرداخت دوره‌ای",
+  "notifications.type.habitReminder": "یادآوری عادت",
+  "notifications.habitReminderMsg": "وقت عادت «{title}» — ساعت {time}",
+
+  "goals.confirmDelete": "آیا از حذف این هدف مطمئن هستید؟",
 };

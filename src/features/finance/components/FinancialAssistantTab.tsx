@@ -122,9 +122,11 @@ export function FinancialAssistantTab({
       );
       setAiResponse(response);
       setAiStatus("success");
-    } catch {
+    } catch (err) {
       setAiStatus("error");
-      setAiError(t("finance.assistant.ai.analyzeError"));
+      // Surface the real error so the user can diagnose (wrong URL, auth, timeout, etc.)
+      const detail = err instanceof Error ? err.message : String(err);
+      setAiError(`${t("finance.assistant.ai.analyzeError")} — ${detail}`);
     }
   }
 

@@ -1,41 +1,29 @@
-/**
- * Native system notifications.
- *
- * Uses the Web Notifications API which Android WebView bridges to the OS
- * notification tray when POST_NOTIFICATIONS permission is granted.
- */
+import { registerPlugin } from "@capacitor/core";
 
-let _permissionChecked = false;
+interface NativeNotificationPlugin {
+  send(options: { title: string; body: string }): Promise<void>;
+  requestPermission(): Promise<void>;
+}
+
+const NativeNotification = registerPlugin<NativeNotificationPlugin>("NativeNotification");
 
 export const nativeNotifications = {
   async requestPermission(): Promise<void> {
-    if (!("Notification" in window)) return;
-    if (Notification.permission === "default") {
-      await Notification.requestPermission();
+    try {
+      await NativeNotification.requestPermission();
+    } catch {
+      // ignore on web
     }
-    _permissionChecked = true;
   },
 
   async send(title: string, body: string): Promise<void> {
-    if (!("Notification" in window)) return;
-
-    // Request permission on first use
-    if (!_permissionChecked || Notification.permission === "default") {
-      await this.requestPermission();
-    }
-
-    if (Notification.permission !== "granted") return;
-
     try {
-      // eslint-disable-next-line no-new
-      new Notification(title, {
-        body,
-        icon: "./icons/icon-192.png",
-        badge: "./icons/icon-192.png",
-        tag: `lifeos-${Date.now()}`,
-      });
-    } catch (err) {
-      console.warn("[nativeNotifications] send failed:", err);
+      await NativeNotification.send({ title, body });
+    } catch {
+      // Fallback to Web Notifications API (browser/dev mode)
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, { body });
+      }
     }
   },
 };

@@ -3668,6 +3668,7 @@ a:focus-visible {
 }
 
 .goal-card {
+  position: relative;
   display: flex;
   width: 100%;
   min-height: 280px;
@@ -3679,7 +3680,49 @@ a:focus-visible {
   background: var(--surface);
   box-shadow: var(--shadow);
   text-align: left;
+  cursor: pointer;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+/* Top-actions row: status badge + delete button */
+.goal-card__top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Delete button on goal card — inline next to status badge */
+.goal-card__delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.goal-card:hover .goal-card__delete-btn,
+.goal-card:focus-within .goal-card__delete-btn {
+  opacity: 1;
+}
+
+.goal-card__delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* On touch devices, always show the delete button */
+@media (hover: none) {
+  .goal-card__delete-btn {
+    opacity: 1;
+  }
 }
 
 .goal-card--rtl {
@@ -3758,6 +3801,16 @@ a:focus-visible {
 .goal-create-step__hint {
   margin: 0;
   color: var(--muted);
+}
+
+/* Preserve newlines in user-entered multi-line text */
+.goal-card__description,
+.goal-detail-header__description,
+.goal-task-list__description,
+.today-habit-card__description,
+.habit-detail__description {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .goal-card__next-task {
@@ -11131,4 +11184,85 @@ button.dashboard-mind-node {
   margin-bottom: var(--spacing-lg);
   direction: ltr;
   unicode-bidi: plaintext;
+}
+
+/* ── Finance Category Form — compact layout ─────────────────── */
+
+/* Give the 5-col form smarter column widths */
+.finance-settings-form {
+  grid-template-columns: 2fr 1fr auto 1fr 1fr;
+}
+
+/* Compact inputs inside the category form */
+.finance-settings-form .auth-form__input,
+.finance-settings-form .finance-icon-dropdown__trigger {
+  padding: 0.5rem 0.7rem;
+  font-size: 0.88rem;
+  border-radius: 0.65rem;
+  min-height: 0;
+  height: 2.4rem;
+}
+
+.finance-settings-form .auth-form__label {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+/* ── Finance Icon Dropdown Picker ───────────────────────────── */
+.finance-icon-dropdown {
+  position: relative;
+}
+
+.finance-icon-dropdown__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+  width: 100%;
+  min-width: 64px;
+}
+
+.finance-icon-dropdown__trigger svg:first-child {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.finance-icon-dropdown__trigger svg:last-child {
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: transform 0.2s;
+}
+
+.finance-icon-dropdown__chevron--open {
+  transform: rotate(180deg);
+}
+
+.finance-icon-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 300;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(6, 36px);
+  gap: 5px;
+  min-width: 256px;
+}
+
+.finance-icon-picker__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: var(--surface-alt, rgba(148,163,184,0.08));
+  color: var(--text-muted);
+  cursor: pointer;
 }

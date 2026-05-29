@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { GoalCard } from "@/features/goals/components/GoalCard";
 import { useGoalTransitions } from "@/features/goals/hooks/useGoalTransitions";
@@ -6,17 +7,53 @@ import { useI18n } from "@/i18n";
 
 interface GoalCarouselProps {
   goals: GoalCardData[];
+  onDeleteGoal: (goalId: string) => void;
   onOpenGoal: (goalId: string) => void;
 }
 
-export function GoalCarousel({ goals, onOpenGoal }: GoalCarouselProps): JSX.Element {
+export function GoalCarousel({ goals, onDeleteGoal, onOpenGoal }: GoalCarouselProps): JSX.Element {
   const transitions = useGoalTransitions(goals.length);
   const { direction } = useI18n();
   const isRtl = direction === "rtl";
 
+  // ── Touch swipe ──────────────────────────────────────────────────────────
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  function handleTouchStart(e: React.TouchEvent): void {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent): void {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    // Ignore vertical scrolls
+    if (Math.abs(dy) > Math.abs(dx)) return;
+    // Minimum swipe distance
+    if (Math.abs(dx) < 40) return;
+
+    // In RTL: swipe right → next, swipe left → prev (visual direction)
+    if (isRtl) {
+      if (dx > 0) transitions.setActiveIndex(transitions.activeIndex - 1);
+      else transitions.setActiveIndex(transitions.activeIndex + 1);
+    } else {
+      if (dx < 0) transitions.setActiveIndex(transitions.activeIndex + 1);
+      else transitions.setActiveIndex(transitions.activeIndex - 1);
+    }
+  }
+
   return (
     <section className="goal-carousel">
-      <div className="goal-carousel__viewport">
+      <div
+        className="goal-carousel__viewport"
+        onTouchEnd={handleTouchEnd}
+        onTouchStart={handleTouchStart}
+      >
         <div
           className={`goal-carousel__track goal-carousel__track--${transitions.direction}`}
           dir="ltr"
@@ -28,6 +65,7 @@ export function GoalCarousel({ goals, onOpenGoal }: GoalCarouselProps): JSX.Elem
                 data={goalData}
                 isActive={index === transitions.activeIndex}
                 onClick={() => onOpenGoal(goalData.goal.id)}
+                onDelete={() => onDeleteGoal(goalData.goal.id)}
               />
             </div>
           ))}

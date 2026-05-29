@@ -1,11 +1,11 @@
-import { FormEvent, useMemo, useState } from "react";
-import { PencilLine, Trash2 } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, PencilLine, Trash2 } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import { ModalShell } from "@/components/common/ModalShell";
 import { RecurringTransactionsSection } from "@/features/finance/components/RecurringTransactionsSection";
 import { VoiceAliasesSection } from "@/features/finance/components/VoiceAliasesSection";
-import { getFinanceIcon } from "@/features/finance/finance.icons";
+import { getFinanceIcon, FINANCE_ICON_OPTIONS } from "@/features/finance/finance.icons";
 import { getFinanceCategoryDisplayName } from "@/features/finance/utils/finance.i18n";
 import {
   FinanceCategory,
@@ -64,22 +64,6 @@ const CURRENCY_OPTIONS: Array<{ value: FinanceCurrency; label: string }> = [
   { value: "GBP", label: "GBP (£)" },
   { value: "IRR", label: "IRR (﷼)" },
 ];
-const CATEGORY_ICON_OPTIONS = [
-  "grocery",
-  "transport",
-  "bills",
-  "health",
-  "entertainment",
-  "travel",
-  "shopping",
-  "food",
-  "salary",
-  "freelance",
-  "investment",
-  "gift",
-  "other",
-] as const;
-
 const DEFAULT_CATEGORY_FORM: CategoryFormState = {
   name: "",
   type: "expense",
@@ -131,6 +115,19 @@ export function FinanceSettingsModal({
   }));
   const [merchantRuleError, setMerchantRuleError] = useState("");
   const [deleteCategoryMessage, setDeleteCategoryMessage] = useState("");
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
+  const iconPickerRef = useRef<HTMLDivElement>(null);
+
+  // Close icon picker on outside click
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (iconPickerRef.current && !iconPickerRef.current.contains(e.target as Node)) {
+        setIconPickerOpen(false);
+      }
+    }
+    if (iconPickerOpen) document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [iconPickerOpen]);
 
   const sortedCategories = useMemo(
     () =>
@@ -375,31 +372,44 @@ export function FinanceSettingsModal({
                 </select>
               </label>
 
-              <label className="auth-form__field">
+              <div className="auth-form__field">
                 <span className="auth-form__label">{t("finance.icon")}</span>
-                <select
-                  className="auth-form__input"
-                  onChange={(event) =>
-                    setCategoryForm((current) => ({ ...current, icon: event.target.value }))
-                  }
-                  value={categoryForm.icon}
-                >
-                  {CATEGORY_ICON_OPTIONS.map((icon) => (
-                    <option key={icon} value={icon}>
-                      {getFinanceCategoryDisplayName(
-                        {
-                          id: icon,
-                          name: icon,
-                          type: "expense",
-                          icon,
-                          color: "#000000",
-                        },
-                        t,
-                      )}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <div className="finance-icon-dropdown" ref={iconPickerRef}>
+                  <button
+                    type="button"
+                    className="finance-icon-dropdown__trigger auth-form__input"
+                    onClick={() => setIconPickerOpen((o) => !o)}
+                  >
+                    {(() => {
+                      const selected = FINANCE_ICON_OPTIONS.find((o) => o.key === categoryForm.icon);
+                      const SelIcon = selected?.Icon ?? FINANCE_ICON_OPTIONS[0].Icon;
+                      return <SelIcon size={20} />;
+                    })()}
+                    <ChevronDown size={16} className={iconPickerOpen ? "finance-icon-dropdown__chevron--open" : ""} />
+                  </button>
+                  {iconPickerOpen && (
+                    <div className="finance-icon-dropdown__menu">
+                      {FINANCE_ICON_OPTIONS.map(({ key, Icon }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className={[
+                            "finance-icon-picker__item",
+                            categoryForm.icon === key ? "finance-icon-picker__item--selected" : "",
+                          ].join(" ")}
+                          onClick={() => {
+                            setCategoryForm((current) => ({ ...current, icon: key }));
+                            setIconPickerOpen(false);
+                          }}
+                          title={key}
+                        >
+                          <Icon size={20} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <label className="auth-form__field">
                 <span className="auth-form__label">{t("finance.color")}</span>

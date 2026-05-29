@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Allows cleartext (http://) traffic to any domain.
+  Required for local AI endpoints such as Ollama running on http://192.168.x.x:11434
+  or any custom API server without TLS.
+  This is a debug/development config — for production, restrict to specific domains.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

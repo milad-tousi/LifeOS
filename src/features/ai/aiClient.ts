@@ -82,7 +82,7 @@ export async function generateText(
 
   const adapter = ADAPTERS[sanitizedSettings.provider];
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+  const timeoutId = window.setTimeout(() => controller.abort(), 45000);
 
   try {
     const response = await fetch(adapter.endpoint(sanitizedSettings.baseUrl), {

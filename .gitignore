@@ -1,5 +1,7 @@
 node_modules/
 dist/
+dist-android/
+.dist-android/
 .DS_Store
 Thumbs.db
 .env.local
@@ -13,4 +15,25 @@ vite.config.d.ts
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
-capacitor.config.ts
+# capacitor.config.ts is intentionally tracked
+
+# Android build artifacts
+*.apk
+*.aab
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+
+# Gradle caches (sandbox build)
+.gradle-cache/
+.gradle-proj-cache/
+.gradle-pid
+.apk-build/
+gc/
+bld/
+pc/
+jdk17/
+
+# Output folder (built APKs for download)
+output/

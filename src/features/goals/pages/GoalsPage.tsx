@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { goalsRepository } from "@/domains/goals/repository";
 import { ScreenHeader } from "@/components/common/ScreenHeader";
 import { GoalCard } from "@/features/goals/components/GoalCard";
 import { GoalCarousel } from "@/features/goals/components/GoalCarousel";
@@ -18,6 +19,12 @@ export function GoalsPage(): JSX.Element {
 
   function openCreateGoal(): void {
     navigate("/goals/new");
+  }
+
+  async function deleteGoal(goalId: string): Promise<void> {
+    if (window.confirm(t("goals.confirmDelete"))) {
+      await goalsRepository.remove(goalId);
+    }
   }
 
   return (
@@ -44,12 +51,13 @@ export function GoalsPage(): JSX.Element {
                 data={goalData}
                 key={goalData.goal.id}
                 onClick={() => openGoal(goalData.goal.id)}
+                onDelete={() => { void deleteGoal(goalData.goal.id); }}
               />
             ))}
           </div>
 
           <div className="goals-page__mobile-carousel">
-            <GoalCarousel goals={goals} onOpenGoal={openGoal} />
+            <GoalCarousel goals={goals} onDeleteGoal={(id) => { void deleteGoal(id); }} onOpenGoal={openGoal} />
           </div>
         </>
       )}

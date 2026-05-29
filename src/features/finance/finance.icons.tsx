@@ -2,22 +2,35 @@ import {
   Banknote,
   BriefcaseBusiness,
   Bus,
+  Car,
   Clapperboard,
+  CreditCard,
+  Dumbbell,
   Gift,
   HandCoins,
   HeartPulse,
+  Home,
   Landmark,
   LucideIcon,
+  Music,
+  Plane,
   Receipt,
   Salad,
   ShoppingBag,
+  ShoppingCart,
+  Smartphone,
   Sparkles,
   Train,
   TrendingUp,
+  Tv,
   UtensilsCrossed,
+  Wallet,
+  Wrench,
+  Zap,
 } from "lucide-react";
 
 const FINANCE_ICON_MAP: Record<string, LucideIcon> = {
+  // Original icons
   bills: Receipt,
   entertainment: Clapperboard,
   food: UtensilsCrossed,
@@ -33,8 +46,53 @@ const FINANCE_ICON_MAP: Record<string, LucideIcon> = {
   travel: Bus,
   wallet: Landmark,
   income: HandCoins,
+  // Extended icons
+  car: Car,
+  cart: ShoppingCart,
+  creditcard: CreditCard,
+  cash: Wallet,
+  home: Home,
+  phone: Smartphone,
+  music: Music,
+  tv: Tv,
+  gym: Dumbbell,
+  plane: Plane,
+  utilities: Zap,
+  maintenance: Wrench,
 };
 
+export type FinanceIconKey = keyof typeof FINANCE_ICON_MAP;
+
 export function getFinanceIcon(icon: string): LucideIcon {
-  return FINANCE_ICON_MAP[icon] ?? Sparkles;
+  return FINANCE_ICON_MAP[icon.toLowerCase()] ?? Sparkles;
 }
+
+/** Full list of selectable icons with their keys */
+export const FINANCE_ICON_OPTIONS: Array<{ key: string; Icon: LucideIcon; label: string }> = [
+  { key: "grocery",     Icon: Salad,           label: "grocery" },
+  { key: "food",        Icon: UtensilsCrossed,  label: "food" },
+  { key: "shopping",    Icon: ShoppingBag,      label: "shopping" },
+  { key: "cart",        Icon: ShoppingCart,     label: "cart" },
+  { key: "bills",       Icon: Receipt,          label: "bills" },
+  { key: "creditcard",  Icon: CreditCard,       label: "creditcard" },
+  { key: "cash",        Icon: Wallet,           label: "cash" },
+  { key: "health",      Icon: HeartPulse,       label: "health" },
+  { key: "transport",   Icon: Train,            label: "transport" },
+  { key: "car",         Icon: Car,              label: "car" },
+  { key: "travel",      Icon: Bus,              label: "travel" },
+  { key: "plane",       Icon: Plane,            label: "plane" },
+  { key: "home",        Icon: Home,             label: "home" },
+  { key: "entertainment", Icon: Clapperboard,   label: "entertainment" },
+  { key: "tv",          Icon: Tv,               label: "tv" },
+  { key: "music",       Icon: Music,            label: "music" },
+  { key: "gym",         Icon: Dumbbell,         label: "gym" },
+  { key: "phone",       Icon: Smartphone,       label: "phone" },
+  { key: "utilities",   Icon: Zap,              label: "utilities" },
+  { key: "maintenance", Icon: Wrench,           label: "maintenance" },
+  { key: "salary",      Icon: Banknote,         label: "salary" },
+  { key: "freelance",   Icon: BriefcaseBusiness,label: "freelance" },
+  { key: "investment",  Icon: TrendingUp,       label: "investment" },
+  { key: "income",      Icon: HandCoins,        label: "income" },
+  { key: "gift",        Icon: Gift,             label: "gift" },
+  { key: "other",       Icon: Sparkles,         label: "other" },
+];

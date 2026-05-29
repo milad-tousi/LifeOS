@@ -715,7 +715,8 @@ function getAverageMonthlyCategorySpend(
   return aggregate;
 }
 
-function isFlexibleCategory(name: string): boolean {
+function isFlexibleCategory(name: string | undefined): boolean {
+  if (!name) return false;
   const normalizedName = name.trim().toLowerCase();
   return FLEXIBLE_CATEGORY_KEYWORDS.some((keyword) => normalizedName.includes(keyword));
 }

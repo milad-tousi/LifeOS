@@ -1399,4 +1399,24 @@ export const en: Translations = {
   "habits.scheduleCustom": "Custom days: {days}",
   "habits.scheduleCustomUntil": "Custom days: {days} until {end}",
   "habits.noDaysSelected": "No days selected",
+
+  // ── notification engine message keys ────────────────────────────────────────
+  "notifications.type.taskOverdue": "Task Overdue",
+  "notifications.taskOverdueMsg": "Task '{title}' was due on {date} and is not done",
+  "notifications.type.goalOverdue": "Goal Overdue",
+  "notifications.goalOverdueMsg": "Goal '{title}' deadline was {date}",
+  "notifications.type.eventReminder": "Event Reminder",
+  "notifications.eventToday": "Event '{title}' is today",
+  "notifications.eventTodayAt": "Event '{title}' today at {time}",
+  "notifications.type.upcomingEvent": "Upcoming Event",
+  "notifications.eventTomorrowMsg": "Event '{title}' is tomorrow",
+  "notifications.type.paymentDueToday": "Payment Due Today",
+  "notifications.type.paymentDueTomorrow": "Payment Due Tomorrow",
+  "notifications.paymentTodayMsg": "Payment '{name}' is due today",
+  "notifications.paymentTomorrowMsg": "Payment '{name}' is due tomorrow",
+  "notifications.recurringPayment": "Recurring Payment",
+  "notifications.type.habitReminder": "Habit Reminder",
+  "notifications.habitReminderMsg": "Time for habit '{title}' — {time}",
+
+  "goals.confirmDelete": "Are you sure you want to delete this goal?",
 };

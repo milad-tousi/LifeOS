@@ -3,7 +3,8 @@ import { TranslationKey } from "@/i18n/i18n.types";
 
 type Translate = (key: TranslationKey) => string;
 
-const DEFAULT_CATEGORY_KEYS: Record<string, TranslationKey> = {
+// Keys for SYSTEM / built-in categories only — matched by category.id
+const SYSTEM_CATEGORY_KEYS: Record<string, TranslationKey> = {
   bills: "finance.categories.bills",
   entertainment: "finance.categories.entertainment",
   food: "finance.categories.food",
@@ -19,6 +20,16 @@ const DEFAULT_CATEGORY_KEYS: Record<string, TranslationKey> = {
   travel: "finance.categories.travel",
 };
 
+/**
+ * Returns the display name for a finance category.
+ *
+ * Rules:
+ *  - System categories (id matches a known key) → translated name via i18n
+ *  - User-created categories → always use category.name as entered by the user
+ *
+ * The icon field is intentionally NOT used for name lookup, so choosing an
+ * icon like "grocery" never overwrites a custom name like "خریدهای متفرقه".
+ */
 export function getFinanceCategoryDisplayName(
   category: FinanceCategory | undefined,
   t: Translate,
@@ -27,11 +38,14 @@ export function getFinanceCategoryDisplayName(
     return t("finance.unknownCategory");
   }
 
-  const key =
-    DEFAULT_CATEGORY_KEYS[category.id.trim().toLowerCase()] ??
-    DEFAULT_CATEGORY_KEYS[category.icon.trim().toLowerCase()] ??
-    DEFAULT_CATEGORY_KEYS[category.name.trim().toLowerCase()];
-  return key ? t(key) : category.name;
+  // Only translate if the id itself matches a system category key
+  const systemKey = SYSTEM_CATEGORY_KEYS[(category.id ?? "").trim().toLowerCase()];
+  if (systemKey) {
+    return t(systemKey);
+  }
+
+  // User-created category — always show the name the user typed
+  return category.name;
 }
 
 export function getFinanceTypeDisplayName(type: TransactionType | "both" | "all", t: Translate): string {

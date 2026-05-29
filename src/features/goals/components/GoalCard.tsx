@@ -1,4 +1,4 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Trash2 } from "lucide-react";
 import { GoalProgress } from "@/features/goals/components/GoalProgress";
 import { renderGoalCategoryIcon } from "@/features/goals/components/goal-visuals";
 import { GoalCardData } from "@/features/goals/hooks/useGoals";
@@ -14,28 +14,43 @@ interface GoalCardProps {
   data: GoalCardData;
   isActive?: boolean;
   onClick: () => void;
+  onDelete?: () => void;
 }
 
-export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JSX.Element {
+export function GoalCard({ data, isActive = false, onClick, onDelete }: GoalCardProps): JSX.Element {
   const { direction, language, t } = useI18n();
   const { goal, habitProgress, linkedHabits, nextPendingTask, overallProgress, progress } = data;
 
   return (
-    <button
+    <div
       className={[
         "goal-card",
         isActive ? "goal-card--active" : "",
         direction === "rtl" ? "goal-card--rtl" : "",
       ].join(" ").trim()}
       onClick={onClick}
-      type="button"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(); }}
     >
       <div className="goal-card__top">
         <div className="goal-card__category">
           <span className="goal-card__category-icon">{renderGoalCategoryIcon(goal.category)}</span>
           <span className="goal-card__category-pill">{getGoalCategoryDisplayName(goal.category, t)}</span>
         </div>
-        <span className="goal-card__status">{getGoalStatusDisplayName(goal.status, t)}</span>
+        <div className="goal-card__top-actions">
+          <span className="goal-card__status">{getGoalStatusDisplayName(goal.status, t)}</span>
+          {onDelete ? (
+            <button
+              aria-label="Delete goal"
+              className="goal-card__delete-btn"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              type="button"
+            >
+              <Trash2 size={15} />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="goal-card__content">
@@ -101,7 +116,7 @@ export function GoalCard({ data, isActive = false, onClick }: GoalCardProps): JS
           </span>
         ) : null}
       </div>
-    </button>
+    </div>
   );
 }
 

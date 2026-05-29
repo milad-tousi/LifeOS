@@ -73,20 +73,22 @@ function guessCategoryFromMerchant(
   aiCategoryName: string | null,
   categories: FinanceCategory[],
 ): { categoryId: string; categoryName: string } | null {
-  const expenseCategories = categories.filter((c) => c.type !== "income");
+  const expenseCategories = categories.filter((c) => c.type !== "income" && c.name);
 
   // 1. Try AI-provided category name first
   if (aiCategoryName) {
+    const aiLower = aiCategoryName.toLowerCase();
     const aiMatch = expenseCategories.find(
-      (c) => c.name.toLowerCase() === aiCategoryName.toLowerCase(),
+      (c) => (c.name ?? "").toLowerCase() === aiLower,
     );
     if (aiMatch) return { categoryId: aiMatch.id, categoryName: aiMatch.name };
 
     // Partial match
     const aiPartial = expenseCategories.find(
-      (c) =>
-        c.name.toLowerCase().includes(aiCategoryName.toLowerCase()) ||
-        aiCategoryName.toLowerCase().includes(c.name.toLowerCase()),
+      (c) => {
+        const cName = (c.name ?? "").toLowerCase();
+        return cName.includes(aiLower) || aiLower.includes(cName);
+      },
     );
     if (aiPartial) return { categoryId: aiPartial.id, categoryName: aiPartial.name };
   }
@@ -96,7 +98,7 @@ function guessCategoryFromMerchant(
   for (const { pattern, categoryHints } of MERCHANT_CATEGORY_HINTS) {
     if (pattern.test(searchText)) {
       for (const hint of categoryHints) {
-        const match = expenseCategories.find((c) => c.name.toLowerCase().includes(hint));
+        const match = expenseCategories.find((c) => (c.name ?? "").toLowerCase().includes(hint));
         if (match) return { categoryId: match.id, categoryName: match.name };
       }
     }
@@ -210,8 +212,6 @@ export function parseReceiptScanResult(
     categoryId: categoryMatch?.categoryId ?? "",
     categoryName: categoryMatch?.categoryName ?? "",
     description,
-    lineItems,
-    confidence,
-    warnings,
+    lineItems: lineItems ?? [],
   };
 }

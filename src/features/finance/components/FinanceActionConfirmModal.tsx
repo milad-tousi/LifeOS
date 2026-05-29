@@ -200,8 +200,8 @@ function BudgetConfirmForm({
     }
     const matchedCategory = categories.find(
       (c) =>
-        c.name.toLowerCase() === form.categoryName.toLowerCase() ||
-        c.id.toLowerCase() === form.categoryName.toLowerCase(),
+        (c.name ?? "").toLowerCase() === form.categoryName.toLowerCase() ||
+        (c.id ?? "").toLowerCase() === form.categoryName.toLowerCase(),
     );
     if (!matchedCategory) {
       setError(t("finance.assistant.ai.confirm.budgetCategoryNotFound").replace("{name}", form.categoryName));

@@ -251,7 +251,7 @@ function parseAction(raw: unknown): AiFinanceAction | null {
 function deduplicateInsights(insights: AiFinanceInsight[]): AiFinanceInsight[] {
   const seen = new Set<string>();
   return insights.filter((i) => {
-    const key = i.title.toLowerCase().trim();
+    const key = (i.title ?? "").toLowerCase().trim();
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -261,7 +261,7 @@ function deduplicateInsights(insights: AiFinanceInsight[]): AiFinanceInsight[] {
 function deduplicateActions(actions: AiFinanceAction[]): AiFinanceAction[] {
   const seen = new Set<string>();
   return actions.filter((a) => {
-    const key = a.title.toLowerCase().trim();
+    const key = (a.title ?? "").toLowerCase().trim();
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
