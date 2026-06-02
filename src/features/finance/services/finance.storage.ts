@@ -12,6 +12,7 @@ import {
 
 const DEFAULT_FINANCE_SETTINGS: FinanceSettings = {
   currency: "EUR",
+  financeCycleStartDay: 1,
 };
 
 const DEFAULT_FINANCE_CATEGORIES: FinanceCategory[] = [
@@ -325,7 +326,14 @@ function migrateSettings(value: unknown): FinanceSettings {
     return DEFAULT_FINANCE_SETTINGS;
   }
 
-  return { currency: candidate.currency };
+  // Migrate financeCycleStartDay — default 1 for existing users without this field
+  const rawDay = Number(candidate.financeCycleStartDay);
+  const financeCycleStartDay =
+    Number.isFinite(rawDay) && rawDay >= 1 && rawDay <= 29
+      ? Math.round(rawDay)
+      : 1;
+
+  return { currency: candidate.currency, financeCycleStartDay };
 }
 
 function ensureFinanceSeedData(): void {

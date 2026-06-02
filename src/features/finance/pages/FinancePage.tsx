@@ -45,6 +45,9 @@ export function FinancePage(): JSX.Element {
     updateTransaction,
     updateVoiceAlias,
   } = useFinanceState();
+
+  const cycleStartDay = settings.financeCycleStartDay ?? 1;
+
   const assistantAnalytics = useMemo(
     () =>
       calculateFinanceAnalyticsDashboard({
@@ -72,6 +75,7 @@ export function FinancePage(): JSX.Element {
           budgetUsage={budgetUsage}
           categories={categories}
           currency={settings.currency}
+          cycleStartDay={cycleStartDay}
           insights={insights}
           onOpenSettings={() => setIsSettingsOpen(true)}
           summary={summary}
@@ -83,6 +87,7 @@ export function FinancePage(): JSX.Element {
         <FinanceTransactionsTab
           categories={categories}
           currency={settings.currency}
+          cycleStartDay={cycleStartDay}
           merchantRules={merchantRules}
           onAddTransaction={addTransaction}
           onDeleteTransaction={deleteTransaction}
@@ -99,6 +104,7 @@ export function FinancePage(): JSX.Element {
           budgetUsage={budgetUsage}
           categories={categories}
           currency={settings.currency}
+          cycleStartDay={cycleStartDay}
           transactions={transactions}
         />
       ) : null}

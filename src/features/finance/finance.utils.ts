@@ -8,29 +8,28 @@ import {
   TransactionType,
 } from "@/features/finance/types/finance.types";
 import { MonthlyBudgetUsage } from "@/features/finance/utils/finance.budgets";
+import {
+  getCurrentFinanceCycle,
+  isInCycleRange,
+} from "@/features/finance/utils/financeCycle.utils";
 
 export function calculateFinanceSummary(
   transactions: FinanceTransaction[],
-  now = new Date(),
+  cycleStartDay = 1,
 ): FinanceSummary {
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  const cycle = getCurrentFinanceCycle(cycleStartDay);
 
-  const monthlyIncome = transactions
-    .filter(
-      (transaction) =>
-        transaction.type === "income" &&
-        isSameMonth(transaction.date, currentMonth, currentYear),
-    )
-    .reduce((total, transaction) => total + transaction.amount, 0);
+  const cycleTransactions = transactions.filter((tx) =>
+    isInCycleRange(tx.date, cycle.startDate, cycle.endDate),
+  );
 
-  const monthlyExpenses = transactions
-    .filter(
-      (transaction) =>
-        transaction.type === "expense" &&
-        isSameMonth(transaction.date, currentMonth, currentYear),
-    )
-    .reduce((total, transaction) => total + transaction.amount, 0);
+  const monthlyIncome = cycleTransactions
+    .filter((tx) => tx.type === "income")
+    .reduce((total, tx) => total + tx.amount, 0);
+
+  const monthlyExpenses = cycleTransactions
+    .filter((tx) => tx.type === "expense")
+    .reduce((total, tx) => total + tx.amount, 0);
 
   const totalBalance = transactions.reduce(
     (total, transaction) =>
@@ -141,16 +140,6 @@ export function getCategoryById(
   categoryId: string,
 ): FinanceCategory | undefined {
   return categories.find((category) => category.id === categoryId);
-}
-
-function isSameMonth(dateValue: string, month: number, year: number): boolean {
-  const safeDate = new Date(`${dateValue}T12:00:00`);
-
-  if (Number.isNaN(safeDate.getTime())) {
-    return false;
-  }
-
-  return safeDate.getMonth() === month && safeDate.getFullYear() === year;
 }
 
 function getRecurringMonthlyEstimate(

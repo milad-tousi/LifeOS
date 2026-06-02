@@ -11266,3 +11266,147 @@ button.dashboard-mind-node {
   color: var(--text-muted);
   cursor: pointer;
 }
+
+/* ── Finance Cycle Banner (Overview tab) ─────────────────────────────────── */
+
+.finance-cycle-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  background: var(--accent-light, rgba(99, 102, 241, 0.08));
+  border: 1px solid var(--accent-border, rgba(99, 102, 241, 0.18));
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.finance-cycle-banner svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.finance-cycle-banner__label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.finance-cycle-banner__range {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Finance Cycle Filter Bar (Analytics tab) ────────────────────────────── */
+
+.finance-cycle-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--surface-secondary, var(--card-bg));
+  border: 1px solid var(--border-subtle, var(--border));
+  margin-bottom: 0.5rem;
+}
+
+.finance-cycle-filter-bar__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.finance-cycle-filter-bar__label svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.finance-cycle-filter-bar__inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.finance-cycle-filter-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.finance-cycle-filter-bar__field-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.finance-cycle-filter-bar__date-input {
+  padding: 0.35rem 0.6rem !important;
+  font-size: 0.82rem !important;
+  min-width: 140px;
+}
+
+/* ── Finance Settings: cycle section ─────────────────────────────────────── */
+
+.finance-settings-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  line-height: 1.5;
+}
+
+.finance-cycle-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.finance-cycle-examples__title {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.finance-cycle-examples__item {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  background: var(--surface-secondary, var(--card-bg));
+  border: 1px solid var(--border-subtle, var(--border));
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* RTL overrides */
+.finance-cycle-banner--rtl {
+  direction: rtl;
+}
+
+/* RTL: filter bar — direction:rtl on the element itself handles ordering */
+.finance-cycle-filter-bar--rtl {
+  direction: rtl;
+}
+
+/* RTL: field label right-aligned */
+.finance-cycle-filter-bar--rtl .finance-cycle-filter-bar__field-label {
+  text-align: right;
+}
+
+/* RTL: LocalizedDateInput trigger inside RTL filter bar — icon on left, text on right */
+.finance-cycle-filter-bar--rtl .localized-date-input {
+  direction: rtl;
+}
+
+.finance-cycle-filter-bar--rtl .localized-date-input__trigger {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.rtl .finance-cycle-examples {
+  flex-direction: row-reverse;
+}

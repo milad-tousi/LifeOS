@@ -68,10 +68,15 @@ export function useFinanceState(): UseFinanceStateResult {
   const [smartRules] = useState<SmartRule[]>(snapshot.smartRules);
   const [voiceAliases, setVoiceAliases] = useState<VoiceAlias[]>(snapshot.voiceAliases);
 
-  const summary = useMemo(() => calculateFinanceSummary(transactions), [transactions]);
+  const cycleStartDay = settings.financeCycleStartDay ?? 1;
+
+  const summary = useMemo(
+    () => calculateFinanceSummary(transactions, cycleStartDay),
+    [transactions, cycleStartDay],
+  );
   const budgetUsage = useMemo(
-    () => getMonthlyBudgetUsage(transactions, categories),
-    [transactions, categories],
+    () => getMonthlyBudgetUsage(transactions, categories, cycleStartDay),
+    [transactions, categories, cycleStartDay],
   );
   const analytics = useMemo(
     () => calculateFinanceAnalytics(transactions, budgetUsage, recurringTransactions),

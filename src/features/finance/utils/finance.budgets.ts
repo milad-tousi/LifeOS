@@ -1,4 +1,8 @@
 import { FinanceCategory, FinanceTransaction } from "@/features/finance/types/finance.types";
+import {
+  getCurrentFinanceCycle,
+  isInCycleRange,
+} from "@/features/finance/utils/financeCycle.utils";
 
 export interface MonthlyBudgetUsage {
   budgetAmount: number;
@@ -8,13 +12,20 @@ export interface MonthlyBudgetUsage {
   spentAmount: number;
 }
 
+/**
+ * Calculates budget usage for each category with a monthly budget,
+ * scoped to the current finance cycle (derived from cycleStartDay).
+ *
+ * @param transactions All transactions
+ * @param categories   All categories
+ * @param cycleStartDay  Day of month the cycle begins (1–28, default 1)
+ */
 export function getMonthlyBudgetUsage(
   transactions: FinanceTransaction[],
   categories: FinanceCategory[],
-  monthDate = new Date(),
+  cycleStartDay = 1,
 ): MonthlyBudgetUsage[] {
-  const month = monthDate.getMonth();
-  const year = monthDate.getFullYear();
+  const cycle = getCurrentFinanceCycle(cycleStartDay);
 
   return categories
     .filter(
@@ -29,7 +40,7 @@ export function getMonthlyBudgetUsage(
           (transaction) =>
             transaction.type === "expense" &&
             transaction.categoryId === category.id &&
-            isSameMonth(transaction.date, month, year),
+            isInCycleRange(transaction.date, cycle.startDate, cycle.endDate),
         )
         .reduce((total, transaction) => total + transaction.amount, 0);
 
@@ -57,14 +68,4 @@ export function getBudgetStatus(
   }
 
   return "safe";
-}
-
-function isSameMonth(dateValue: string, month: number, year: number): boolean {
-  const safeDate = new Date(`${dateValue}T12:00:00`);
-
-  if (Number.isNaN(safeDate.getTime())) {
-    return false;
-  }
-
-  return safeDate.getMonth() === month && safeDate.getFullYear() === year;
 }

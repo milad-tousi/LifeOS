@@ -95,6 +95,11 @@ export interface VoiceAlias {
 
 export interface FinanceSettings {
   currency: FinanceCurrency;
+  /**
+   * Day of the month (1–28) on which the user's financial cycle begins.
+   * Defaults to 1 (standard calendar month).
+   */
+  financeCycleStartDay: number;
 }
 
 export interface FinanceSummary {

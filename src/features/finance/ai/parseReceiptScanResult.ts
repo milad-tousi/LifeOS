@@ -213,5 +213,7 @@ export function parseReceiptScanResult(
     categoryName: categoryMatch?.categoryName ?? "",
     description,
     lineItems: lineItems ?? [],
+    confidence,
+    warnings,
   };
 }

@@ -23,11 +23,16 @@ import {
   searchTransactions,
   sortTransactions,
 } from "@/features/finance/utils/finance.filters";
+import {
+  getCurrentFinanceCycle,
+  toDateString,
+} from "@/features/finance/utils/financeCycle.utils";
 import { useI18n } from "@/i18n";
 
 interface FinanceTransactionsTabProps {
   categories: FinanceCategory[];
   currency: FinanceCurrency;
+  cycleStartDay: number;
   merchantRules: FinanceMerchantRule[];
   onAddTransaction: (transaction: FinanceTransaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
@@ -37,63 +42,23 @@ interface FinanceTransactionsTabProps {
   voiceAliases: VoiceAlias[];
 }
 
-const DEFAULT_FILTERS: FinanceTransactionFilters = {
-  type: "all",
-  categoryId: "",
-  fromDate: "",
-  toDate: "",
-  minAmount: "",
-  maxAmount: "",
-  quickDate: "all",
-};
-
-function getQuickDateRange(
-  quickDate: FinanceTransactionFilters["quickDate"],
-  now = new Date(),
-): Pick<FinanceTransactionFilters, "fromDate" | "toDate"> {
-  const end = new Date(now);
-  const today = end.toISOString().slice(0, 10);
-
-  switch (quickDate) {
-    case "this-month": {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      return {
-        fromDate: start.toISOString().slice(0, 10),
-        toDate: today,
-      };
-    }
-    case "last-month": {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-      return {
-        fromDate: start.toISOString().slice(0, 10),
-        toDate: endOfLastMonth.toISOString().slice(0, 10),
-      };
-    }
-    case "last-30-days": {
-      const start = new Date(now);
-      start.setDate(start.getDate() - 29);
-      return {
-        fromDate: start.toISOString().slice(0, 10),
-        toDate: today,
-      };
-    }
-    case "this-year": {
-      const start = new Date(now.getFullYear(), 0, 1);
-      return {
-        fromDate: start.toISOString().slice(0, 10),
-        toDate: today,
-      };
-    }
-    case "all":
-    default:
-      return { fromDate: "", toDate: "" };
-  }
+function buildCycleFilter(cycleStartDay: number): FinanceTransactionFilters {
+  const cycle = getCurrentFinanceCycle(cycleStartDay);
+  return {
+    type: "all",
+    categoryId: "",
+    fromDate: toDateString(cycle.startDate),
+    toDate: toDateString(cycle.endDate),
+    minAmount: "",
+    maxAmount: "",
+    quickDate: "all",
+  };
 }
 
 export function FinanceTransactionsTab({
   categories,
   currency,
+  cycleStartDay,
   merchantRules,
   onAddTransaction,
   onDeleteTransaction,
@@ -104,28 +69,23 @@ export function FinanceTransactionsTab({
 }: FinanceTransactionsTabProps): JSX.Element {
   const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<FinanceTransactionFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<FinanceTransactionFilters>(
+    () => buildCycleFilter(cycleStartDay),
+  );
   const [sortOption, setSortOption] = useState<FinanceTransactionSortOption>("newest");
   const [transactionToEdit, setTransactionToEdit] = useState<FinanceTransaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] =
     useState<FinanceTransaction | null>(null);
 
+  // When cycleStartDay changes in settings, reset filters to new cycle range
   useEffect(() => {
-    if (filters.quickDate === "all") {
-      return;
-    }
-
-    setFilters((current) => ({
-      ...current,
-      ...getQuickDateRange(current.quickDate),
-    }));
-  }, [filters.quickDate]);
+    setFilters(buildCycleFilter(cycleStartDay));
+  }, [cycleStartDay]);
 
   const filteredTransactions = useMemo(() => {
-    const searchedTransactions = searchTransactions(transactions, searchQuery, categories);
-    const filteredTransactions = filterTransactions(searchedTransactions, filters);
-
-    return sortTransactions(filteredTransactions, sortOption);
+    const searched = searchTransactions(transactions, searchQuery, categories);
+    const filtered = filterTransactions(searched, filters);
+    return sortTransactions(filtered, sortOption);
   }, [categories, filters, searchQuery, sortOption, transactions]);
 
   const filteredSummary = useMemo(
@@ -150,15 +110,12 @@ export function FinanceTransactionsTab({
 
   function clearFilters(): void {
     setSearchQuery("");
-    setFilters(DEFAULT_FILTERS);
+    setFilters(buildCycleFilter(cycleStartDay));
     setSortOption("newest");
   }
 
   function handleUpdateTransaction(value: TransactionFormValue): void {
-    if (!transactionToEdit) {
-      return;
-    }
-
+    if (!transactionToEdit) return;
     onUpdateTransaction({
       ...transactionToEdit,
       ...value,
@@ -213,15 +170,15 @@ export function FinanceTransactionsTab({
         </div>
       </Card>
 
-        <EditTransactionModal
-          categories={categories}
-          isOpen={transactionToEdit !== null}
-          merchantRules={merchantRules}
-          onClose={() => setTransactionToEdit(null)}
-          onSubmit={handleUpdateTransaction}
-          smartRules={smartRules}
-          transaction={transactionToEdit}
-        />
+      <EditTransactionModal
+        categories={categories}
+        isOpen={transactionToEdit !== null}
+        merchantRules={merchantRules}
+        onClose={() => setTransactionToEdit(null)}
+        onSubmit={handleUpdateTransaction}
+        smartRules={smartRules}
+        transaction={transactionToEdit}
+      />
 
       <DeleteTransactionDialog
         isOpen={transactionToDelete !== null}

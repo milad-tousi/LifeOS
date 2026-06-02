@@ -16,6 +16,7 @@ import {
   VoiceAlias,
 } from "@/features/finance/types/finance.types";
 import { createId } from "@/lib/id";
+import { buildCycleExamples, clampCycleStartDay } from "@/features/finance/utils/financeCycle.utils";
 import { useI18n } from "@/i18n";
 
 interface FinanceSettingsModalProps {
@@ -102,7 +103,7 @@ export function FinanceSettingsModal({
   settings,
   voiceAliases,
 }: FinanceSettingsModalProps): JSX.Element | null {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryForm, setCategoryForm] = useState<CategoryFormState>(DEFAULT_CATEGORY_FORM);
   const [categoryError, setCategoryError] = useState("");
@@ -331,6 +332,43 @@ export function FinanceSettingsModal({
                 ))}
               </select>
             </label>
+          </div>
+        </Card>
+
+        {/* ── Financial Cycle ─────────────────────────────────────────────── */}
+        <Card
+          subtitle={t("finance.cycle.settingsDescription")}
+          title={t("finance.cycle.settingsTitle")}
+        >
+          <div className="finance-settings-section" dir={language === "fa" ? "rtl" : "ltr"}>
+            <label className="auth-form__field">
+              <span className="auth-form__label">{t("finance.cycle.startDayLabel")}</span>
+              <input
+                className="auth-form__input"
+                inputMode="numeric"
+                max={29}
+                min={1}
+                onChange={(e) => {
+                  const raw = parseInt(e.target.value, 10);
+                  if (!Number.isNaN(raw)) {
+                    onUpdateSettings({
+                      ...settings,
+                      financeCycleStartDay: clampCycleStartDay(raw),
+                    });
+                  }
+                }}
+                type="number"
+                value={settings.financeCycleStartDay ?? 1}
+              />
+              <span className="finance-settings-hint">{t("finance.cycle.startDayHint")}</span>
+            </label>
+
+            <div className="finance-cycle-examples" dir={language === "fa" ? "rtl" : "ltr"}>
+              <span className="finance-cycle-examples__title">{t("finance.cycle.examplesTitle")}:</span>
+              {buildCycleExamples(settings.financeCycleStartDay ?? 1, language).map((label, i) => (
+                <span className="finance-cycle-examples__item" key={i}>{label}</span>
+              ))}
+            </div>
           </div>
         </Card>
 
