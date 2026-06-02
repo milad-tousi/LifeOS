@@ -20,24 +20,41 @@ import { useI18n } from "@/i18n";
 interface FinanceAnalyticsDashboardProps {
   categories: FinanceCategory[];
   currency: FinanceCurrency;
+  /**
+   * When provided, the dashboard uses this exact date range instead of the
+   * period selector (weekly / monthly / etc.). The period buttons are hidden.
+   */
+  fromDate?: string;
+  toDate?: string;
   transactions: FinanceTransaction[];
 }
 
 export function FinanceAnalyticsDashboard({
   categories,
   currency,
+  fromDate,
+  toDate,
   transactions,
 }: FinanceAnalyticsDashboardProps): JSX.Element {
   const { t } = useI18n();
+
+  // If an explicit date range is provided, force "custom" period (no period picker shown)
+  const hasCustomRange = Boolean(fromDate && toDate);
   const [period, setPeriod] = useState<FinanceAnalyticsPeriod>("monthly");
+  const activePeriod: FinanceAnalyticsPeriod = hasCustomRange ? "custom" : period;
+
   const analytics = useMemo(
     () =>
       calculateFinanceAnalytics({
         categories,
-        period,
+        period: activePeriod,
+        customDateRange:
+          hasCustomRange && fromDate && toDate
+            ? { fromDate, toDate }
+            : undefined,
         transactions,
       }),
-    [categories, period, transactions],
+    [categories, activePeriod, fromDate, toDate, hasCustomRange, transactions],
   );
   const hasTransactions = analytics.transactionCount > 0;
 
@@ -50,7 +67,10 @@ export function FinanceAnalyticsDashboard({
           <p>{t("finance.financialDashboardDescription")}</p>
         </div>
         <div className="finance-analytics-hero__side">
-          <FinancePeriodFilter onChange={setPeriod} period={period} />
+          {/* Only show period buttons when no explicit date range is active */}
+          {!hasCustomRange ? (
+            <FinancePeriodFilter onChange={setPeriod} period={period} />
+          ) : null}
           <div className="finance-analytics-hero__stats">
             <div>
               <span>{t("finance.totalIncome")}</span>

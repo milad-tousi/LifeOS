@@ -41,15 +41,6 @@ export function FinanceAnalyticsTab({
     return formatFinanceCycleLabel(cycle, language);
   }, [cycleStartDay, language]);
 
-  // Pre-filter transactions by the selected date range
-  const rangedTransactions = useMemo(
-    () =>
-      transactions.filter(
-        (tx) => tx.date >= dateRange.fromDate && tx.date <= dateRange.toDate,
-      ),
-    [transactions, dateRange],
-  );
-
   const isRtl = language === "fa";
   const dir = isRtl ? "rtl" : "ltr";
 
@@ -108,7 +99,9 @@ export function FinanceAnalyticsTab({
       <FinanceAnalyticsDashboard
         categories={categories}
         currency={currency}
-        transactions={rangedTransactions}
+        fromDate={dateRange.fromDate}
+        toDate={dateRange.toDate}
+        transactions={transactions}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import {
   FinanceTransaction,
 } from "@/features/finance/types/finance.types";
 
-export type FinanceAnalyticsPeriod = "weekly" | "monthly" | "yearly" | "all-time";
+export type FinanceAnalyticsPeriod = "weekly" | "monthly" | "yearly" | "all-time" | "custom";
 export type FinanceAnalyticsRange = FinanceAnalyticsPeriod;
 
 export interface FinanceTrendPoint {
@@ -77,6 +77,8 @@ export interface FinanceAnalyticsDashboard {
 
 interface CalculateFinanceAnalyticsInput {
   categories: FinanceCategory[];
+  /** Explicit date range — only used when period === "custom" */
+  customDateRange?: { fromDate: string; toDate: string };
   now?: Date;
   period: FinanceAnalyticsPeriod;
   transactions: FinanceTransaction[];
@@ -106,8 +108,8 @@ const FALLBACK_COLORS = [
 export function calculateFinanceAnalytics(
   input: CalculateFinanceAnalyticsInput,
 ): FinanceAnalyticsDashboard {
-  const { categories, now = new Date(), period, transactions } = input;
-  const range = getDateRange(period, now, transactions);
+  const { categories, customDateRange, now = new Date(), period, transactions } = input;
+  const range = getDateRange(period, now, transactions, customDateRange);
   const periodTransactions = filterTransactionsByRange(transactions, range);
   const totalIncome = sumTransactions(periodTransactions, "income");
   const totalExpenses = sumTransactions(periodTransactions, "expense");
@@ -484,7 +486,16 @@ function getDateRange(
   period: FinanceAnalyticsPeriod,
   now: Date,
   transactions: FinanceTransaction[],
+  customDateRange?: { fromDate: string; toDate: string },
 ): DateRange {
+  if (period === "custom" && customDateRange) {
+    const start = parseFinanceDate(customDateRange.fromDate);
+    const end = parseFinanceDate(customDateRange.toDate);
+    return {
+      start: start ? startOfDay(start) : undefined,
+      end: end ? endOfDay(end) : undefined,
+    };
+  }
   switch (period) {
     case "weekly":
       return { start: startOfWeek(now), end: endOfWeek(now) };
@@ -493,6 +504,8 @@ function getDateRange(
     case "yearly":
       return { start: startOfYear(now), end: endOfYear(now) };
     case "all-time":
+    case "custom":
+    default:
       return {
         start: transactions.length > 0 ? getFirstTransactionDate(transactions) : undefined,
         end: endOfDay(now),
@@ -581,7 +594,10 @@ function getPeriodLabel(period: FinanceAnalyticsPeriod): string {
       return "this month";
     case "yearly":
       return "this year";
+    case "custom":
+      return "selected range";
     case "all-time":
+    default:
       return "all time";
   }
 }
