@@ -71,5 +71,5 @@ Run linting:
 ```bash
 npm run lint
 ```
-
 new release available
+
