@@ -71,4 +71,4 @@ Run linting:
 ```bash
 npm run lint
 ```
-create new release
+create new release will be available
